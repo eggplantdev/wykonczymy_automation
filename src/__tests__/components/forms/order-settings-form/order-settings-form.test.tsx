@@ -12,12 +12,15 @@ const SETTINGS = {
   ],
   bigBagPrice: 800,
   containerPrice: 1500,
-  defaultSupplierId: 'supplier-alfa',
+  defaultBigBagSupplierId: 'supplier-alfa',
+  defaultContainerSupplierId: undefined,
 }
 
 function renderForm() {
   vi.mocked(saveOrderSettingsAction).mockResolvedValue({ success: true })
-  render(<OrderSettingsForm formId="order-settings" settings={SETTINGS} onSubmitSuccess={vi.fn()} />)
+  render(
+    <OrderSettingsForm formId="order-settings" settings={SETTINGS} onSubmitSuccess={vi.fn()} />,
+  )
   return userEvent.setup()
 }
 
@@ -45,7 +48,37 @@ describe('OrderSettingsForm', () => {
       ],
       bigBagPrice: 900,
       containerPrice: 1500,
+      defaultBigBagSupplierId: 'supplier-alfa',
+      defaultContainerSupplierId: undefined,
     })
+  })
+
+  it('shows each kind default and sends a newly picked container default', async () => {
+    const user = renderForm()
+
+    expect(screen.getByRole('combobox', { name: 'Domyślny dostawca big bag' })).toHaveTextContent(
+      'Alfa Kontenery',
+    )
+    expect(screen.getByRole('combobox', { name: 'Domyślny dostawca kontenera' })).toHaveTextContent(
+      '— brak —',
+    )
+    await user.click(screen.getByRole('combobox', { name: 'Domyślny dostawca kontenera' }))
+    await user.click(await screen.findByRole('option', { name: 'Beta Wywóz' }))
+    await user.click(screen.getByRole('button', { name: 'Zapisz' }))
+
+    const data = await submitted()
+    expect(data.defaultBigBagSupplierId).toBe('supplier-alfa')
+    expect(data.defaultContainerSupplierId).toBe('supplier-beta')
+  })
+
+  it('clears a default whose supplier row is removed', async () => {
+    const user = renderForm()
+
+    await user.click(screen.getAllByRole('button', { name: 'Usuń dostawcę' })[0])
+
+    expect(screen.getByRole('combobox', { name: 'Domyślny dostawca big bag' })).toHaveTextContent(
+      '— brak —',
+    )
   })
 
   it('drops a removed row and sends an added one', async () => {

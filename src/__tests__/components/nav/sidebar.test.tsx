@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Home } from 'lucide-react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Sidebar } from '@/components/nav/sidebar'
 
@@ -14,7 +14,22 @@ vi.mock('@/hooks/use-nav-links', () => ({
 }))
 vi.mock('@/hooks/use-sidebar-collapsed', () => ({ useSidebarCollapsed: () => [true, vi.fn()] }))
 
+describe('Sidebar — account section', () => {
+  it('starts closed and opens from its toggle', async () => {
+    render(<Sidebar />)
+    expect(screen.queryByRole('button', { name: 'Wyloguj' })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Pokaż opcje konta' }))
+
+    expect(screen.getByRole('button', { name: 'Wyloguj' })).toBeInTheDocument()
+  })
+})
+
 describe('Sidebar — collapsed', () => {
+  beforeEach(() => {
+    localStorage.setItem('nav:sidebar-account', 'open')
+  })
+
   it('names the collapse handle on hover', async () => {
     render(<Sidebar />)
     await userEvent.hover(screen.getByRole('button', { name: 'Rozwiń menu' }))

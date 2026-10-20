@@ -32,16 +32,12 @@ export default async function UsersListPage() {
     registerNames: ownedRegisters(refData.cashRegisters, worker.id).map(
       (register) => register.name,
     ),
-    canTrash: canTrashAccount(session.user, worker),
+    canManage: canTrashAccount(session.user, worker),
   }))
 
   return (
     <PageWrapper title={PAGE_TITLES.employees}>
-      <UserDataTable
-        data={rows}
-        cashRegisters={refData.cashRegisters}
-        assignableRoles={assignableRoles(session.user.role)}
-      />
+      <UserDataTable data={rows} assignableRoles={assignableRoles(session.user.role)} />
     </PageWrapper>
   )
 }

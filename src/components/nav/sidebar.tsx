@@ -14,9 +14,20 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
 import { useTranslation } from '@/hooks/use-translation'
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed'
+import { usePersistedFlag } from '@/hooks/use-persisted-value'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Collapsible,
+  CollapsibleChevron,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { OPEN_STATES } from '@/components/ui/collapsible-section'
+import { Button } from '@/components/ui/button'
 import { EdgeHandlePill } from '@/components/ui/edge-handle-pill'
 import Link from 'next/link'
+
+const ACCOUNT_STORAGE_KEY = 'nav:sidebar-account'
 
 type SidebarPropsT = {
   openRouterBalance?: React.ReactNode
@@ -27,7 +38,9 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
   const { links, isActive } = useNavLinks()
   const [collapsed, setCollapsed] = useSidebarCollapsed()
   const { t } = useTranslation('shell')
+  const [accountOpen, setAccountOpen] = usePersistedFlag(ACCOUNT_STORAGE_KEY, OPEN_STATES, false)
   const toggleLabel = collapsed ? t('expandMenu') : t('collapseMenu')
+  const accountToggleLabel = accountOpen ? t('hideAccountMenu') : t('showAccountMenu')
 
   return (
     <aside
@@ -64,16 +77,39 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           ))}
         </nav>
       </div>
-      <div className="mt-auto flex flex-col gap-2 pt-4">
-        {!collapsed && (
-          <Link
-            href={`/pracownicy/${user.id}`}
-            className="text-foreground text-sm font-medium hover:underline"
-          >
-            {user.name}
-          </Link>
-        )}
-        <div className="flex flex-col gap-2">
+      <Collapsible
+        open={accountOpen}
+        onOpenChange={setAccountOpen}
+        className="mt-auto flex flex-col gap-2 pt-4"
+      >
+        <div
+          className={cn(
+            'flex items-center gap-1',
+            collapsed ? 'justify-center' : 'justify-between',
+          )}
+        >
+          {!collapsed && (
+            <Link
+              href={`/pracownicy/${user.id}`}
+              className="text-foreground truncate text-sm font-medium hover:underline"
+            >
+              {user.name}
+            </Link>
+          )}
+          <SimpleTooltip content={accountToggleLabel}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                aria-label={accountToggleLabel}
+              >
+                <CollapsibleChevron open={accountOpen} />
+              </Button>
+            </CollapsibleTrigger>
+          </SimpleTooltip>
+        </div>
+        <CollapsibleContent className="flex flex-col gap-2">
           <CollapsibleTooltip collapsed={collapsed} label={t('toggleTheme')}>
             <ThemeToggle collapsed={collapsed} />
           </CollapsibleTooltip>
@@ -90,8 +126,8 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           <CollapsibleTooltip collapsed={collapsed} label={t('logout')}>
             <LogoutButton collapsed={collapsed} />
           </CollapsibleTooltip>
-        </div>
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
     </aside>
   )
 }

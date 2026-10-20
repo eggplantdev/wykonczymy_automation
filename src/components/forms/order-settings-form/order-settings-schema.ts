@@ -16,6 +16,8 @@ export const orderSettingsSchema = z.object({
   suppliers: z.array(z.object({ id: z.string().optional(), ...supplierShape })),
   bigBagPrice: storedPrice,
   containerPrice: storedPrice,
+  defaultBigBagSupplierId: z.string().optional(),
+  defaultContainerSupplierId: z.string().optional(),
 })
 
 export type OrderSettingsDataT = z.infer<typeof orderSettingsSchema>
@@ -26,6 +28,8 @@ export const orderSettingsFormSchema = z.object({
   suppliers: z.array(z.object({ id: z.string(), ...supplierShape })),
   bigBagPrice: priceField,
   containerPrice: priceField,
+  defaultBigBagSupplierId: z.string(),
+  defaultContainerSupplierId: z.string(),
 })
 
 export type OrderSettingsFormValuesT = z.infer<typeof orderSettingsFormSchema>

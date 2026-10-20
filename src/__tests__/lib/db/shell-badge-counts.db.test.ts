@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import {
   countPendingExpenseDrafts,
   countPendingReports,
-  countRejectedPayouts,
+  countRejectedReceipts,
   countUnreadFleetDeadlines,
   countUnreadLeads,
   countUnreadWarranties,
@@ -38,7 +38,7 @@ describe.skipIf(!ENV_READY)('countShellBadges (DB)', () => {
     equipment: await countUnreadWarranties(payload, userId, today),
     workerReports: await countPendingReports(db),
     expenseDrafts: await countPendingExpenseDrafts(db),
-    rejectedPayouts: await countRejectedPayouts(db),
+    rejectedReceipts: await countRejectedReceipts(db),
   })
 
   it('matches the six per-stream counters for a user who never opened a section', async () => {

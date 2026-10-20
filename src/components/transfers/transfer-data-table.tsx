@@ -13,6 +13,7 @@ import { DuplicateFinderDialog } from '@/components/transfers/duplicate-finder-d
 import { getTransferColumns, transferRowClassName } from '@/components/tables/transfers'
 import type { TransferRowT } from '@/types/transfers'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { useReferenceData } from '@/hooks/use-reference-data'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import type {
   TransferRowsFetchT,
@@ -20,7 +21,6 @@ import type {
 } from '@/components/transfers/transfer-table-config'
 import { fetchFilteredTransfers } from '@/lib/queries/fetch-transfers-for-invoices'
 import { findExpenseDuplicateGroups } from '@/lib/queries/expense-duplicate-groups'
-import type { ReferenceDataBaseT } from '@/types/reference-data'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import { transferSort } from '@/lib/transfers/sortable-columns'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
@@ -34,15 +34,10 @@ type TransferDataTablePropsT = {
   data: TransferRowT[]
   paginationMeta: PaginationMetaT
   config: TransferTableConfigT
-  referenceData?: ReferenceDataBaseT
 }
 
-export function TransferDataTable({
-  data,
-  paginationMeta,
-  config,
-  referenceData,
-}: TransferDataTablePropsT) {
+export function TransferDataTable({ data, paginationMeta, config }: TransferDataTablePropsT) {
+  const referenceData = useReferenceData()
   const { id: currentUserId, role: currentUserRole } = useCurrentUser()
   const searchParams = useSearchParams()
   const translator = useTranslation('transfers')
@@ -69,7 +64,7 @@ export function TransferDataTable({
   const [view, setView] = usePersistedEnum(TRANSFER_VIEW_STORAGE_KEY, TRANSFER_VIEWS, 'table')
 
   const columns = getTransferColumns(excludeColumns, {
-    referenceData,
+    referenceData: excludeColumns.includes('actions') ? undefined : referenceData,
     currentUserId,
     currentUserRole,
     translator,

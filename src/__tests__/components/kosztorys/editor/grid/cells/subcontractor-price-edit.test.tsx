@@ -120,13 +120,12 @@ describe('Cena wykonawcy — wyjścia z edycji', () => {
     expect(toastMessage).not.toHaveBeenCalled()
   })
 
-  // Rows are virtualized, so scrolling the edited row out unmounts the input and no blur ever fires.
   it('ogłasza ostrzeżenie, gdy komórka znika bez blura', async () => {
     const { user, input, unmount } = renderCell()
 
     await user.clear(input)
     await user.type(input, '90')
-    expect(stored(1)).toBe('90')
+    expect(stored(1)).toBe('auto')
     expect(toastMessage).not.toHaveBeenCalled()
 
     unmount()
@@ -180,6 +179,15 @@ describe('Cena wykonawcy — werdykt w trakcie pisania', () => {
     expect(screen.getByRole('textbox')).toBe(input)
     expect(input).toHaveFocus()
     expect(input).toHaveValue('905')
+  })
+
+  it('zdejmuje stare przekroczenie, gdy wpisywana cena mieści się pod sufitem', async () => {
+    const { user, input } = renderCell({ override: 90 })
+
+    await user.clear(input)
+    await user.type(input, '60')
+
+    expect(screen.queryAllByText(OVER_CEILING)).toHaveLength(0)
   })
 })
 

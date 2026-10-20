@@ -22,7 +22,7 @@ import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { DEFAULT_EXPENSE_DRAFT_SORT, expenseDraftSort } from '@/lib/worker-expenses/sortable-columns'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
-import type { ReferenceDataT, ReferenceItemT } from '@/types/reference-data'
+import type { ReferenceItemT } from '@/types/reference-data'
 
 const EXPENSE_DRAFTS_BASE_URL = '/zgloszenia-wydatkow'
 
@@ -31,7 +31,6 @@ type PropsT = {
   paginationMeta: PaginationMetaT
   investments: ReferenceItemT[]
   workers: ReferenceItemT[]
-  referenceData: ReferenceDataT
 }
 
 export function ExpenseDraftsDataTable({
@@ -39,12 +38,11 @@ export function ExpenseDraftsDataTable({
   paginationMeta,
   investments,
   workers,
-  referenceData,
 }: PropsT) {
   const searchParams = useSearchParams()
   const { updateParam } = useUrlFilterParams(EXPENSE_DRAFTS_BASE_URL)
   const { t } = useTranslation('expenseDrafts')
-  const { openButton, dialogs } = useExpenseDraftAcceptance(referenceData)
+  const { openButton, dialogs } = useExpenseDraftAcceptance()
   const sort =
     expenseDraftSort.valid(searchParams.get('sort') ?? undefined) ?? DEFAULT_EXPENSE_DRAFT_SORT
   const columns = useExpenseDraftColumns({

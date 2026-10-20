@@ -43,10 +43,13 @@ async function run() {
 
   for (const id of ids) {
     const investment = await api<{ name: string }>(`/investments/${id}?depth=0`)
-    const withReason = (await itemsOf(id)).filter((item) => item.changeReason?.trim())
-    const items = withReason
-      .filter((item) => !decided.has(ledgerKey(item.id, item.changeReason ?? '')))
-      .sort(byKosztorysOrder)
+    const all = (await itemsOf(id)).toSorted(byKosztorysOrder)
+    // The owner finds a pozycja by the editor's row number; the kosztorys shows no id.
+    const rowNumber = new Map(all.map((item, index) => [item.id, index + 1]))
+    const withReason = all.filter((item) => item.changeReason?.trim())
+    const items = withReason.filter(
+      (item) => !decided.has(ledgerKey(item.id, item.changeReason ?? '')),
+    )
     const skipped = withReason.length - items.length
 
     console.log(
@@ -56,7 +59,7 @@ async function run() {
     for (const item of items) {
       const katalog = item.catalogueItemId ? `katalog ${item.catalogueItemId}` : 'spoza katalogu'
       console.log(
-        `- [${item.reviewStatus ?? '—'}] #${item.id} ${item.section.name.trim()} / ${item.description?.trim()} ` +
+        `- [${item.reviewStatus ?? '—'}] praca nr ${rowNumber.get(item.id)} (#${item.id}) ${item.section.name.trim()} / ${item.description?.trim()} ` +
           `| AI ${item.aiPlannedQty ?? 0} → ${item.plannedQty} ${item.unit ?? ''} | ${katalog}\n` +
           `  POWÓD: ${item.changeReason?.trim()}`,
       )

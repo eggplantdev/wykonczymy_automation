@@ -3,7 +3,10 @@
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { RemoveButton } from '@/components/ui/remove-button'
+import { SELECT_NONE, SimpleSelect } from '@/components/ui/simple-select'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
+import { useStore } from '@/components/forms/hooks/form-hooks'
+import FormBase from '@/components/forms/form-components/form-base'
 import type { ArrayFieldT } from '@/components/forms/hooks/form-api-of'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
@@ -23,6 +26,8 @@ type PropsT = {
   onSubmitSuccess: () => void
 }
 
+const chosenSupplier = (supplierId: string) => (supplierId === SELECT_NONE ? undefined : supplierId)
+
 export function OrderSettingsForm({ formId, settings, onSubmitSuccess }: PropsT) {
   const { form } = useManagedForm<OrderSettingsFormValuesT, OrderSettingsDataT>({
     formId,
@@ -32,6 +37,8 @@ export function OrderSettingsForm({ formId, settings, onSubmitSuccess }: PropsT)
       suppliers: settings.suppliers,
       bigBagPrice: String(settings.bigBagPrice),
       containerPrice: String(settings.containerPrice),
+      defaultBigBagSupplierId: settings.defaultBigBagSupplierId ?? SELECT_NONE,
+      defaultContainerSupplierId: settings.defaultContainerSupplierId ?? SELECT_NONE,
     },
     successMessage: 'Zapisano ustawienia zamówień',
     onSubmitSuccess,
@@ -46,8 +53,18 @@ export function OrderSettingsForm({ formId, settings, onSubmitSuccess }: PropsT)
       })),
       bigBagPrice: Number(value.bigBagPrice),
       containerPrice: Number(value.containerPrice),
+      defaultBigBagSupplierId: chosenSupplier(value.defaultBigBagSupplierId),
+      defaultContainerSupplierId: chosenSupplier(value.defaultContainerSupplierId),
     }),
   })
+
+  const suppliers = useStore(form.store, (state) => state.values.suppliers)
+  const supplierOptions = [
+    { value: SELECT_NONE, label: '— brak —' },
+    ...suppliers.map((row) => ({ value: row.id, label: row.name.trim() || 'Bez nazwy' })),
+  ]
+  const shownSupplier = (supplierId: string) =>
+    suppliers.some((row) => row.id === supplierId) ? supplierId : SELECT_NONE
 
   return (
     <FormShell form={form}>
@@ -71,6 +88,33 @@ export function OrderSettingsForm({ formId, settings, onSubmitSuccess }: PropsT)
                 showError
                 fieldClassName="min-w-0 flex-1"
               />
+            )}
+          </form.AppField>
+          <div aria-hidden className="size-9 shrink-0" />
+        </div>
+        <div className="flex items-end gap-2">
+          <form.AppField name="defaultBigBagSupplierId">
+            {(field) => (
+              <FormBase label="Domyślny dostawca big bag" fieldClassName="min-w-0 flex-1">
+                <SimpleSelect
+                  id={field.name}
+                  value={shownSupplier(field.state.value)}
+                  onValueChange={field.handleChange}
+                  options={supplierOptions}
+                />
+              </FormBase>
+            )}
+          </form.AppField>
+          <form.AppField name="defaultContainerSupplierId">
+            {(field) => (
+              <FormBase label="Domyślny dostawca kontenera" fieldClassName="min-w-0 flex-1">
+                <SimpleSelect
+                  id={field.name}
+                  value={shownSupplier(field.state.value)}
+                  onValueChange={field.handleChange}
+                  options={supplierOptions}
+                />
+              </FormBase>
             )}
           </form.AppField>
           <div aria-hidden className="size-9 shrink-0" />

@@ -3,7 +3,10 @@ import { sql } from '@payloadcms/db-postgres'
 import { numOrNull, textOrNull } from '@/lib/db/row-coerce'
 import { sqlList } from '@/lib/db/sql-list'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import { CLOSED_INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
+import {
+  CLOSED_INVESTMENT_STATUSES,
+  type InvestmentStatusT,
+} from '@/lib/constants/investment-status'
 import {
   SNAPSHOT_SCHEMA_VERSION,
   assertReadableSchemaVersion,
@@ -18,6 +21,7 @@ const FULL_DENSITY_DAYS = 30
 const DAILY_BAND_DAYS = 120
 const MAX_AGE_DAYS = 365
 const INVESTOR_HISTORY_DAYS_AFTER_COMPLETION = 365
+const REJECTED_INVESTMENT_STATUS = 'rejected' satisfies InvestmentStatusT
 
 // Without the jsonb `payload`: a list must never load ~1000 rows × N snapshots of tree data.
 export type SnapshotMetaT = {
@@ -242,15 +246,19 @@ export async function thinWeeklyBand(db: DbExecutorT, scope: RetentionScopeT): P
   return res.rows.length
 }
 
-// A NULL completed_at fails the comparison, so it keeps.
+// A NULL completed_at fails the comparison, so it keeps. A rejected offer's investor history has no
+// reader left, so it goes at once.
 export async function deleteExpiredInvestorSnapshots(db: DbExecutorT): Promise<number> {
   const res = await db.execute(sql`
     DELETE FROM kosztorys_snapshots s
     USING investments i
     WHERE i.id = s.investment_id
       AND s.kind IN ('daily', 'named')
-      AND i.status = ${LOCKED_INVESTMENT_STATUS}
-      AND i.completed_at < now() - make_interval(days => ${INVESTOR_HISTORY_DAYS_AFTER_COMPLETION})
+      AND (
+        (i.status = ${LOCKED_INVESTMENT_STATUS}
+          AND i.completed_at < now() - make_interval(days => ${INVESTOR_HISTORY_DAYS_AFTER_COMPLETION}))
+        OR i.status = ${REJECTED_INVESTMENT_STATUS}
+      )
     RETURNING s.id
   `)
   return res.rows.length

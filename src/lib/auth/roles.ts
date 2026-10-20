@@ -1,4 +1,4 @@
-import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+import type { PayoutStatusT } from '@/lib/constants/payout-status'
 
 export const ROLES = ['ADMIN', 'OWNER', 'MANAGER', 'EMPLOYEE'] as const
 export type RoleT = (typeof ROLES)[number]
@@ -85,6 +85,6 @@ type CanCancelTransferArgsT = CanMutateTransferArgsT & {
   payoutStatus: PayoutStatusT | null | undefined
 }
 
-// A rejected wypłata sits in every manager's queue, so whoever picks it up may cancel it.
+// A rejected receipt sits in every manager's queue, so whoever picks it up may cancel it.
 export const canCancelTransfer = ({ payoutStatus, ...args }: CanCancelTransferArgsT): boolean =>
   canMutateTransfer(args) || (payoutStatus === 'rejected' && isManagementRole(args.role))

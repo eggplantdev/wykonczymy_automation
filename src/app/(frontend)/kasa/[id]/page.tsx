@@ -61,14 +61,8 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   return (
     <PageWrapper title={register.name}>
       <div className="flex flex-wrap gap-2">
-        <EditCashRegisterDialog
-          register={register}
-          workers={refData.workers}
-          isOwnerLocked={isOwnerLocked}
-        />
-        {registerId === TELMAK_REGISTER_ID && (
-          <TelmakCheckDialog registerId={registerId} referenceData={refData} />
-        )}
+        <EditCashRegisterDialog register={register} isOwnerLocked={isOwnerLocked} />
+        {registerId === TELMAK_REGISTER_ID && <TelmakCheckDialog registerId={registerId} />}
       </div>
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
       <SignedMoneyDisplay amount={registerBalance} />

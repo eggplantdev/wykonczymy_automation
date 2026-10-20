@@ -14,7 +14,7 @@ const NONE: UnreadCountsT = {
   equipment: 0,
   workerReports: 0,
   expenseDrafts: 0,
-  rejectedPayouts: 0,
+  rejectedReceipts: 0,
 }
 
 /**

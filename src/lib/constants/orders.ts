@@ -3,8 +3,16 @@ export type OrderStatusT = (typeof ORDER_STATUSES)[number]
 
 // `label` is the fragment the other-category is found by.
 export const ORDER_ITEMS = {
-  bigBag: { label: 'big bag', priceKey: 'bigBagPrice' },
-  container: { label: 'kontener', priceKey: 'containerPrice' },
+  bigBag: {
+    label: 'big bag',
+    priceKey: 'bigBagPrice',
+    defaultSupplierKey: 'defaultBigBagSupplierId',
+  },
+  container: {
+    label: 'kontener',
+    priceKey: 'containerPrice',
+    defaultSupplierKey: 'defaultContainerSupplierId',
+  },
 } as const
 
 export type OrderItemT = keyof typeof ORDER_ITEMS

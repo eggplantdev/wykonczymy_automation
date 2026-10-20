@@ -41,4 +41,5 @@ wait "$pid"
 [[ -t 2 ]] && printf '\r  pg_dump done: %d MB in %ds%-40s\n' "$(($(stat -f %z "$tmp") / 1048576))" "$(($(date +%s) - start))" '' >&2
 
 mv "$tmp" "$out"
-cp "$out" "dumps/dump-$(date +%Y-%m-%d_%H-%M).sql"
+gzip -c "$out" > "$tmp.gz"
+mv "$tmp.gz" "dumps/dump-$(date +%Y-%m-%d_%H-%M).sql.gz"

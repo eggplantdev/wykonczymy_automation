@@ -157,6 +157,9 @@ import * as migration_20261016_1_investment_billing_data from './20261016_1_inve
 import * as migration_20261018_0_media_detachments from './20261018_0_media_detachments'
 import * as migration_20261018_1_drop_worker_expense_drafts_scan_mode from './20261018_1_drop_worker_expense_drafts_scan_mode'
 import * as migration_20261019_0_big_bag_order from './20261019_0_big_bag_order'
+import * as migration_20261020_0_order_default_supplier_per_item from './20261020_0_order_default_supplier_per_item'
+import * as migration_20261020_1_receipt_status_on_money_in from './20261020_1_receipt_status_on_money_in'
+import * as migration_20261020_2_investment_initial_info from './20261020_2_investment_initial_info'
 
 export const migrations = [
   {
@@ -953,5 +956,20 @@ export const migrations = [
     up: migration_20261019_0_big_bag_order.up,
     down: migration_20261019_0_big_bag_order.down,
     name: '20261019_0_big_bag_order',
+  },
+  {
+    up: migration_20261020_0_order_default_supplier_per_item.up,
+    down: migration_20261020_0_order_default_supplier_per_item.down,
+    name: '20261020_0_order_default_supplier_per_item',
+  },
+  {
+    up: migration_20261020_1_receipt_status_on_money_in.up,
+    down: migration_20261020_1_receipt_status_on_money_in.down,
+    name: '20261020_1_receipt_status_on_money_in',
+  },
+  {
+    up: migration_20261020_2_investment_initial_info.up,
+    down: migration_20261020_2_investment_initial_info.down,
+    name: '20261020_2_investment_initial_info',
   },
 ]

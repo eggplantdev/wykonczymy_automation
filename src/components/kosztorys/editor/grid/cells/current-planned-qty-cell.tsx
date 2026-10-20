@@ -25,7 +25,9 @@ function CurrentPlannedQtyCell({
   return (
     <EditableCellInput
       {...edit.inputProps}
-      className={rowData.currentPlannedQty == null ? DERIVED_TONE : undefined}
+      className={
+        rowData.currentPlannedQty == null && edit.draft === null ? DERIVED_TONE : undefined
+      }
       value={edit.draft ?? text}
       focus={focus}
     />

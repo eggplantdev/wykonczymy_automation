@@ -4,6 +4,10 @@ Product decisions about user accounts that the code implements and an agent migh
 The enforceable rules (who may act on whom, which action owns a write) live in `AGENTS.md` → Auth And
 Roles.
 
+Full role inventory — every page, action and REST rule per role, plus the 37 open questions nobody has
+ruled on yet: `roles-inventory.md` (read from `ca0c2aa34` on 2026-10-20 — verify against code before
+quoting).
+
 ## Lockout
 
 - A trashed or inactive account is refused at login, and trashing or deactivating it deletes

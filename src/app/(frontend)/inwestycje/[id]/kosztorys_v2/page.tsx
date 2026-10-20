@@ -101,10 +101,10 @@ export default async function InvestmentKosztorysV2Page({
       payoutTransactions={payoutTransactions}
       depositTransactions={depositTransactions}
       materialTransactions={materialTransactions}
-      workers={refData.workers}
       workCatalogue={workCatalogue}
       assets={assets}
       investment={withDetails(investment, detailsById)}
+      trashed={trashed}
       hasSheet={investment.hasSheet}
       lock={investmentLockOf({ status: investment.status, trashed })}
       workerReports={{

@@ -5,19 +5,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { InvestmentRowT } from '@/types/table-rows'
-import { NO_INVESTMENT_BILLING } from '@/lib/investments/investment-details'
+import {
+  NO_INVESTMENT_BILLING,
+  NO_INVESTMENT_INITIAL_INFO,
+} from '@/lib/investments/investment-details'
 import { bare } from '@/__tests__/helpers/money'
 import { navigationState } from '@/__tests__/stubs/next-navigation'
 import { useCurrentUser as currentUserStub } from '@/__tests__/stubs/use-current-user'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { referenceDataFor } from '@/__tests__/helpers/reference-data'
 
 navigationState.pathname = '/inwestycje'
-
-const ORDER_PROPS = {
-  referenceData: referenceDataFor('OWNER'),
-  orderSettings: { suppliers: [], bigBagPrice: 800, containerPrice: 1500, defaultSupplierId: undefined },
-}
 
 // OWNER, because Marża v2 is behind the admin/owner gate.
 vi.mocked(useCurrentUser).mockImplementation(currentUserStub)
@@ -47,6 +44,7 @@ const investment = (overrides: Partial<InvestmentRowT> = {}): InvestmentRowT => 
   email: '',
   contactPerson: '',
   billing: NO_INVESTMENT_BILLING,
+  initialInfo: NO_INVESTMENT_INITIAL_INFO,
   reviewRequested: false,
   notes: '',
   hasSheet: false,
@@ -84,7 +82,7 @@ beforeEach(() => {
 
 describe('investments listing without a kosztorys', () => {
   it('prints the real v2 figures for an investment settled on materials alone', () => {
-    render(<InvestmentDataTable data={[investment()]} presets={[]} {...ORDER_PROPS} />)
+    render(<InvestmentDataTable data={[investment()]} presets={[]} />)
 
     expect(cellText('Kijowska 17', BALANCE_NET)).toBe(bare(formatPLN(-18661.21)))
     expect(cellText('Kijowska 17', LABOR_V2)).toBe(bare(formatPLN(0)))
@@ -100,7 +98,7 @@ describe('investments listing without a kosztorys', () => {
           investment(),
           investment({ id: 2, name: 'Altowa 12', totalLaborCostsFromTransactions: 342334 }),
         ]}
-        presets={[]} {...ORDER_PROPS}
+        presets={[]}
       />,
     )
 
@@ -118,7 +116,7 @@ describe('investments listing without a kosztorys', () => {
         data={[
           investment({ hasKosztorys: true, totalPayouts: 5072, subcontractorRemaining: -5072 }),
         ]}
-        presets={[]} {...ORDER_PROPS}
+        presets={[]}
       />,
     )
 
@@ -134,7 +132,7 @@ describe('investments listing without a kosztorys', () => {
           investment({ id: 3, name: 'C', balance: 2000, hasKosztorys: true }),
           investment({ id: 4, name: 'D', settlementMode: 'GROSS' }),
         ]}
-        presets={[]} {...ORDER_PROPS}
+        presets={[]}
       />,
     )
 
@@ -158,7 +156,7 @@ describe('investments listing without a kosztorys', () => {
           investment({ id: 2, name: 'B', hasKosztorys: true, subcontractorRemaining: 300 }),
           investment({ id: 3, name: 'C', hasKosztorys: true, subcontractorRemaining: -200 }),
         ]}
-        presets={[]} {...ORDER_PROPS}
+        presets={[]}
       />,
     )
 
@@ -181,7 +179,7 @@ describe('the bilans column outside the tryb', () => {
           investment({ id: 2, name: 'Brutto', settlementMode: 'GROSS' }),
           investment({ id: 3, name: 'Mieszane', settlementMode: 'MIXED' }),
         ]}
-        presets={[]} {...ORDER_PROPS}
+        presets={[]}
       />,
     )
 

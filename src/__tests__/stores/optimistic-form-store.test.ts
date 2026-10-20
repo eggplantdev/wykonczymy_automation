@@ -57,6 +57,15 @@ describe('dialog state', () => {
     await vi.waitFor(() => expect(store().openFormId).toBe('transfer'))
     expect(store().keepOpen).toBe(true)
   })
+
+  it('a failed submit reopens with the keep-open checkbox the dialog was opened with', async () => {
+    store().openDialog('cashRegister')
+    const action = vi.fn(() => Promise.resolve({ success: false, error: 'x' } as ActionResultT))
+    store().submitOptimistically('cashRegister', new Map(), action, 'OK', vi.fn())
+    store().closeDialog()
+    await vi.waitFor(() => expect(store().openFormId).toBe('cashRegister'))
+    expect(store().showKeepOpen).toBe(true)
+  })
 })
 
 describe('submitOptimistically', () => {

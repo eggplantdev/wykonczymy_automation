@@ -187,6 +187,7 @@ export type KosztorysEditorDataT = {
   // workbench, both shares); `[]` means the investment simply has no files yet.
   assets?: MediaFileT[]
   investment?: InvestmentWithDetailsT
+  trashed?: boolean
   workerReports?: WorkerReportsSeedT
 }
 

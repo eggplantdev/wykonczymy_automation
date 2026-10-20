@@ -4,5 +4,6 @@ export type OrderSettingsT = {
   suppliers: SupplierT[]
   bigBagPrice: number
   containerPrice: number
-  defaultSupplierId: string | undefined
+  defaultBigBagSupplierId: string | undefined
+  defaultContainerSupplierId: string | undefined
 }

@@ -72,6 +72,9 @@ vi.mock('@/lib/media/ingest-files', (importOriginal) => passThrough(importOrigin
 vi.mock('@/hooks/use-current-user', (importOriginal) =>
   passThrough(importOriginal, 'useCurrentUser'),
 )
+vi.mock('@/hooks/use-reference-data', (importOriginal) =>
+  passThrough(importOriginal, 'useReferenceData', 'useOrderSettings'),
+)
 vi.mock('@/lib/utils/navigate-to', (importOriginal) => passThrough(importOriginal, 'navigateTo'))
 
 vi.mock('react-resize-detector', () => import('@/__tests__/stubs/react-resize-detector'))

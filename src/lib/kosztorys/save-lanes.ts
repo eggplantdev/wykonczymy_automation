@@ -93,18 +93,17 @@ export function createDebouncedSaves(
     await lanes.drain(unique)
   }
 
-  async function drainAll(): Promise<void> {
+  function flush() {
     for (const entry of [...pending.values()]) {
       clearTimeout(entry.timer)
       entry.fire()
     }
+  }
+
+  async function drainAll(): Promise<void> {
+    flush()
     await lanes.drainAll()
   }
 
-  function dispose() {
-    for (const { timer } of pending.values()) clearTimeout(timer)
-    pending.clear()
-  }
-
-  return { save, cancel, runNow, drain, drainAll, dispose }
+  return { save, cancel, runNow, drain, drainAll, flush }
 }

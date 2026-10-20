@@ -26,13 +26,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
 
   return (
     <PageWrapper title={PAGE_TITLES.transactions}>
-      <ManagerDashboardPanels
-        referenceData={{
-          ...referenceDataBase,
-          currentUserId: user.id,
-          currentUserRole: user.role,
-        }}
-      />
+      <ManagerDashboardPanels />
 
       <TransfersSection
         id={SECTION_IDS.transactions}

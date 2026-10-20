@@ -35,31 +35,32 @@
 
 Values: `pending` / `ok` / `finding #n` / `blocked` / `n/a`.
 
-| #   | Route                           | EMPLOYEE | MANAGER | OWNER   | ADMIN |
-| --- | ------------------------------- | -------- | ------- | ------- | ----- |
-| 1   | `/inwestycje/[id]/kosztorys`    | ok       | pending | pending | n/a   |
-| 2   | `/inwestycje/[id]/kosztorys_v2` | ok       | ok      | pending | n/a   |
-| 3   | `/inwestycje/[id]`              | ok       | pending | pending | n/a   |
-| 4   | `/` (transakcje)                | ok       | ok      | pending | n/a   |
-| 5   | `/pracownicy/[id]`              | ok       | pending | pending | n/a   |
-| 6   | `/kasa/[id]`                    | ok       | pending | pending | —     |
-| 7   | `/kasy`                         | ok       | pending | pending | —     |
-| 8   | `/inwestycje`                   | ok       | pending | pending | —     |
-| 9   | `/zgloszenia-wydatkow`          | ok       | pending | pending | —     |
-| 10  | `/zgloszenia-prac`              | ok       | pending | pending | —     |
-| 11  | `/pracownicy`                   | ok       | pending | pending | n/a   |
-| 12  | `/kosztorysy`                   | ok       | pending | pending | —     |
-| 13  | `/katalog-prac`                 | ok       | pending | pending | —     |
-| 14  | `/szablony`, `/szablony/[id]`   | ok       | pending | pending | —     |
-| 15  | `/zgloszenia` (leads)           | ok       | pending | pending | n/a   |
-| 16  | `/flota`, `/flota/[id]`         | ok       | pending | pending | —     |
-| 17  | `/sprzet`, `/sprzet/[id]`       | ok       | pending | pending | —     |
-| 18  | `/kosz`                         | ok       | pending | pending | n/a   |
-| 19  | `/warianty-badge`               | ok       | —       | pending | —     |
-| 20  | `[...catchAll]`                 | ok       | —       | pending | —     |
-| L   | logged-out + share routes       | pending  |         |         |       |
+| #   | Route                           | EMPLOYEE | MANAGER | OWNER | ADMIN |
+| --- | ------------------------------- | -------- | ------- | ----- | ----- |
+| 1   | `/inwestycje/[id]/kosztorys`    | ok       | ok      | ok    | n/a   |
+| 2   | `/inwestycje/[id]/kosztorys_v2` | ok       | ok      | ok    | n/a   |
+| 3   | `/inwestycje/[id]`              | ok       | ok      | ok    | n/a   |
+| 4   | `/` (transakcje)                | ok       | ok      | ok    | n/a   |
+| 5   | `/pracownicy/[id]`              | ok       | ok      | ok    | n/a   |
+| 6   | `/kasa/[id]`                    | ok       | ok      | ok    | —     |
+| 7   | `/kasy`                         | ok       | ok      | ok    | —     |
+| 8   | `/inwestycje`                   | ok       | ok      | ok    | —     |
+| 9   | `/zgloszenia-wydatkow`          | ok       | ok      | ok    | —     |
+| 10  | `/zgloszenia-prac`              | ok       | ok      | ok    | —     |
+| 11  | `/pracownicy`                   | ok       | ok      | ok    | n/a   |
+| 12  | `/kosztorysy`                   | ok       | ok      | ok    | —     |
+| 13  | `/katalog-prac`                 | ok       | ok      | ok    | —     |
+| 14  | `/szablony`, `/szablony/[id]`   | ok       | ok      | ok    | —     |
+| 15  | `/zgloszenia` (leads)           | ok       | ok      | ok    | n/a   |
+| 16  | `/flota`, `/flota/[id]`         | ok       | ok      | ok    | —     |
+| 17  | `/sprzet`, `/sprzet/[id]`       | ok       | ok      | ok    | —     |
+| 18  | `/kosz`                         | ok       | ok      | ok    | n/a   |
+| 19  | `/warianty-badge`               | ok       | —       | ok    | —     |
+| 20  | `[...catchAll]`                 | ok       | —       | ok    | —     |
+| L   | logged-out + share routes       | ok       | n/a     | n/a   | n/a   |
 
 EMPLOYEE notes (1280 + 1024, staging `9d7572296`):
+
 - Every management route (rows 1–4, 6–18, plus `/szablony/1`, `/flota/1`, `/sprzet/1`) redirects to
   `/pracownicy/77`; `/kasa/1` and own `/kasa/50` too (registry L1317, L1459). Another worker's page and
   an unknown URL show „Nie znaleziono” inside the shell. `/warianty-badge` does not open (L1564).
@@ -72,6 +73,7 @@ EMPLOYEE notes (1280 + 1024, staging `9d7572296`):
   (L1474, L1479, L1537, L1539; uk/ru strings checked in the dictionaries).
 
 MANAGER notes (1280, staging `9d7572296`):
+
 - „Edytuj”/„Anuluj” on `/`: active on own rows (#5967); on others' accepted payouts and expenses „Edytuj”
   is disabled and „Anuluj” absent — `canMutateTransfer` ownership rule, not a defect (L1531; the
   others'-pending and others'-robocizna halves confirmed in `canCancelTransfer`/`canMutateTransfer`, no
@@ -87,6 +89,101 @@ MANAGER notes (1280, staging `9d7572296`):
   open (L1409); „Rozlicz wypłaty” validates under the field (half of L1450); section dot matches the
   band (L1561). Section band rename: double-click opens it, Enter saves, Escape restores (L937 partial —
   the „Sekcja” column variant is hidden in this view). Add + delete section persist (part of L1345).
+- Row 3 (210, 1280 + 1024, no horizontal overflow): „Wróć” from the list and from a direct URL lands on
+  `/inwestycje`; AI-stage select colours; „Kierownik budowy” persists, address intact; note edit saves,
+  address intact (note restored afterwards). Order dialog: investment subtitle, „Kwota” recalculates
+  (3 × 799,99 = 2399,97), big bag / kontener resets to the settings price, controls 36 px, no gear for
+  MANAGER, `0,001` / `1e3` disable „Dalej”; order button on active rows of `/inwestycje`, none on
+  completed. Supplier-in-step-1, SMS-on-save and default-kasa boxes are `na` — `8f2b923d2`,
+  `442325fe3`, `a9fafe7ab` aren't deployed (staging at `9d7572296`). „Kontakt na miejscu” is empty (no
+  worker with a phone), so the contact-star box stays open. Select chevrons → finding L1620 below.
+- Row 1 (193 v1 sheet, 1280 + 1024): page and „Arkusz” embed render; only the docs.google.com 401 noise.
+- Row 5 (`/pracownicy/77`, 1280 + 1024): worker page with reports, payouts and register summary; no
+  horizontal overflow beyond the known „Zgłoszone wydatki” table scroll.
+- Row 6: worker register 50 and QA register 48 open with balance and transfer list; the main register
+  shows „Nie znaleziono” (L1325).
+- Row 7: status toggle and trash only on worker/own registers (L1317, L1320); „Dodaj” with a worker owner
+  and „Nie zamykaj po zapisaniu” creates the register and keeps the dialog open; own-manager owner on
+  edit persists, another manager → „Brak uprawnień”; `/kosz` lists the temp register, then deleted for
+  good with the typed name (DB row gone). Types read „Pomocnicze” / „Pracownicze” / „Wirtualne”; no Typ
+  field for MANAGER by design (L1338 form/chart half → OWNER). After a refused save the reopened dialog
+  lost „Nie zamykaj…” → fixed, see Findings.
+- Row 8 (1280 + 1024, no overflow): status pointer in the table and in „Edytuj inwestycję” (L1463 hover
+  half); order button active/completed and „column does not exist” already covered under row 3.
+- Rows 9, 10 (1280 + 1024): lists, filters and the „Zweryfikuj” dialog of a zgłoszenie wydatku open;
+  nav labels match the headings.
+- Row 11 (1280 + 1024): „Edytuj pracownika” → clearing „Telefon” persists (L1600; QA worker 77 left
+  with phone empty, active); „Dodaj pracownika” creates a worker with „Polski” (stored as no language,
+  L1398); „Usuń pracownika” → `/kosz` → „Usuń na zawsze” with the typed name removes it (temp worker
+  gone, DB count 0). Status badge → see the doubt below.
+- Row 12 (1280 + 1024): „Kosztorysy” and „Inwestycje bez arkusza” render and search; „Problemy” →
+  „Porównaj z katalogiem…” opens with matches and the empty state. The „może chodzi o…” hint and the
+  „Importuj z arkusza” preview were not reached, so that box stays open.
+- Row 13 (1280): list, search and filters; no repeating requests in the network tab, no flicker (L1448
+  table half).
+- Row 14 (1280 + 1024): list and template editor open; the template has no „Filtry” at all
+  (`KosztorysFiltersMenu` returns null without options) — L843 waits on the owner's ruling, see the doubt
+  below. The ~1000-item box needs a large template (none on preview).
+- Row 15 (1280): leads list, photo and row selection, „Załączniki” dialog, wide „Szczegóły” with sharp
+  thumbnails, „Skontaktowano”/„Oczekuje” toggle (toggled on a lead and restored, DB `new`). No shots in
+  the report — the list carries real people's data. L318 needs a Facebook lead with files.
+- Rows 16, 17 (1280 + 1024): `/flota`, `/flota/3`, `/sprzet`, `/sprzet/1` render, no overflow;
+  recipient cards are read-only for MANAGER (no „Edytuj listę”) — the editor half of L1611 is OWNER.
+- Row 18 (1280 + 1024, no overflow): investment „Usuń na zawsze” dialog lists what goes with it and keeps
+  the button disabled until the exact name (opened and cancelled on a real row). Temp template „QA tmp
+  szablon kosz”: created, „Przenieś do kosza” → listed under „Szablony” in `/kosz` → typed name, partial
+  name keeps the button disabled → gone after reload and from the DB. The lead half of L1139 stays open
+  (no lead in the Kosz). Cron boxes (L1451, L244, L251, L268, L270, L1129, L1133) and L1142 are left
+  open: firing `cleanup` on preview purges every expired row there — not done without a go.
+
+OWNER notes (OWNER 75 stands in for ADMIN, 1280 + 1024, staging `9d7572296`):
+
+- Sweep: all 20 routes at 1280 and 1024, no horizontal overflow, console only the known noise.
+- Row 4: „Wydatek” lists „Premia”, „Wpłata” lists „Zasilenie z konta firmowego”; BONUS (#5979, 1 zł)
+  and COMPANY_FUNDING (+2 zł, kasa 854,91 → 856,91) book; add / edit / cancel move the kasa balance
+  without a reload (L1354); delete of an expense with an invoice drops the file from the list (L1355);
+  edit dialog reset + „Rozlicz wypłaty” save (L1370); sort and filters survive reload; „Potwierdzenie”
+  filter; „Wypłaty odrzucone przez pracowników” collapses, links, reject and cancel work (L1516).
+- Row 7: status toggle persists after reload (L1316); trash on a kasa with 19 transactions is refused
+  with the count (toast); „Dodaj kasę” with a MANAGER owner and type „Wirtualne”, edit to a worker owner
+  — both save (L1558); OWNER form has „Typ” with the four types (L1338 form half).
+- Row 3: order settings (gear) → two suppliers, new price, default supplier → price updates in the
+  dialog, quantity and contact kept (L1581, L1591); order saved, „Czeka” → „Dostarczone” → back,
+  cancelled order's badge grey and inert (L1604, L1606); contact star sets „Kierownik budowy” (L1594);
+  finish → date shown, unlock (L1441 first half); „Kosztorys”, „Umowa”, „Marża” open (L1376);
+  „Zapisz jako domyślną kasę” persists (L1600 area). The order save opened the Mac's Messages with the
+  SMS body — expected handoff; no further orders saved.
+- Row 11: own account deactivation refused; „Rozlicz wypłaty” + payout; last-OWNER and inactive-login
+  halves not run (no second OWNER to spare, would lock a real account).
+- Row 9: accept / reopen / reject of a zgłoszenie wydatku, counter updates without reload; merge refused
+  with a toast for mismatched drafts — successful merge needs two fresh drafts (not run).
+- Row 2: cell edit, undo, reload persists, restored (Etap 1 of 210 back to 2). Import / sync preview
+  (L1349), ~1000-item (L1401) and the history / offer switch (L1405) not run.
+- Row 14: new template „QA audyt szablon” (id 6) with a section and two catalogue items persists;
+  „Wstaw poniżej” not saved.
+- Rows 16, 17: recipient cards „Edytuj listę” save and restore (L1611); vehicle duplicate shows the
+  „istnieje” / „w Koszu” toasts (equipment-serial and worker-email variants not run).
+- Work-report preview dialog opens. Left open: L318, L1412 half, L1523 (`/uzytkownicy` is no route),
+  L222, the pulpit Typ-label chart, „Katalog prac” filter persistence, every cron stand-in, L1609, L1610,
+  L1612 (phone).
+- **Preview DB state left by stage B:** order settings (big bag 850, suppliers A/B, default B); worker 77
+  phone 500100400; kasa 48 as default-kasa preference; cancelled #5972–#5975, #5977; BONUS #5979 (active);
+  COMPANY_FUNDING +2 zł; template id 6 „QA audyt szablon”.
+
+Stage C notes (logged out unless noted, 1280 + 1024, staging `9d7572296`):
+
+- `/zaloguj`, „Nie pamiętam hasła” (sends, shows the confirmation), a protected route → `/zaloguj`,
+  legal pages: render, no overflow (L1402). Login after the redirect lands on `/`, not the original URL —
+  `src/proxy.ts` passes no return URL, same before the refactor.
+- `/z/<worker link>` and `/k/<investor link>` (link generated now for 210) render the QA investment only,
+  light and dark; `/podglad-pracownika/77/210` and `/podglad-inwestora/210` open for OWNER and redirect
+  to `/zaloguj` without a session.
+- Retired `/p/*` and `/zgloszenie-prac/*` show the custom expired-link page (PL/UK/RU); `/k/<bad token>` shows
+  Next's default 404 — the share layout has no `not-found`, same at `c713fa2bf`.
+- Work-report preview (OWNER): section names on green and purple sections take the section tint, dark
+  text in light mode and light text in dark mode (L1544); a rozpiska line with no kosztorys item has a
+  gray name, which is the no-section fallback.
+- **Preview DB state left by stage C:** a `kosztorys_shares` row for investment 210 (investor link).
 
 ## Findings
 
@@ -98,10 +195,25 @@ MANAGER notes (1280, staging `9d7572296`):
       min-widths are deliberate (`50796e2ec`); in-container scroll is the data-table pattern.
 - [x] · layout · fixed · `/inwestycje/210` · MANAGER · 1280 · „Etap AI” and „Kierownik budowy” select
       arrows are foreground-black, not the „Notatki” gray (L1620) — `37706f5eb` muted `SelectTrigger`'s
-      chevron but missed `SelectButtonTrigger` (`src/components/ui/select.tsx`); same class added there.
-- [ ] · doubtful · open · `/inwestycje/210/kosztorys_v2` · MANAGER · 1280 · registry L1413 says the
+      chevron but missed `SelectButtonTrigger` (`src/components/ui/select.tsx`); same class added there (`c7c47299f`).
+- [x] · bug (pre-existing) · fixed · `/kasy` „Dodaj” · MANAGER · 1280 · after a refused save the dialog
+      reopens without „Nie zamykaj po zapisaniu” — the optimistic path closes the dialog
+      (`closeDialog` drops `showKeepOpen`, `3723589e9`, 30.09) and the failure reopen never restored it;
+      not a refactor regression. `submitOptimistically` now restores it (`10cd3cbfa`).
+      test: test-driven-debugging · unit — `optimistic-form-store.test.ts` „a failed submit reopens with
+      the keep-open checkbox…”; green (17/17).
+- [x] · doubtful · dismissed · `/inwestycje/210/kosztorys_v2` · MANAGER · 1280 · registry L1413 says the
       MANAGER editor shows no amounts, but it shows section nets and all summary tables; only „Marża”
-      is hidden — identical at `c713fa2bf`. Likely stale box wording — ask the user at stage close.
+      is hidden — identical at `c713fa2bf`. Owner: current behaviour is right; box reworded to „nie pokazuje „Marży”” and ticked.
+- [x] · doubtful · fixed · `/pracownicy` · MANAGER · 1280 · the „Aktywny/Nieaktywny” badge is clickable on
+      OWNER/MANAGER rows too; the server refuses with „Kierownik może zmieniać tylko konta pracowników.”
+      — no UI gate at `c713fa2bf` either (`/kasy` hides it instead). Owner: block it — the badge is a plain
+      `Badge` where `canTrashAccount` refuses (row field `canTrash` → `canManage`, gates both).
+      test: TDD · unit — `users.test.tsx` „toggles only on a row the viewer may manage” — red on the pre-fix `users.tsx`, green after; `tsc` clean.
+- [x] · doubtful · dismissed · `/szablony/[id]` · MANAGER · 1280 · registry L843 expects „Filtry” in the
+      template like in the kosztorys; the template shows none (`KosztorysFiltersMenu` returns null with no
+      filter options) — same at `c713fa2bf`. Owner: keep it — a szablon offers only „Cena j.m.” filters, shown when they
+      split the prace; box reworded.
 
 ## Manual checks
 
@@ -498,4 +610,15 @@ Notes:
 
 ## Tests & suite
 
-(pending)
+- Stage A: `optimistic-form-store.test.ts` 17/17 green (`10cd3cbfa`).
+- Stage B: no fix, no spec.
+- Stage C: no fix, no spec.
+- Whole-tree gate: not run — on the user's ask only.
+
+## Close-out
+
+- Registry sweep (2026-10-19): 24 fully ticked sections collapsed into index rows, 154 ticked boxes removed
+  from open sections; 187 open boxes kept (count unchanged).
+- The three doubtful findings resolved by the owner (2026-10-19). Still open in the registry: the gray select
+  arrows (`c7c47299f`) — the deployed staging build `9d7572296` predates the fix.
+- Teardown: nothing to stop — the run used deployed staging, no local dev server, no `tsconfig.json` drift.

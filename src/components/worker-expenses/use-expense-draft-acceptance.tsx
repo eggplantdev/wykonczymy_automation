@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useReferenceData } from '@/hooks/use-reference-data'
 import { useTranslation } from '@/hooks/use-translation'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -31,7 +32,6 @@ import { toastMessage } from '@/lib/utils/toast'
 import { warsawToday } from '@/lib/utils/days'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { usePendingStore } from '@/stores/pending-store'
-import type { ReferenceDataT } from '@/types/reference-data'
 
 type AcceptingT = {
   draft: ExpenseDraftRowT
@@ -56,7 +56,8 @@ async function downloadPages(media: ExpenseDraftMediaT[]): Promise<File[]> {
   )
 }
 
-export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
+export function useExpenseDraftAcceptance() {
+  const referenceData = useReferenceData()
   const router = useRouter()
   const { t } = useTranslation('expenseDrafts')
   const openDialog = useOptimisticFormStore((s) => s.openDialog)
@@ -72,7 +73,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
   function prefillFor(draft: ExpenseDraftRowT, files: File[]): ExpenseFormPrefillT {
     const expenseCategory = resolveExpenseCategoryId(
       DEFAULT_EXPENSE_CATEGORY_NAME,
-      referenceData.expenseCategories,
+      referenceData?.expenseCategories ?? [],
     )
     const {
       lineItems,
@@ -203,7 +204,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
 
   const dialogs = (
     <>
-      {accepting && (
+      {accepting && referenceData && (
         <FormDialog
           key={accepting.draft.id}
           formId={formIdOf(accepting.draft.id)}

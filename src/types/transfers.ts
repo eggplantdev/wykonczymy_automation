@@ -1,5 +1,5 @@
 import type { TransferTypeT, PaymentMethodT, VatPlaneT } from '@/lib/constants/transfers'
-import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+import type { PayoutStatusT } from '@/lib/constants/payout-status'
 import type { OrderStatusT } from '@/lib/constants/orders'
 import type { PreviewFileT } from '@/types/media'
 
@@ -38,8 +38,7 @@ export type TransferRowT = {
   settled: boolean
   vatPlane: VatPlaneT | null
   originalType: TransferTypeT | null
-  // null on every other type and on a wypłata booked before payout confirmation existed — no worker
-  // was ever asked about those.
+  // null wherever no worker was asked.
   payoutStatus: PayoutStatusT | null
   payoutDecidedAt: string | null
   payoutRejectionReason: string | null

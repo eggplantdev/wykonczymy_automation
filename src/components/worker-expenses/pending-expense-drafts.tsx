@@ -19,13 +19,11 @@ import { settleAction } from '@/lib/utils/settle-action'
 import { stripSearchParam } from '@/lib/utils/strip-search-param'
 import { toastMessage } from '@/lib/utils/toast'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
-import type { ReferenceDataT } from '@/types/reference-data'
 
 const NO_SELECTION: ReadonlySet<number> = new Set()
 
 type PropsT = {
   drafts: ExpenseDraftRowT[]
-  referenceData: ReferenceDataT
   // Per surface, so collapsing the queue on one page leaves it open on the other.
   storageKey?: string
   openDraftId?: number
@@ -33,13 +31,12 @@ type PropsT = {
 
 export function PendingExpenseDrafts({
   drafts,
-  referenceData,
   storageKey = 'pending-expense-drafts',
   openDraftId,
 }: PropsT) {
   const router = useRouter()
   const { t, tp, locale } = useTranslation('expenseDrafts')
-  const { open, openButton, dialogs } = useExpenseDraftAcceptance(referenceData)
+  const { open, openButton, dialogs } = useExpenseDraftAcceptance()
   const hasOpenedFromUrl = useRef(false)
   const [selection, setSelection] = useState({ drafts, ids: NO_SELECTION })
   if (selection.drafts !== drafts) {

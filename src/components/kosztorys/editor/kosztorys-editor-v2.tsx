@@ -9,17 +9,20 @@ import { KosztorysVersionsDrawer } from '@/components/kosztorys/editor/dialogs/k
 import { useAutoSnapshot } from '@/components/kosztorys/editor/hooks/use-auto-snapshot'
 import { useRestoreRemount } from '@/components/kosztorys/editor/hooks/use-restore-remount'
 import { useUndoRedo } from '@/components/kosztorys/editor/hooks/use-undo-redo'
+import { useReferenceData } from '@/hooks/use-reference-data'
 import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { refreshDataAction } from '@/lib/actions/refresh'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 import { whenOnline } from '@/lib/utils/when-online'
 
-type PropsT = Omit<KosztorysEditorDataT, 'isTemplate'> & {
+type PropsT = Omit<KosztorysEditorDataT, 'isTemplate' | 'workers'> & {
   actions: EditorActionsT
 }
 
 export function KosztorysEditorV2({ actions, ...props }: PropsT) {
   const { investmentId, tree, investmentName } = props
+  const referenceWorkers = useReferenceData()?.workers
+  const workers = actions.isTemplate ? undefined : referenceWorkers
   const router = useRouter()
   const undoRedo = useUndoRedo()
   const [versionsOpen, setVersionsOpen] = useState(false)
@@ -80,6 +83,7 @@ export function KosztorysEditorV2({ actions, ...props }: PropsT) {
       <KosztorysEditorBody
         key={remountKey}
         {...props}
+        workers={workers}
         isTemplate={actions.isTemplate}
         hasCatalogueEdits={hasCatalogueEdits}
         undoRedo={undoRedo}

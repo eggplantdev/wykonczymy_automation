@@ -6,7 +6,6 @@ import { MANAGEMENT_ROLES, isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { STREAMS, markSeen } from '@/lib/db/notifications'
 import { fetchEquipmentOverview } from '@/lib/queries/equipment'
 import { fetchRecipientLists } from '@/lib/queries/notification-recipients'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { EquipmentDataTable } from '@/components/equipment/equipment-data-table'
 import { RecipientListCard } from '@/components/notification-recipients/recipient-list-card'
 import { Description } from '@/components/ui/description'
@@ -23,10 +22,9 @@ export default async function EquipmentPage() {
   if (!session.success) redirect('/')
 
   const payload = await getPayload({ config })
-  const [, { equipment, warehouses }, { workers, investments }, recipients] = await Promise.all([
+  const [, { equipment, warehouses }, recipients] = await Promise.all([
     markSeen(payload, session.user.id, STREAMS.equipment),
     fetchEquipmentOverview(),
-    fetchReferenceData(),
     fetchRecipientLists(),
   ])
   const inUse = equipment.filter((item) => isLiveStatus(item.status)).length
@@ -36,13 +34,7 @@ export default async function EquipmentPage() {
       <Description>
         {inUse} {pluralize(inUse, ['sztuka', 'sztuki', 'sztuk'])} w użyciu
       </Description>
-      <EquipmentDataTable
-        data={equipment}
-        today={warsawToday()}
-        workers={workers}
-        warehouses={warehouses}
-        investments={investments}
-      />
+      <EquipmentDataTable data={equipment} today={warsawToday()} warehouses={warehouses} />
       <RecipientListCard
         list="equipmentDigest"
         title="Powiadomienia"

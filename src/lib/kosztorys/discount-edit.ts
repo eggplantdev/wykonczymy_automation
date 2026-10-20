@@ -44,11 +44,8 @@ export function discountFromType(
   return { kind: 'change', pair: { discountType: next, discountValue: current.discountValue } }
 }
 
-export function discountPolicy<RowT extends DiscountPairT>(): CellEditPolicyT<RowT, DiscountPairT> {
+export function discountPolicy<RowT extends DiscountPairT>(): CellEditPolicyT<RowT> {
   return {
-    snapshot: (row) => ({ discountType: row.discountType, discountValue: row.discountValue }),
-    sameEntry: (a, b) => a.discountType === b.discountType && a.discountValue === b.discountValue,
-    restore: (row, entry) => ({ ...row, ...entry }),
     applyValue: withDiscountValue,
     clear: (row) => ({ ...row, discountType: null, discountValue: 0 }),
     guard: (row) => {

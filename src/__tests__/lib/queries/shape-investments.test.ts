@@ -80,6 +80,12 @@ describe('shapeInvestments', () => {
     expect(row).toMatchObject({ id: 5, name: 'Grojecka', status: 'active', hasSheet: false })
   })
 
+  it('carries „Wstępne informacje” so the edit dialog opened from the list can read them', () => {
+    const inv = { ...baseInv, initialInfo: { market: 'secondary' as const } }
+    const [row] = shapeInvestments([inv], {}, NO_MAP, NO_MAP, NO_DEPOSITS)
+    expect(row.initialInfo).toEqual({ market: 'secondary' })
+  })
+
   it('defaults to zeroed financials when investment has no entry', () => {
     const [row] = shapeInvestments([baseInv], {}, NO_MAP, NO_MAP, NO_DEPOSITS)
     expect(row).toMatchObject({

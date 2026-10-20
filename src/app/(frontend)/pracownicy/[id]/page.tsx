@@ -23,17 +23,17 @@ import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
 import { fetchWorkerStageInvestments } from '@/lib/queries/worker-stage-investments'
 import { fetchWorkerExpenseDrafts } from '@/lib/queries/worker-expense-drafts'
 import { fetchWorkerReportHistory } from '@/lib/queries/worker-report-history'
-import { fetchPayoutsToConfirm } from '@/lib/queries/payout-confirmation'
+import { fetchReceiptsToConfirm } from '@/lib/queries/receipt-confirmation'
 import { workerPageTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
 import { fetchTransferFacets } from '@/lib/queries/transfer-totals'
-import { TRANSFER_TYPES } from '@/lib/constants/transfers'
+import { TRANSFER_TYPES, carriesPayoutStatus } from '@/lib/constants/transfers'
 import { toOptions } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
 import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
 import { WorkerInvestmentsSection } from '@/components/users/worker-investments-section'
-import { PayoutsToConfirm } from '@/components/payouts/payouts-to-confirm'
+import { ReceiptsToConfirm } from '@/components/receipt-confirmation/receipts-to-confirm'
 import { WorkerQuickActions } from '@/components/users/worker-quick-actions'
 import { WorkerExpenseDraftsSection } from '@/components/worker-expenses/worker-expense-drafts-section'
 import { WorkerReportsSection } from '@/components/worker-reports/worker-reports-section'
@@ -82,7 +82,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     stageInvestments,
     expenseDrafts,
     workReports,
-    payoutsToConfirm,
+    receiptsToConfirm,
   ] = await Promise.all([
     fetchUserLanguage(currentUser.id),
     refDataPromise,
@@ -92,7 +92,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     fetchWorkerStageInvestments(userId),
     fetchWorkerExpenseDrafts(userId),
     fetchWorkerReportHistory(userId),
-    isOwnPage ? fetchPayoutsToConfirm(userId) : [],
+    isOwnPage ? fetchReceiptsToConfirm(userId) : [],
   ])
 
   const worker = refData.workers.find((w) => w.id === userId)
@@ -148,11 +148,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       {(isManager || isOwnPage) && (
         <div className="flex flex-wrap gap-2">
           {isManager && (isOwnPage || canManageAccount(currentUser.role, role)) && (
-            <EditWorkerDialog
-              worker={worker}
-              cashRegisters={refData.cashRegisters}
-              roles={assignableRoles(currentUser.role, role)}
-            />
+            <EditWorkerDialog worker={worker} roles={assignableRoles(currentUser.role, role)} />
           )}
           {isOwnPage && <AccountCredentialsDialog email={worker.email} />}
           {isOwnPage && <InstallAppButton />}
@@ -169,7 +165,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
           locale={locale}
         />
       )}
-      {isOwnPage && <PayoutsToConfirm payouts={payoutsToConfirm} />}
+      {isOwnPage && <ReceiptsToConfirm receipts={receiptsToConfirm} />}
       <OwnedRegistersSection
         registers={registers}
         balances={balances}
@@ -209,7 +205,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
                 transferTypes: offeredIfChoice(transferTypes),
                 otherCategories: toOptions(refData.otherCategories),
                 showCancelledFilter: false,
-                showPayoutStatusFilter: transferTypes.includes('PAYOUT'),
+                showPayoutStatusFilter: transferTypes.some(carriesPayoutStatus),
                 showSearchFilters: false,
               },
               invoiceDownload: isManager,

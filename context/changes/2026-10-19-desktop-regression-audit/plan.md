@@ -608,30 +608,30 @@ Not run: the full suite, E2E and the build. The user asks for those explicitly.
 
 #### Automated
 
-- [x] 1.1 `pnpm db:migrate:test` exits 0 — retargeted to staging: `pnpm db:migrate:preview` exit 0
-- [x] 1.2 :3010 answers 200 on `/zaloguj` — retargeted: staging answers, QA logins work
-- [x] 1.3 Registry triage recorded in the ledger (every open box assigned to a cell or marked out)
+- [x] 1.1 `pnpm db:migrate:test` exits 0 — retargeted to staging: `pnpm db:migrate:preview` exit 0 (7ccfadb09)
+- [x] 1.2 :3010 answers 200 on `/zaloguj` — retargeted: staging answers, QA logins work (7ccfadb09)
+- [x] 1.3 Registry triage recorded in the ledger (every open box assigned to a cell or marked out) (7ccfadb09)
 
 ### Phase 2: Stage A — EMPLOYEE + MANAGER
 
 #### Automated
 
-- [ ] 2.1 Stage A regression specs green
+- [x] 2.1 Stage A regression specs green — `optimistic-form-store.test.ts` 17/17 (10cd3cbfa)
 
 ### Phase 3: Stage B — OWNER + ADMIN
 
 #### Automated
 
-- [ ] 3.1 Stage B regression specs green
+- [x] 3.1 Stage B regression specs green — no stage-B fix, no new spec
 
 ### Phase 4: Stage C — Logged-out and share routes
 
 #### Automated
 
-- [ ] 4.1 Stage C regression specs green
+- [x] 4.1 Stage C regression specs green — no stage-C fix, no new spec
 
 ### Phase 5: Close-out
 
 #### Automated
 
-- [ ] 5.1 No open box in `review-gate.md`
+- [x] 5.1 No open box in `review-gate.md`

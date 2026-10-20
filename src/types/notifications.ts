@@ -4,6 +4,6 @@ export type UnreadStreamT =
   | 'equipment'
   | 'workerReports'
   | 'expenseDrafts'
-  | 'rejectedPayouts'
+  | 'rejectedReceipts'
 
 export type UnreadCountsT = Record<UnreadStreamT, number>

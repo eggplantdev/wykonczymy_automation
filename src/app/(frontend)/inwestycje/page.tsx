@@ -3,8 +3,6 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { fetchAllInvestments } from '@/lib/queries/investments'
 import { getPresets } from '@/lib/queries/presets'
-import { fetchOrderSettings } from '@/lib/queries/order-settings'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { PAGE_TITLES } from '@/lib/constants/sections'
@@ -13,22 +11,11 @@ export default async function InvestmentsPage() {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) redirect('/')
 
-  const [investments, presets, orderSettings, referenceDataBase] = await Promise.all([
-    fetchAllInvestments(),
-    getPresets(),
-    fetchOrderSettings(),
-    fetchReferenceData(),
-  ])
-  const { user } = session
+  const [investments, presets] = await Promise.all([fetchAllInvestments(), getPresets()])
 
   return (
     <PageWrapper title={PAGE_TITLES.investments}>
-      <InvestmentDataTable
-        data={investments}
-        presets={presets}
-        referenceData={{ ...referenceDataBase, currentUserId: user.id, currentUserRole: user.role }}
-        orderSettings={orderSettings}
-      />
+      <InvestmentDataTable data={investments} presets={presets} />
     </PageWrapper>
   )
 }

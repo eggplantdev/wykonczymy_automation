@@ -10,6 +10,7 @@ import { DataTable } from '@/components/tables/data-table/data-table'
 import { getTransferColumns, transferRowClassName } from '@/components/tables/transfers'
 import { getTelmakCheckColumns } from '@/components/tables/telmak-check'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { useReferenceData } from '@/hooks/use-reference-data'
 import { useLatestRequest } from '@/hooks/use-latest-request'
 import { toastMessage } from '@/lib/utils/toast'
 import { cn } from '@/lib/utils/cn'
@@ -18,15 +19,14 @@ import { normalizeDocNumber } from '@/lib/telmak/parse-telmak'
 import { compareTelmak, type TelmakCompareT } from '@/lib/telmak/compare-telmak'
 import { problemRowIds, toTelmakCheckRow, type TelmakPackageFileT } from '@/lib/telmak/check-row'
 import { fetchTelmakCheckRows, fetchTelmakTransferRows } from '@/lib/queries/telmak-check'
-import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { TransferRowT } from '@/types/transfers'
 
 type TelmakCheckDialogPropsT = {
   registerId: number
-  referenceData: ReferenceDataBaseT
 }
 
-export function TelmakCheckDialog({ registerId, referenceData }: TelmakCheckDialogPropsT) {
+export function TelmakCheckDialog({ registerId }: TelmakCheckDialogPropsT) {
+  const referenceData = useReferenceData()
   const { id: currentUserId, role: currentUserRole } = useCurrentUser()
   const [open, setOpen] = useState(false)
   const [parsed, setParsed] = useState<TelmakPackageFileT[]>([])

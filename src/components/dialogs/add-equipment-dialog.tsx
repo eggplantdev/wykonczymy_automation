@@ -8,15 +8,14 @@ import { createEquipmentAction } from '@/lib/actions/equipment'
 import { warsawToday } from '@/lib/utils/days'
 import type { AddEquipmentFormValuesT } from '@/components/forms/equipment-form/equipment-schema'
 import type { WarehouseOptionT } from '@/lib/equipment/types'
-import type { InvestmentRefT, WorkerRefT } from '@/types/reference-data'
+import { useReferenceData } from '@/hooks/use-reference-data'
 
 type AddEquipmentDialogPropsT = {
-  workers: WorkerRefT[]
   warehouses: WarehouseOptionT[]
-  investments: InvestmentRefT[]
 }
 
-export function AddEquipmentDialog({ workers, warehouses, investments }: AddEquipmentDialogPropsT) {
+export function AddEquipmentDialog({ warehouses }: AddEquipmentDialogPropsT) {
+  const referenceData = useReferenceData()
   const defaultValues: AddEquipmentFormValuesT = {
     name: '',
     serialNumber: '',
@@ -53,9 +52,9 @@ export function AddEquipmentDialog({ workers, warehouses, investments }: AddEqui
           action={createEquipmentAction}
           onSubmitSuccess={onSubmitSuccess}
           keepOpen={keepOpen}
-          workers={workers}
+          workers={referenceData?.workers ?? []}
           warehouses={warehouses}
-          investments={investments}
+          investments={referenceData?.investments ?? []}
         />
       )}
     </FormDialog>

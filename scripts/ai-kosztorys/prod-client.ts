@@ -53,6 +53,7 @@ export const forAiAnalysis = (asset: AssetT) =>
   asset.kind === 'projekt' || new Date(asset.createdAt) < MARKER_PROMISE_SINCE
 
 export const norm = (s: string) => s.replace(/\s+/g, ' ').trim()
+export const lines = (text: string) => text.split('\n').map(norm).filter(Boolean)
 
 // Without it a round reads every Nowe informacje as empty: the re-run guard passes and the baseline
 // the next round diffs against loses what is already there.
@@ -124,9 +125,14 @@ export const itemsOf = async (investmentId: number) =>
     )
   ).docs
 
-type OrderedItemT = Pick<ItemT, 'displayOrder' | 'section'>
+// The editor's row order (`kosztorys-tree.ts`), id tie-breaks included, so an index into the sorted
+// list is the row number the editor's gutter shows.
+type OrderedItemT = Pick<ItemT, 'id' | 'displayOrder' | 'section'>
 export const byKosztorysOrder = (a: OrderedItemT, b: OrderedItemT) =>
-  a.section.displayOrder - b.section.displayOrder || a.displayOrder - b.displayOrder
+  a.section.displayOrder - b.section.displayOrder ||
+  a.section.id - b.section.id ||
+  a.displayOrder - b.displayOrder ||
+  a.id - b.id
 
 export const sectionsOf = async (investmentId: number) =>
   (

@@ -17,6 +17,24 @@ import type { ReferenceDataT } from '@/types/reference-data'
 
 export type OrderInvestmentT = SiteAddressT & { id: number; name: string; siteManagerId?: number }
 
+type OrderInvestmentSourceT = Omit<OrderInvestmentT, 'street'> & { address: string }
+
+export const toOrderInvestment = ({
+  id,
+  name,
+  address,
+  postalCode,
+  city,
+  siteManagerId,
+}: OrderInvestmentSourceT): OrderInvestmentT => ({
+  id,
+  name,
+  street: address,
+  postalCode,
+  city,
+  siteManagerId,
+})
+
 type OrderDialogPropsT = {
   investment: OrderInvestmentT
   referenceData: ReferenceDataT

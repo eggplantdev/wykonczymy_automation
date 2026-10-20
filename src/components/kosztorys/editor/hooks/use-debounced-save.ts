@@ -28,7 +28,8 @@ export function useDebouncedSave(delay = 500, onStale?: () => void) {
     return createDebouncedSaves(delay, dispatch, lanes)
   })
 
-  useEffect(() => () => saves.dispose(), [saves])
+  // A cell commits on blur, so a click on a link both settles the edit and unmounts the editor.
+  useEffect(() => () => saves.flush(), [saves])
 
   return {
     save: saves.save,

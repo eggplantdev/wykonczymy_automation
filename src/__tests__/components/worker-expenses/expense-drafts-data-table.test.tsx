@@ -8,11 +8,13 @@ import {
   restoreSkippedReceiptAction,
 } from '@/lib/actions/worker-expense-drafts'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
-import { referenceDataFor } from '@/__tests__/helpers/reference-data'
+import { useReferenceData } from '@/hooks/use-reference-data'
+import { useReferenceData as useReferenceDataStub } from '@/__tests__/stubs/use-reference-data'
 import { navigationState } from '@/__tests__/stubs/next-navigation'
 
 navigationState.pathname = '/zgloszenia-wydatkow'
 
+vi.mocked(useReferenceData).mockImplementation(useReferenceDataStub)
 vi.mocked(restoreExpenseDraftAction).mockResolvedValue({ success: true })
 vi.mocked(restoreSkippedReceiptAction).mockResolvedValue({ success: true })
 
@@ -43,7 +45,6 @@ function renderTable(rows: ExpenseDraftRowT[]) {
       paginationMeta={{ currentPage: 1, totalPages: 1, totalDocs: rows.length, limit: 50 }}
       investments={[]}
       workers={[]}
-      referenceData={referenceDataFor('OWNER')}
     />,
   )
 }

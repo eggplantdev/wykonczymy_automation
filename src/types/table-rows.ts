@@ -1,5 +1,9 @@
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
-import type { CashRegisterTypeT, InvestmentBillingT } from '@/types/reference-data'
+import type {
+  CashRegisterTypeT,
+  InvestmentBillingT,
+  InvestmentInitialInfoT,
+} from '@/types/reference-data'
 import type { SheetStatusT } from '@/lib/constants/sheets'
 import type { RoleT } from '@/lib/auth/roles'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
@@ -39,6 +43,7 @@ export type InvestmentRowT = {
   email: string
   contactPerson: string
   billing: InvestmentBillingT
+  initialInfo: InvestmentInitialInfoT
   reviewRequested: boolean
   notes: string
   hasSheet: boolean
@@ -47,6 +52,7 @@ export type InvestmentRowT = {
    *  entered rozpiska with no etap progress reads zero robocizny — identical to no kosztorys at all. */
   hasKosztorys: boolean
   aiProgress: AiProgressStepT
+  siteManagerId?: number
   settlementMode: SettlementModeT
   vatRate: number
 }
@@ -89,5 +95,5 @@ export type UserRowT = {
   /** Absent when the worker holds no pair on any investment with a kosztorys. */
   payoutRemaining?: WorkerColumnFiguresT
   registerNames: string[]
-  canTrash: boolean
+  canManage: boolean
 }

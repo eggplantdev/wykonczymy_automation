@@ -9,7 +9,7 @@ import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NotePopover } from '@/components/transfers/note-popover'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
-import { PayoutStatusBadge } from '@/components/payouts/payout-status-badge'
+import { PayoutStatusBadge } from '@/components/receipt-confirmation/payout-status-badge'
 import { OrderStatusBadge } from '@/components/orders/order-status-badge'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
 import {
@@ -254,7 +254,7 @@ const buildColumns = (
 }
 
 type ColumnOptionsT = {
-  referenceData?: ReferenceDataBaseT
+  referenceData?: ReferenceDataBaseT | null
   currentUserId?: number
   currentUserRole?: RoleT
   translator?: TranslatorT<'transfers'>

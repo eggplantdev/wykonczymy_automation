@@ -50,7 +50,7 @@ import type { ActionResultT } from '@/types/action'
 import { getDb } from '@/lib/db/get-db'
 import { relatedInvestmentLockMessage } from '@/lib/db/investment-gate'
 import { lockTransactionRow } from '@/lib/db/transaction-lock'
-import { notifyPendingPayouts } from '@/lib/push/notify-pending-payouts'
+import { notifyCreatedReceipts } from '@/lib/push/notify-created-receipts'
 
 export async function createTransferAction(data: CreateTransferFormT, invoiceMediaIds?: number[]) {
   return protectedAction(
@@ -80,7 +80,7 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
       )
       if (lockMessage) return { success: false, error: lockMessage }
 
-      await payload.create({
+      const created = await payload.create({
         collection: 'transactions',
         data: {
           // `parsed.data`, never the raw input: the schema is what narrows a client payload down to
@@ -93,11 +93,8 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
       })
       console.log(`[PERF]   payload.create ${step()}ms`)
 
-      const { type, worker, amount } = parsed.data
-      if (carriesPayoutStatus(type) && worker) {
-        after(async () =>
-          notifyPendingPayouts(await getDb(payload), [{ workerId: worker, amount }]),
-        )
+      if (carriesPayoutStatus(parsed.data.type)) {
+        after(() => notifyCreatedReceipts(payload, [Number(created.id)]))
       }
 
       return { success: true }
@@ -237,10 +234,8 @@ export async function createBulkTransferAction(
       // Post-response sync after commit — never before, else a rolled-back row would
       // leak into the sheet.
       after(() => syncBulkExpensesToSheet(createdIds))
-      const { type, worker, lineItems } = parsed.data
-      if (carriesPayoutStatus(type) && worker) {
-        const payouts = lineItems.map(({ amount }) => ({ workerId: worker, amount }))
-        after(async () => notifyPendingPayouts(await getDb(payload), payouts))
+      if (carriesPayoutStatus(parsed.data.type)) {
+        after(() => notifyCreatedReceipts(payload, createdIds))
       }
 
       return { success: true }

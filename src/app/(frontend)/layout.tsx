@@ -14,11 +14,14 @@ import { getSession } from '@/lib/auth/get-current-user-jwt'
 import { needsSessionRefresh } from '@/lib/auth/session-refresh'
 import { SessionRefresher } from '@/components/auth/session-refresher'
 import { isManagementRole } from '@/lib/auth/roles'
-import { Navigation } from '@/components/nav/navigation'
+import { TopNav } from '@/components/nav/top-nav'
 import { Sidebar } from '@/components/nav/sidebar'
 import { NavOpenRouterBalance } from '@/components/nav/nav-openrouter-balance'
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 import { UnreadCountsProvider } from '@/hooks/use-unread-counts'
+import { ReferenceDataProvider } from '@/hooks/use-reference-data'
+import { fetchReferenceData } from '@/lib/queries/reference-data'
+import { fetchOrderSettings } from '@/lib/queries/order-settings'
 import { fetchUnreadCounts } from '@/lib/queries/unread-counts'
 import { fetchUserLanguage } from '@/lib/queries/user-language'
 import { AppLanguageProvider } from '@/components/i18n/app-language-provider'
@@ -72,39 +75,44 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
   // Deliberately not awaited: the badge counts in the shell would block first paint
   // of every page, and nothing below could stream.
   const unreadCounts = fetchUnreadCounts()
+  const isManager = isManagementRole(user.role)
+  const referenceData = isManager ? fetchReferenceData() : null
+  const orderSettings = isManager ? fetchOrderSettings() : null
   const locale = await fetchUserLanguage(user.id)
 
   return (
     <AppLanguageProvider locale={locale}>
       <CurrentUserProvider user={user}>
-        <UnreadCountsProvider counts={unreadCounts}>
-          <div className="flex h-screen">
-            <Sidebar
-              openRouterBalance={
-                isManagementRole(user.role) && (
-                  <Suspense fallback={null}>
-                    <NavOpenRouterBalance />
-                  </Suspense>
-                )
-              }
-            />
-            {/* min-w-0: a flex item's default `min-width: auto` refuses to shrink below its content's
+        <ReferenceDataProvider referenceData={referenceData} orderSettings={orderSettings}>
+          <UnreadCountsProvider counts={unreadCounts}>
+            <div className="flex h-screen">
+              <Sidebar
+                openRouterBalance={
+                  isManager && (
+                    <Suspense fallback={null}>
+                      <NavOpenRouterBalance />
+                    </Suspense>
+                  )
+                }
+              />
+              {/* min-w-0: a flex item's default `min-width: auto` refuses to shrink below its content's
             min-content width, so one wide child (the kosztorys grid) widened this whole column past
             the viewport and took the sticky top bar with it — the page body scrolled sideways. */}
-            <div className="flex min-w-0 flex-1 flex-col">
-              <Navigation user={user} investmentCrumb={investmentCrumb} />
-              {/* transform-gpu forces a compositing layer: Safari otherwise fails to
+              <div className="flex min-w-0 flex-1 flex-col">
+                <TopNav investmentCrumb={investmentCrumb} />
+                {/* transform-gpu forces a compositing layer: Safari otherwise fails to
               repaint content streamed into this overflow scroll container after
               the initial paint (blank until you scroll / move the cursor). */}
-              <main className="flex min-h-0 flex-1 transform-gpu flex-col overflow-y-auto">
-                {children}
-              </main>
+                <main className="flex min-h-0 flex-1 transform-gpu flex-col overflow-y-auto">
+                  {children}
+                </main>
+              </div>
             </div>
-          </div>
-          <ReviewPromptHost />
-          <PushSubscriptionSync />
-          {needsSessionRefresh(issuedAt) && <SessionRefresher />}
-        </UnreadCountsProvider>
+            <ReviewPromptHost />
+            <PushSubscriptionSync />
+            {needsSessionRefresh(issuedAt) && <SessionRefresher />}
+          </UnreadCountsProvider>
+        </ReferenceDataProvider>
       </CurrentUserProvider>
     </AppLanguageProvider>
   )

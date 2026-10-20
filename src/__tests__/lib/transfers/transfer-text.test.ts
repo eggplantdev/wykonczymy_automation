@@ -48,8 +48,19 @@ describe('transferTypeText', () => {
 })
 
 describe('transferPayoutStatusText', () => {
-  it('leaves every type but a wypłata blank', () => {
+  it('leaves an unasked row blank on every type but a wypłata', () => {
     expect(transferPayoutStatusText(transferRow({ type: 'BONUS', payoutStatus: null }))).toBe('')
+    expect(
+      transferPayoutStatusText(transferRow({ type: 'REGISTER_TRANSFER', payoutStatus: null })),
+    ).toBe('')
+  })
+
+  it('names the answer on a transfer handed to a worker', () => {
+    expect(
+      transferPayoutStatusText(
+        transferRow({ type: 'REGISTER_TRANSFER', payoutStatus: 'accepted' }),
+      ),
+    ).not.toBe('')
   })
 
   it('dashes a wypłata booked before anyone was asked', () => {

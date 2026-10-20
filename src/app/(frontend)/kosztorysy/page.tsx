@@ -56,7 +56,7 @@ export default async function SheetsListPage() {
         <ExternalLink href={ALL_SHEETS_URL}>Otwórz arkusze google ↗</ExternalLink>
       </div>
 
-      <KosztorysDataTable data={kosztorysRows} availableInvestments={investmentsWithoutSheet} />
+      <KosztorysDataTable data={kosztorysRows} />
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium">Inwestycje bez kosztorysu</h2>
