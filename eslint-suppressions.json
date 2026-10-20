@@ -1,0 +1,467 @@
+{
+  "src/app/(auth)/zaloguj/login-form.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/app/(auth)/zaloguj/reset-hasla/reset-password-form.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/app/(auth)/zaloguj/zapomniane-haslo/forgot-password-form.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/company-knowledge/company-knowledge-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/dialogs/add-sheet-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 3
+    }
+  },
+  "src/components/dialogs/edit-catalogue-item-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/dialogs/link-sheet-to-investment-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/dialogs/media-upload-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/dialogs/settle-payouts-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/dialogs/sheet-setup-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/equipment/location-cell.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/filters/active-filter-label.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/filters/filter-chip.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 3
+    }
+  },
+  "src/components/fleet/deadline-cell.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/fleet/inspection-type-checkboxes.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/forms/form-components/form-clear-button.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/forms/form-components/form-footer.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/forms/settle-payouts-form/settle-payouts-form.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/forms/settle-payouts-form/settle-payouts-table.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/investments/investment-assets-control.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/catalogue/add-items-from-catalogue-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/catalogue/catalogue-candidate-row.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/catalogue/catalogue-diff-table.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/clear-kosztorys-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/kosztorys-versions-drawer.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/preset/add-sections-from-preset-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 5
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/preset/reload-from-preset-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/reorder/reorder-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/report/sheet-report-block.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/report/sheet-report-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/report/sheet-report-parts.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 3
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/share/kosztorys-share-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/share/kosztorys-worker-share-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/share/share-link-panel.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/sheet/sheet-compare-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/sheet/sheet-import-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/sheet/sheet-rates-block.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 4
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/stage-split/stage-split-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/view-settings/kosztorys-client-view-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/view-settings/kosztorys-worker-view-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/worker-reports/review-lines-table.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 4
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/worker-reports/worker-report-review.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/editor/dialogs/worker-reports/worker-reports-list.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/grid/cells/ai-review-columns.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/grid/cells/section-header-cell.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/grid/menus/section-color-picker.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 3
+    }
+  },
+  "src/components/kosztorys/editor/history/history-banner.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/stage-completed-mark.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/editor/template-catalogue-banner.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/toolbar/kosztorys-editor-toolbar.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/toolbar/menus/kosztorys-workers-menu.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/editor/toolbar/worker-reports-button.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/summary/blocks/settlement-plane-warning.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/summary/kosztorys-totals-panel-toggle.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/summary/settings/discount-amount-pair-field.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/summary/settings/discount-value-field.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/summary/tables/margin-forecast-table.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/summary/tables/materials-transactions-table.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/summary/totals-panel-overlay.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/kosztorys/worker-report/extra-works-dialog-button.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/worker-report/report-grid.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/kosztorys/worker-report/send-bar.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/leads/lead-assets-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/media/media-preview-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/media/media-preview-trigger.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/media/media-strip.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 3
+    }
+  },
+  "src/components/nav/nav-openrouter-balance.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/nav/sidebar.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/nav/ui-scale-switch.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/payouts/reject-payout-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/pwa/install-app-button.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/pwa/push-toggle.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/sheets/iframe-view.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/sheets/sync-button.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 4
+    }
+  },
+  "src/components/tables/expense-drafts.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/tables/telmak-check.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/tables/users.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/telmak-check/telmak-check-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/transfers/cancel-transfer-button.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/transfers/cards/transfer-view-switch.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/transfers/duplicate-finder-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 4
+    }
+  },
+  "src/components/transfers/invoice-cell.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/transfers/invoice-download-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/transfers/print-transfers-button.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/users/report-work-button.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/worker-expenses/expense-draft-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/worker-expenses/expense-draft-duplicate-status.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/worker-expenses/open-expense-draft-button.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/worker-expenses/restore-expense-draft-button.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/worker-expenses/use-expense-draft-acceptance.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/components/worker-reports/scan-report-dialog.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 2
+    }
+  },
+  "src/components/worker-reports/worker-report-row-actions.tsx": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  },
+  "src/hooks/use-file-archive.ts": {
+    "local/no-hand-rolled-ui": {
+      "count": 1
+    }
+  }
+}

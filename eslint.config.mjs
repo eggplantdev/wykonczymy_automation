@@ -4,6 +4,7 @@ import nextPlugin from '@next/eslint-plugin-next'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import { fixupPluginRules } from '@eslint/compat'
 import { noDomainDriftRule } from './eslint-rules/no-domain-drift.mjs'
+import { noHandRolledUiRule } from './eslint-rules/no-hand-rolled-ui.mjs'
 
 const ENV_IGNORES = [
   'src/lib/env/**',
@@ -147,8 +148,17 @@ export default ts.config(
   {
     files: ['src/**/*.{ts,tsx}', 'e2e/**/*.ts'],
     ignores: ['src/migrations/**'],
-    plugins: { local: { rules: { 'no-domain-drift': noDomainDriftRule } } },
+    plugins: {
+      local: {
+        rules: { 'no-domain-drift': noDomainDriftRule, 'no-hand-rolled-ui': noHandRolledUiRule },
+      },
+    },
     rules: { 'local/no-domain-drift': 'error' },
+  },
+  {
+    files: ['src/components/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}', 'src/hooks/**/*.{ts,tsx}'],
+    ignores: ['src/components/ui/**'],
+    rules: { 'local/no-hand-rolled-ui': 'error' },
   },
   {
     files: ['**/*.cjs'],

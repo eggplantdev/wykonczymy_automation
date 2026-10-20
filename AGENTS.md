@@ -169,6 +169,10 @@ Roles `ADMIN`, `OWNER`, `MANAGER`, `EMPLOYEE`; hierarchy in `src/lib/auth/roles.
   Promote when a second directory reaches for it, not a third file in the same one.
 - **`src/components/ui/` is domain-agnostic and imports no feature directory** (`eslint.config.mjs`
   enforces it). A component that knows it filters a list goes in `filters/`.
+- **UI outside `ui/` composes `ui/` primitives, never rebuilds one.** A missing shape becomes a
+  variant or prop in `ui/` plus its `/design` section. `local/no-hand-rolled-ui` catches the
+  mechanical copies (raw Radix, `<button className>`, raw status colours…); an exception carries an
+  `eslint-disable-next-line … -- <reason>`. A copy with no such signature is still a copy.
 - **`src/components/tables/`** — per-domain column defs, the `column-meta.ts` augmentation, and the
   generic data-table engine in `tables/data-table/` (not `ui/`: its toolbar knows it's a data table).
 - **The datasheet-grid seam runs one way:** `ui/datasheet-grid/` holds presentational cell primitives;
