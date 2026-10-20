@@ -1111,6 +1111,23 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       dymek z opisem.
 - [ ] Logowanie, „Nie pamiętasz hasła" i reset hasła: błędny login/hasło pokazuje czerwony
       komunikat pod formularzem jak dotąd.
+- [ ] Telefon (390px, przez LAN), konto kierownika → menu → „Manual Wykończymy": menu się zamyka,
+      a okno Manuala zostaje otwarte z wczytanymi wpisami.
+- [ ] Telefon → otwórz menu i obróć telefon poziomo (szerokość ≥ 768px): nie zostaje przyciemnione
+      tło nad stroną.
+- [ ] Kosztorys → „Pobierz z arkusza" → „Rozliczenie i wykonawca etapów": pole wyboru wykonawcy ma tę
+      samą wysokość co pole rozliczenia obok.
+- [ ] Kosztorys → „Zgłoszenia prac" → przegląd zgłoszenia: nagłówki grup wielkimi literami; dopisek
+      pod polem ilości wyśrodkowany.
+- [ ] Kosztorys → podsumowanie: kliknij uchwyt panelu, żeby go zwinąć, potem rozwiń — dymek uchwytu
+      nie pojawia się sam.
+- [ ] „Dodaj kosztorys" (link do arkusza), „Podłącz arkusz do inwestycji", „Synchronizuj wydatki
+      inwestycyjne", „Dodaj do inwestycji" w załącznikach zgłoszenia i przycisk potwierdzenia w oknach
+      „Anuluj / Potwierdź": w trakcie wysyłki przycisk jest wyszarzony i kręci się w nim wskaźnik.
+- [ ] Komunikaty błędów pod formularzami (logowanie, „Rozlicz wypłaty", zamówienia): bez ikony
+      trójkąta jak dotąd; małe błędy przy polach (plik, lista odbiorców, „Zapisz szablon") z ikoną.
+- [ ] Plakietka z X (np. aktywny filtr, wybrany odbiorca): X ma ten sam rozmiar, po najechaniu
+      czerwienieje, kliknięcie usuwa.
 
 # Zamknięte — indeks
 

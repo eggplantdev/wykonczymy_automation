@@ -269,9 +269,9 @@ at its site.
 
 Left, with reason:
 
-- `kosztorys/summary/totals-panel-overlay.tsx` keeps the raw Radix import. It needs `forceMount`, no
-  animation and a className on Content; `ui/collapsible` forces all three. Waiting on the in-flight
-  `ui/collapsible` rewrite on staging.
+- `kosztorys/summary/totals-panel-overlay.tsx` keeps the raw Radix import. It needs no animation and
+  a className on Content; `ui/collapsible` forces both. Waiting on the in-flight `ui/collapsible`
+  rewrite on staging.
 - `reorder-dialog.tsx` section toggle and `grid/cells/section-header-cell.tsx:89` need a
   `CollapsibleChevron variant="side"`. Same wait.
 - `filters/filter-select.tsx` → `SearchSelect`: `SearchSelect` always shows a search box, and both
@@ -289,4 +289,9 @@ Left, with reason:
 - `worker-report/report-bar.tsx` → `SearchFilterInput`: needs an `lg` size (h-10).
 - `telmak-check-dialog.tsx:208` → `ToggleGroup`: a single button whose label flips; two segments
   would need new copy.
-- Media `<Spinner />` callers: `Spinner` already is `GradientSpinner size-10`.
+- The three „form has errors" notices (`form-footer`, `send-bar`, `extra-works-dialog-button`) stay
+  separate: each is already `Description tone="error"` with its own copy and layout, so a shared
+  component would restate that one line.
+- Badge `pending` (amber) and `positive` (teal), and `inspection-form.tsx` `text-chart-orange`: moving
+  them onto `warning` / `chart-green` changes colours users know. The owner's call, not a swap.
+- `simple-select` `toolbarSm` stays as an alias of `size: 'xs'`; removing it only renames call sites.
