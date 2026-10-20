@@ -433,15 +433,15 @@ by Critical Implementation Details and gated by Phases 2 and 5.
 
 #### Automated
 
-- [x] 3.1 Touched specs pass
-- [x] 3.2 No reference-data props left between a server page and a client component
+- [x] 3.1 Touched specs pass — 1d8a56aa1
+- [x] 3.2 No reference-data props left between a server page and a client component — 1d8a56aa1
 
 ### Phase 4: Shared `InvestmentOverview`
 
 #### Automated
 
-- [ ] 4.1 `investment-overview.test.tsx` passes
-- [ ] 4.2 Existing kosztorys summary-panel specs pass
+- [x] 4.1 `investment-overview.test.tsx` passes
+- [x] 4.2 Existing kosztorys summary-panel specs pass
 
 ### Phase 5: Final perf run
 

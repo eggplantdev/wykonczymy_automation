@@ -101,6 +101,7 @@ type PropsT = {
   // tab is kept off the client by `preview` below
   financials?: InvestmentFinancialsT
   investment?: InvestmentWithDetailsT
+  trashed?: boolean
   assets?: MediaFileT[]
 }
 
@@ -135,6 +136,7 @@ export function SummaryPanelContent({
   marginForecastByPlane,
   financials,
   investment,
+  trashed,
   assets,
 }: PropsT) {
   const [summaryView, setSummaryView] = useSummaryView(preview)
@@ -266,7 +268,7 @@ export function SummaryPanelContent({
               />
             )}
             {view === 'investment' && investment && (
-              <SummaryInvestmentTab investment={investment} assets={assets} />
+              <SummaryInvestmentTab investment={investment} trashed={trashed} assets={assets} />
             )}
           </div>
         )}

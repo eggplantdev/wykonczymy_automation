@@ -104,6 +104,7 @@ export default async function InvestmentKosztorysV2Page({
       workCatalogue={workCatalogue}
       assets={assets}
       investment={withDetails(investment, detailsById)}
+      trashed={trashed}
       hasSheet={investment.hasSheet}
       lock={investmentLockOf({ status: investment.status, trashed })}
       workerReports={{

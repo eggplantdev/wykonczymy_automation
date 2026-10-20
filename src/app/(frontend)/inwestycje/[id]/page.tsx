@@ -1,5 +1,4 @@
 import { Suspense } from 'react'
-import { Lock } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
@@ -13,7 +12,8 @@ import {
   withDetails,
 } from '@/lib/queries/reference-data'
 import { InvestmentSummaryPanel } from '@/components/investments/investment-summary-panel'
-import { InvestmentAssetsSection } from '@/components/investments/investment-assets-section'
+import { InvestmentOverview } from '@/components/investments/investment-overview'
+import { fetchInvestmentAssets } from '@/lib/queries/investment-assets'
 import { StatsVersionToggle } from '@/components/investments/stats-version-toggle'
 import { parseStatsVersion, STATS_VERSION_PARAM } from '@/lib/constants/stats-version'
 import { buildTransferFilters, statsWhereFrom } from '@/lib/queries/transfer-filters'
@@ -21,21 +21,7 @@ import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
-import { InfoList } from '@/components/ui/info-list'
 import { InvestmentV1Stats } from '@/components/investments/investment-v1-stats'
-import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
-import { InvestmentAiNotes } from '@/components/investments/investment-ai-notes'
-import { InvestmentNotes } from '@/components/investments/investment-notes'
-import { InvestmentStatusInlineSelect } from '@/components/investments/investment-status-inline-select'
-import { InvestmentSiteManagerSelect } from '@/components/investments/investment-site-manager-select'
-import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
-import { ContractDialog } from '@/components/investments/contract-dialog'
-import { investmentLockOf, isOfferedForBooking } from '@/lib/constants/investment-lock'
-import { fetchOrderSettings } from '@/lib/queries/order-settings'
-import { OrderButton } from '@/components/orders/order-button'
-import { RequestReviewButton } from '@/components/investments/request-review-button'
-import { SheetButton } from '@/components/investments/sheet-button'
-import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function InvestmentDetailPage({ params, searchParams }: DynamicPagePropsT) {
@@ -56,10 +42,10 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   const version = parseStatsVersion(sp[STATS_VERSION_PARAM])
 
-  const [refData, detailsById, orderSettings] = await Promise.all([
+  const [refData, detailsById, assets] = await Promise.all([
     fetchReferenceData(),
     fetchInvestmentDetails(),
-    fetchOrderSettings(),
+    fetchInvestmentAssets(investmentId),
   ])
   console.log(`[PERF] inwestycje/${id} data fetch ${step()}ms`)
 
@@ -70,68 +56,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   return (
     <PageWrapper title={investment.name}>
-      {trashed && (
-        <p role="status" className="text-muted-foreground flex items-center gap-2 text-sm">
-          <Lock className="size-4 shrink-0" aria-hidden />
-          Inwestycja jest w koszu — tylko do odczytu. Aby ją zmienić, przywróć ją z Kosza.
-        </p>
-      )}
-      <div className="flex flex-wrap items-center gap-2">
-        {!trashed && (
-          <EditInvestmentDialog investment={investment} showSiteManager showLabel />
-        )}
-        {!trashed && <ContractDialog investment={investment} />}
-        {investmentLockOf({ status: investment.status, trashed }) === 'completed' && (
-          <RequestReviewButton investment={investment} showLabel />
-        )}
-        {investment.hasSheet && <SheetButton investmentId={investmentId} hasSheet size="sm" />}
-        <OpenKosztorysV2Button investmentId={investmentId} size="sm" />
-        {!trashed && isOfferedForBooking(investment) && (
-          <OrderButton
-            investment={{
-              id: investmentId,
-              name: investment.name,
-              street: investment.address,
-              postalCode: investment.postalCode,
-              city: investment.city,
-              siteManagerId: investment.siteManagerId,
-            }}
-            referenceData={{ ...refData, currentUserId: user.id, currentUserRole: user.role }}
-            orderSettings={orderSettings}
-          />
-        )}
-      </div>
-      <div className="grid gap-2">
-        <InfoList
-          items={[
-            ...buildInvestmentInfoFields(investment, { isReadOnly: trashed, hideStatus: !trashed }),
-            ...(trashed
-              ? []
-              : [
-                  {
-                    label: 'Kierownik budowy',
-                    value: (
-                      <InvestmentSiteManagerSelect
-                        investmentId={investmentId}
-                        siteManagerId={investment.siteManagerId}
-                        workers={refData.workers}
-                      />
-                    ),
-                  },
-                ]),
-          ]}
-        />
-        {!trashed && (
-          <div className="flex min-h-7 items-center">
-            <InvestmentStatusInlineSelect investment={investment} />
-          </div>
-        )}
-        <InvestmentNotes investment={investment} readOnly={trashed} />
-        <InvestmentAiNotes aiNotes={investment.aiNotes} />
-        <Suspense fallback={null}>
-          <InvestmentAssetsSection investmentId={investmentId} />
-        </Suspense>
-      </div>
+      <InvestmentOverview investment={investment} trashed={trashed} assets={assets} showKosztorysButton />
 
       {/* The two readings render different trees, so a toggle living inside them moves under the
           cursor on every switch. */}
