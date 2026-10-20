@@ -9,6 +9,7 @@ import { FixedClientLoader } from '@/components/ui/loader/fixed-client-loader'
 import {
   ContentLoading,
   DetailPageLoading,
+  OverlayLoading,
   PageLoading,
   TitledPageLoading,
 } from '@/components/ui/loader/page-loading'
@@ -17,11 +18,14 @@ import { WarningBanner } from '@/components/ui/warning-banner'
 import { Description } from '@/components/ui/description'
 import { AlertIcon } from '@/components/ui/alert-icon'
 import { LabelHintIcon, type LabelHintT } from '@/components/ui/label-hint-icon'
+import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
+import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
 
 type DescriptionSizeT = NonNullable<ComponentProps<typeof Description>['size']>
 type DescriptionToneT = NonNullable<ComponentProps<typeof Description>['tone']>
+type LabelHintSizeT = NonNullable<ComponentProps<typeof LabelHintIcon>['size']>
 
 const DESCRIPTION_SIZES = Object.keys({
   sm: true,
@@ -42,6 +46,30 @@ const LABEL_HINTS = Object.values({
   noStages: { variant: 'noStages' },
   splitScaled: { variant: 'splitScaled' },
 } satisfies { [K in LabelHintT['variant']]: Extract<LabelHintT, { variant: K }> }) as LabelHintT[]
+
+const LABEL_HINT_SIZES = Object.keys({
+  sm: true,
+  md: true,
+  lg: true,
+} satisfies Record<LabelHintSizeT, true>) as LabelHintSizeT[]
+
+const STAT_ROWS = [
+  [
+    {
+      label: 'Robocizna',
+      value: '8 000,00 zł',
+      amount: 8000,
+      borderClassName: 'border-chart-turquoise',
+    },
+    {
+      label: 'Materiały',
+      value: '-4 345,00 zł',
+      amount: -4345,
+      borderClassName: 'border-chart-orange',
+    },
+  ],
+  [{ label: 'Rabat', value: '-500,00 zł', amount: -500, borderClassName: 'border-chart-purple' }],
+]
 
 const FIXED_LOADER_MS = 1500
 
@@ -84,6 +112,10 @@ export function FeedbackSection() {
         </div>
         <div className="flex h-48 flex-col overflow-hidden rounded-md border">
           <DetailPageLoading />
+        </div>
+        <div className="relative h-48 rounded-md border p-4">
+          <p className="text-sm">OverlayLoading nad treścią</p>
+          <OverlayLoading />
         </div>
       </ShowcaseRow>
       <ShowcaseRow title="Loader" source="ui/loader/loader.tsx, ui/loader/fixed-client-loader.tsx">
@@ -131,6 +163,43 @@ export function FeedbackSection() {
         {LABEL_HINTS.map((hint) => (
           <LabelHintIcon key={hint.variant} {...hint} size="md" />
         ))}
+      </ShowcaseRow>
+      <ShowcaseRow title="LabelHintIcon — rozmiary" source="ui/label-hint-icon.tsx size">
+        {LABEL_HINT_SIZES.map((size) => (
+          <span key={size} className="flex items-center gap-1 text-sm">
+            <code className="text-muted-foreground text-xs">{size}</code>
+            <LabelHintIcon {...LABEL_HINTS[0]} size={size} />
+          </span>
+        ))}
+      </ShowcaseRow>
+      <ShowcaseRow
+        title="AuthSubmitButton — sukces"
+        source="ui/auth-submit-button.tsx isSuccess, successText"
+      >
+        <div className="w-48">
+          <AuthSubmitButton
+            isPending={false}
+            isSuccess
+            idleText="Zapisz"
+            pendingText="Zapisywanie…"
+            successText="Zapisano"
+          />
+        </div>
+      </ShowcaseRow>
+      <ShowcaseRow
+        title="ToggleStatButtons — etykiety wierszy i podpowiedzi"
+        source="ui/toggle-stat-buttons.tsx rowLabels, rowTooltips, summaryTooltip, helpText"
+        className="flex-col items-stretch"
+      >
+        <ToggleStatButtons
+          rows={STAT_ROWS}
+          rowLabels={['Koszty', 'Korekty']}
+          rowTooltips={['Przykładowa podpowiedź wiersza', undefined]}
+          summaryLabel="Razem"
+          summaryTooltip="Suma widocznych kafli"
+          helpText="Kliknij kafel, aby wyłączyć go z sumy."
+          colorValues
+        />
       </ShowcaseRow>
       <ShowcaseRow
         title="Description — rozmiar × ton"
