@@ -937,6 +937,13 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       kierownika i przy własnym jest zwykłym znaczkiem (nie da się kliknąć); przy pracowniku przełącza
       jak dotąd. Jako właściciel: tylko własny status jest nieklikalny.
 
+## EX-1112 — rejected-snapshot-retention — historia oferty odrzuconej znika od razu
+
+- [ ] Inwestycja ze statusem „Odrzucona", która ma zapisane wersje kosztorysu: po najbliższym
+      nocnym sprzątaniu link inwestora nie pokazuje już żadnej wersji w historii, a w edytorze
+      → „Wersje" zostają wersje automatyczne i ręczne. Inwestycja „Zakończona" niedawno zachowuje
+      swoją historię jak dotąd.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

@@ -194,4 +194,23 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
       }
     }
   })
+
+  it('drops a rejected investment’s daily/named rows at once, leaving auto/manual to the bands', async () => {
+    const rejected = await createTestInvestment(payload, 'gc-investor-rejected')
+    try {
+      await db.execute(sql`UPDATE investments SET status = 'rejected' WHERE id = ${rejected}`)
+
+      await insertAt(rejected, 'daily', 2, 23)
+      await insertAt(rejected, 'named', 2, 12)
+      const recentAuto = await insertAt(rejected, 'auto', 2, 9)
+      const recentManual = await insertAt(rejected, 'manual', 2, 10)
+
+      const result = await gcSnapshots(db)
+      expect(result.investorExpired).toBeGreaterThanOrEqual(2)
+
+      expect(await survivorsOf(rejected)).toEqual([recentAuto, recentManual])
+    } finally {
+      await deleteTestInvestment(payload, rejected)
+    }
+  })
 })
