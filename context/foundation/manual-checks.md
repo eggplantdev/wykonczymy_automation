@@ -1261,6 +1261,20 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       badge „Aktywna” na liście kas, kursor to rączka; klik otwiera listę wyboru.
 - [ ] W trakcie zapisu zmiany etapu AI (badge wyłączony) najechanie nie zmienia wyglądu badge'a.
 
+## 2026-10-20 — ds-variant-cleanup — szare podpisy, wiersze list i badge bez martwych wariantów
+
+- [ ] Edytor kosztorysu → „Porównaj z arkuszem" i „Historia": szare podpisy pod nagłówkami mają ten
+      sam rozmiar i kolor co wcześniej, bez dodatkowej ikony.
+- [ ] Inwestycja z zablokowanym kosztorysem → baner blokady i „Przegląd" inwestycji pokazują ikonę
+      kłódki obok tekstu, kolor bez zmian.
+- [ ] Edytor kosztorysu → „Dodaj sekcje z szablonu" i „Wczytaj z szablonu": wiersze listy zajmują
+      całą szerokość, tekst się zawija, najechanie podświetla wiersz.
+- [ ] Edytor kosztorysu → „Zgłoszenia pracowników": wiersze listy i pigułki sekcji wyglądają jak
+      wcześniej.
+- [ ] Lista przelewów z filtrem → pigułka filtra ma szary obrys i krzyżyk; karty przelewów pokazują
+      chipy z kolorowym obrysem; licznik nieprzeczytanych w menu to pełna pigułka w kolorze głównym.
+- [ ] Lista użytkowników i menu mobilne → badge roli w kolorach jak wcześniej.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
