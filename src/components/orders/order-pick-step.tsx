@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { SELECT_NONE, SimpleSelect } from '@/components/ui/simple-select'
 import { ToggleGroup } from '@/components/ui/toggle-group'
 import { SaveAsDefaultButton } from '@/components/ui/save-as-default-button'
+import { useDraft } from '@/hooks/use-draft'
 import { setInvestmentSiteManagerAction } from '@/lib/actions/investments'
 import { setDefaultSupplierAction } from '@/lib/actions/order-settings'
 import { ORDER_ITEMS, ORDER_ITEM_KINDS, type OrderItemT } from '@/lib/constants/orders'
@@ -62,7 +63,7 @@ export function OrderPickStep({
   settingsButton,
   onNext,
 }: OrderPickStepPropsT) {
-  const { suppliers, defaultSupplierId } = orderSettings
+  const { suppliers } = orderSettings
   const contacts = workers.filter(
     (worker): worker is WorkerRefT & { phone: string } => isActiveRef(worker) && !!worker.phone,
   )
@@ -70,18 +71,13 @@ export function OrderPickStep({
   const [kind, setKind] = useState<OrderItemT>('bigBag')
   const [quantityText, setQuantityText] = useState('1')
   const defaultPrice = String(orderSettings[ORDER_ITEMS[kind].priceKey])
-  const [priceText, setPriceText] = useState(defaultPrice)
-  const [shownDefaultPrice, setShownDefaultPrice] = useState(defaultPrice)
+  const defaultSupplierId = orderSettings[ORDER_ITEMS[kind].defaultSupplierKey]
+  // A price or default supplier saved from the gear replaces the picked one.
+  const [priceText, setPriceText] = useDraft(defaultPrice)
+  const [supplierId, setSupplierId] = useDraft(defaultSupplierId)
   const [contactId, setContactId] = useState(() =>
     contacts.some((worker) => worker.id === siteManagerId) ? String(siteManagerId) : SELECT_NONE,
   )
-  const [supplierId, setSupplierId] = useState(defaultSupplierId)
-
-  // A price saved from the gear replaces the field.
-  if (shownDefaultPrice !== defaultPrice) {
-    setShownDefaultPrice(defaultPrice)
-    setPriceText(defaultPrice)
-  }
 
   const quantity = Number(quantityText)
   const unitPrice = Number(priceText)
@@ -98,6 +94,7 @@ export function OrderPickStep({
   function handleKindChange(next: OrderItemT) {
     setKind(next)
     setPriceText(String(orderSettings[ORDER_ITEMS[next].priceKey]))
+    setSupplierId(orderSettings[ORDER_ITEMS[next].defaultSupplierKey])
   }
 
   return (
@@ -144,9 +141,10 @@ export function OrderPickStep({
               }))}
             />
             <SaveAsDefaultButton
+              key={`${kind}:${defaultSupplierId}`}
               selectedId={supplier.id}
               defaultId={defaultSupplierId}
-              onSave={setDefaultSupplierAction}
+              onSave={(id) => setDefaultSupplierAction(kind, id)}
               labels={SUPPLIER_LABELS}
             />
           </>

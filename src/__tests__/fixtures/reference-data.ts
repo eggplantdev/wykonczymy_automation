@@ -20,5 +20,6 @@ export const orderSettingsFixture: OrderSettingsT = {
   suppliers: [],
   bigBagPrice: 800,
   containerPrice: 1500,
-  defaultSupplierId: undefined,
+  defaultBigBagSupplierId: undefined,
+  defaultContainerSupplierId: undefined,
 }

@@ -1008,6 +1008,35 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       wydatku" listuje tylko jego kasy.
 - [ ] Link inwestora (`/k/...`) i „Podgląd inwestora" (w tym „Podsumowanie") bez zmian.
 
+## 2026-10-20 — order-default-supplier-per-item — osobny domyślny dostawca big bagu i kontenera
+
+- [ ] Zamówienie na stronie inwestycji: „Big bag” wybiera domyślnego dostawcę big bagu; przełączenie
+      na „Kontener” wybiera domyślnego dostawcę kontenera (albo pierwszego z listy, gdy go nie ma).
+- [ ] Na „Kontener” wybierz innego dostawcę → „Zapisz jako domyślnego dostawcę” → komunikat; otwórz
+      zamówienie ponownie: „Kontener” wybiera go od razu, „Big bag” nadal swojego.
+- [ ] „Dalej” → zapisz wydatek kontenera: SMS idzie na numer dostawcy kontenera.
+- [ ] „Ustawienia zamówień” (zębatka): „Domyślny dostawca big bag” i „Domyślny dostawca kontenera”
+      pokazują obecne wybory; zmień kontener → „Zapisz” → zamówienie wybiera nowego dostawcę.
+- [ ] „Ustawienia zamówień” → usuń wiersz dostawcy, który jest domyślny dla kontenera: jego pole
+      pokazuje „— brak —”; po „Zapisz” domyślny big bagu zostaje, kontener nie ma domyślnego.
+- [ ] Zamówienie otwarte → zębatka → zmień domyślnego dostawcę big bagu → „Zapisz”: krok zamówienia
+      od razu pokazuje nowego dostawcę, a przycisk „Dostawca domyślny” jest nieaktywny.
+
+## EX-1111 — design-system — strona `/design` z całym zestawem komponentów
+
+- [ ] Konto zarządu otwiera `/design`: linki spisu treści skaczą do sekcji, a spis zostaje
+      widoczny przy przewijaniu.
+- [ ] Konto pracownika (EMPLOYEE) wchodzące na `/design` zostaje przekierowane.
+- [ ] Sekcja „Kolory": siatki jasna i ciemna stoją obok siebie, żadna próbka nie jest pusta.
+- [ ] `/warianty-badge` zwraca 404.
+- [ ] Każda sekcja renderuje się w jasnym i ciemnym motywie bez błędów w konsoli.
+- [ ] „Nakładki": tooltip trzymany otwarty zostaje przy swoim przycisku przy przewijaniu strony.
+- [ ] „Dialogi": każdy dialog otwiera się ze swojego przycisku i zamyka Escape oraz swoim przyciskiem
+      zamknięcia.
+- [ ] „Przyciski": w siatce wariant × rozmiar widać wszystkie warianty, także osiem nieużywanych
+      w aplikacji oraz parę `destructiveOutline` / `outlineDestructive`.
+- [ ] „Nawigacja": paginacja w URL zmienia `?page=` bez przeładowania i bez błędu.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

@@ -12,6 +12,7 @@ export async function readOrderSettings(payload: Payload): Promise<OrderSettings
     })),
     bigBagPrice: global.bigBagPrice,
     containerPrice: global.containerPrice,
-    defaultSupplierId: global.defaultSupplierId ?? undefined,
+    defaultBigBagSupplierId: global.defaultBigBagSupplierId ?? undefined,
+    defaultContainerSupplierId: global.defaultContainerSupplierId ?? undefined,
   }
 }

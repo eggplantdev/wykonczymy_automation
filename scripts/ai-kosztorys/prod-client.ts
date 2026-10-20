@@ -124,9 +124,14 @@ export const itemsOf = async (investmentId: number) =>
     )
   ).docs
 
-type OrderedItemT = Pick<ItemT, 'displayOrder' | 'section'>
+// The editor's row order (`kosztorys-tree.ts`), id tie-breaks included, so an index into the sorted
+// list is the row number the editor's gutter shows.
+type OrderedItemT = Pick<ItemT, 'id' | 'displayOrder' | 'section'>
 export const byKosztorysOrder = (a: OrderedItemT, b: OrderedItemT) =>
-  a.section.displayOrder - b.section.displayOrder || a.displayOrder - b.displayOrder
+  a.section.displayOrder - b.section.displayOrder ||
+  a.section.id - b.section.id ||
+  a.displayOrder - b.displayOrder ||
+  a.id - b.id
 
 export const sectionsOf = async (investmentId: number) =>
   (
