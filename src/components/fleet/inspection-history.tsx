@@ -15,6 +15,7 @@ import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { formatKm, formatKmOrDash } from '@/lib/utils/format-distance'
 import type { InspectionHistoryEntryT, VehicleDetailT } from '@/lib/fleet/types'
+import { Description } from '@/components/ui/description'
 
 const EMPTY = '—'
 
@@ -105,9 +106,9 @@ export function InspectionHistory({
           <h2 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>{INSPECTION_TYPE_LABELS[type].pl}</h2>
 
           {historyByType[type].length === 0 ? (
-            <p className="text-muted-foreground text-xs">
+            <Description withIcon={false} size="xs">
               {emptyHistoryLabel('wpisów', fullHistoryByType[type].length > 0)}
-            </p>
+            </Description>
           ) : (
             <HistoryTable entries={historyByType[type]} />
           )}

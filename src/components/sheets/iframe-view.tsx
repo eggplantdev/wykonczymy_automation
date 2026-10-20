@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import { ExternalLink } from '@/components/ui/external-link'
 import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
+import { Description } from '@/components/ui/description'
 
 type PropsT = {
   sheetId: string
@@ -27,10 +28,10 @@ export function SheetIframeView({ sheetId, investmentName, toolbar }: PropsT) {
       </div>
       {/* Desktop only: the embed can render blank when the browser blocks third-party cookies
           (Safari default), and a cross-origin iframe gives us no load/error signal to detect it. */}
-      <p className="text-muted-foreground hidden shrink-0 px-4 py-1 text-xs sm:block">
+      <Description withIcon={false} size="xs" className="hidden shrink-0 px-4 py-1 sm:block">
         Jeśli arkusz się nie wyświetla (np. zablokowane pliki cookie),{' '}
         <ExternalLink href={sheetUrl}>otwórz go w nowej karcie ↗</ExternalLink>.
-      </p>
+      </Description>
       <iframe
         src={src}
         title={`Kosztorys for ${investmentName}`}

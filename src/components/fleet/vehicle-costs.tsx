@@ -14,6 +14,7 @@ import { INSPECTION_TYPE_LABELS, type InspectionTypeT } from '@/lib/fleet/inspec
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { InspectionHistoryEntryT } from '@/lib/fleet/types'
+import { Description } from '@/components/ui/description'
 
 const COLS = `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL}`
 
@@ -33,7 +34,11 @@ export function VehicleCosts({
       'przeglądów',
       summariseCosts(fullHistoryByType).entries.length > 0,
     )
-    return <p className="text-muted-foreground text-xs">{label}</p>
+    return (
+      <Description withIcon={false} size="xs">
+        {label}
+      </Description>
+    )
   }
 
   return (

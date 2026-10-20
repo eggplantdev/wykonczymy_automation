@@ -15,6 +15,7 @@ import {
 } from '@/lib/queries/material-sync-preview'
 import { setupSheetAction } from '@/lib/actions/investments'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { Description } from '@/components/ui/description'
 
 export function SyncButton({ investmentId }: { investmentId: number }) {
   const [preview, setPreview] = useState<MaterialSyncPreviewT | null>(null)
@@ -144,11 +145,11 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
             ) : (
               <>
                 {preview.tabs.map((t) => (
-                  <p key={t.label} className="text-muted-foreground text-xs">
+                  <Description key={t.label} withIcon={false} size="xs">
                     {t.label} — do dodania: <strong>{t.toAppend.length}</strong> · do odświeżenia:{' '}
                     <strong>{t.toUpdateCount}</strong> · do usunięcia:{' '}
                     <strong>{t.toRemoveCount}</strong>
-                  </p>
+                  </Description>
                 ))}
                 {preview.tabs
                   .filter((t) => t.toAppend.length > 0)

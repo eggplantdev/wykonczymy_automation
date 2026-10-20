@@ -8,6 +8,7 @@ import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { EditButton } from '@/components/ui/row-actions/edit-button'
 import type { CompanyKnowledgeEntryT } from '@/lib/company-knowledge/types'
+import { Description } from '@/components/ui/description'
 
 type PropsT = {
   entry: CompanyKnowledgeEntryT
@@ -52,7 +53,9 @@ export function KnowledgeEntryRow({
                   <DeleteButton label="Usuń wpis" onClick={onDelete} />
                 </div>
               </div>
-              <p className="text-muted-foreground text-sm whitespace-pre-line">{entry.content}</p>
+              <Description withIcon={false} className="whitespace-pre-line">
+                {entry.content}
+              </Description>
             </>
           )}
         </div>

@@ -84,10 +84,10 @@ export function SaveItemToCatalogueDialog({
         <>
           <div>
             <p className="text-sm font-medium">{preview.candidate.description}</p>
-            <p className="text-muted-foreground text-xs">
+            <Description withIcon={false} size="xs">
               {preview.candidate.unit || 'bez jednostki'}
               {!existing && preview.candidate.category ? ` · ${preview.candidate.category}` : ''}
-            </p>
+            </Description>
           </div>
 
           {existing && (

@@ -17,6 +17,7 @@ import { useTranslation } from '@/hooks/use-translation'
 import { toWorkerReportFormData } from '@/lib/kosztorys/worker-report/to-form-data'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import { SECTION_TITLE_CLASS } from '@/components/ui/section-header'
+import { Description } from '@/components/ui/description'
 
 type PropsT = {
   token?: string
@@ -45,7 +46,7 @@ export function WorkerReportForm({ token, document, sentReports, sectionTranslat
         <BrandedHeader data={data} />
         <div className="flex flex-col items-start gap-4 px-4 py-10">
           <h2 className={SECTION_TITLE_CLASS}>{t('sentTitle')}</h2>
-          <p className="text-muted-foreground text-sm">{tp('sentBody', sent.lineCount)}</p>
+          <Description withIcon={false}>{tp('sentBody', sent.lineCount)}</Description>
           <Button variant="outline" onClick={() => setSent(undefined)}>
             {t('newReport')}
           </Button>

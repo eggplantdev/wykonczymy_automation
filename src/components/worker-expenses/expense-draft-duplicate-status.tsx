@@ -31,5 +31,5 @@ export function ExpenseDraftDuplicateStatus({ state }: { state: DuplicateHintsSt
       </div>
     )
   }
-  return <p className="text-muted-foreground text-sm">{STATUS_MESSAGES[state.status]}</p>
+  return <Description withIcon={false}>{STATUS_MESSAGES[state.status]}</Description>
 }

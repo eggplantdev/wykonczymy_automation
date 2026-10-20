@@ -1,4 +1,4 @@
-import { Info, TriangleAlert } from 'lucide-react'
+import { Info, TriangleAlert, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 type DescriptionSizeT = 'sm' | 'xs' | '2xs'
@@ -10,7 +10,8 @@ type DescriptionPropsT = {
   withIcon?: boolean
   size?: DescriptionSizeT
   tone?: DescriptionToneT
-  role?: 'alert'
+  icon?: LucideIcon
+  role?: 'alert' | 'status'
 }
 
 // The icon rides the text size: the base layer pins every Lucide glyph to 1rem.
@@ -26,7 +27,7 @@ export const DESCRIPTION_TONE_CLASS: Record<DescriptionToneT, string> = {
   warning: 'text-warning',
 }
 
-const TONE_ICON: Record<DescriptionToneT, typeof Info> = {
+const TONE_ICON: Record<DescriptionToneT, LucideIcon> = {
   muted: Info,
   error: TriangleAlert,
   warning: TriangleAlert,
@@ -37,10 +38,11 @@ export function Description({
   className,
   size = 'sm',
   tone = 'muted',
-  withIcon = tone !== 'error',
+  icon,
+  withIcon = tone !== 'error' || icon !== undefined,
   role,
 }: DescriptionPropsT) {
-  const Icon = TONE_ICON[tone]
+  const Icon = icon ?? TONE_ICON[tone]
 
   return (
     <p

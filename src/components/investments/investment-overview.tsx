@@ -21,6 +21,7 @@ import { investmentLockOf, isOfferedForBooking } from '@/lib/constants/investmen
 import { useOrderSettings, useReferenceData } from '@/hooks/use-reference-data'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import type { MediaFileT } from '@/types/media'
+import { Description } from '@/components/ui/description'
 
 type PropsT = {
   investment: InvestmentWithDetailsT
@@ -36,10 +37,9 @@ export function InvestmentOverview({ investment, trashed, assets, showKosztorysB
   return (
     <>
       {trashed && (
-        <p role="status" className="text-muted-foreground flex items-center gap-2 text-sm">
-          <Lock className="size-4 shrink-0" aria-hidden />
+        <Description role="status" icon={Lock} className="items-center gap-2">
           Inwestycja jest w koszu — tylko do odczytu. Aby ją zmienić, przywróć ją z Kosza.
-        </p>
+        </Description>
       )}
       <div className="flex flex-wrap items-center gap-2">
         {!trashed && <EditInvestmentDialog investment={investment} showSiteManager showLabel />}

@@ -308,13 +308,13 @@ export function WorkerReportReview({
             <h3 className={SECTION_TITLE_MD_CLASS}>{report.workerName}</h3>
             <WorkerReportStatusBadge {...report} />
           </div>
-          <p className="text-muted-foreground text-xs">
+          <Description withIcon={false} size="xs">
             {report.source === 'scan'
               ? `Wczytane z kartki${report.createdByName ? ` przez ${report.createdByName}` : ''} ${formatPLDateTime(report.sentAt)}`
               : `Wysłano ${formatPLDateTime(report.sentAt)}`}
             {report.decidedAt &&
               ` · sprawdzono ${formatPLDateTime(report.decidedAt)}${report.decidedBy ? ` (${report.decidedBy})` : ''}`}
-          </p>
+          </Description>
         </div>
         {report.target && (openLines.length === 0 || recordedStage || isTiedToLostStage) ? (
           <p className="text-sm">
@@ -416,7 +416,9 @@ export function WorkerReportReview({
                         />
                       </TextButton>
                     </h4>
-                    <p className="text-muted-foreground text-xs">{hint}</p>
+                    <Description withIcon={false} size="xs">
+                      {hint}
+                    </Description>
                   </>
                 }
                 isCollapsed={collapsedGroups.has(group)}

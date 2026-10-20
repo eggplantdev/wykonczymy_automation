@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components
 import { useTranslation } from '@/hooks/use-translation'
 import { readPlatform, resolveInstallState } from '@/lib/pwa/install-state'
 import { useInstallPromptStore } from '@/stores/install-prompt-store'
+import { Description } from '@/components/ui/description'
 
 // Chrome fires `beforeinstallprompt` only once its engagement checks pass, which can take a while
 // on a cold page — past this the button gives way to the browser-menu path.
@@ -36,7 +37,9 @@ export function InstallAppButton() {
 
   if (state === 'manual') {
     return (
-      <p className="text-muted-foreground self-center text-sm sm:hidden">{t('installManual')}</p>
+      <Description withIcon={false} className="self-center sm:hidden">
+        {t('installManual')}
+      </Description>
     )
   }
 

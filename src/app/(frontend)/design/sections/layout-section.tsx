@@ -30,6 +30,7 @@ import { AuthSuccessCard } from '@/components/ui/auth-success-card'
 import { Input } from '@/components/ui/input'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
+import { Description } from '@/components/ui/description'
 
 type CollapsibleSizeT = NonNullable<ComponentProps<typeof CollapsibleSection>['size']>
 type InfoListLayoutT = NonNullable<ComponentProps<typeof InfoList>['layout']>
@@ -119,7 +120,9 @@ export function LayoutSection() {
               </Button>
             }
           >
-            <p className="text-muted-foreground pt-2 text-sm">Treść karty.</p>
+            <Description withIcon={false} className="pt-2">
+              Treść karty.
+            </Description>
           </SettingsCard>
         </div>
       </ShowcaseRow>
@@ -137,7 +140,7 @@ export function LayoutSection() {
               defaultOpen={state === 'open'}
               hint="Podpowiedź"
             >
-              <p className="text-muted-foreground text-sm">Zawartość sekcji.</p>
+              <Description withIcon={false}>Zawartość sekcji.</Description>
             </CollapsibleSection>
           )),
         )}

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { VERSION_PARAM } from '@/lib/kosztorys/history/version-param'
 import type { HistoryEntryT } from '@/lib/kosztorys/history/types'
 import { formatPLDate } from '@/lib/utils/format-date'
+import { Description } from '@/components/ui/description'
 
 export function HistoryDialog({
   entries,
@@ -25,7 +26,7 @@ export function HistoryDialog({
           description="Wybierz dzień, aby zobaczyć kosztorys z tamtej chwili i czym różni się od bieżącego."
         />
         {entries.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Brak zmian do pokazania</p>
+          <Description withIcon={false}>Brak zmian do pokazania</Description>
         ) : (
           <ol className="flex flex-col divide-y">
             {entries.map((entry) => (

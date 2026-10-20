@@ -19,6 +19,7 @@ import { ExternalLink } from '@/components/ui/external-link'
 import { fetchServiceAccountEmail } from '@/lib/queries/service-account-email'
 import { addUnlinkedSheetAction } from '@/lib/actions/sheets'
 import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
+import { Description } from '@/components/ui/description'
 
 type PropsT = {
   trigger?: ReactNode
@@ -78,7 +79,9 @@ export function AddSheetDialog({ trigger }: PropsT) {
           <ExternalLink href={ALL_SHEETS_URL}>Otwórz wszystkie arkusze ↗</ExternalLink>
           {saEmail && (
             <div className="space-y-1">
-              <p className="text-muted-foreground text-xs">Konto usługi:</p>
+              <Description withIcon={false} size="xs">
+                Konto usługi:
+              </Description>
               <div className="flex items-center gap-2">
                 <code className="bg-muted flex-1 rounded px-1 py-0.5 text-xs break-all select-all">
                   {saEmail}

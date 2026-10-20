@@ -11,6 +11,7 @@ import { readPlatform } from '@/lib/pwa/install-state'
 import { logError } from '@/lib/utils/log-error'
 import { toastMessage } from '@/lib/utils/toast'
 import { usePushSubscriptionStore } from '@/stores/push-subscription-store'
+import { Description } from '@/components/ui/description'
 
 const readPermission = () => (isPushSupported() ? Notification.permission : 'unsupported')
 
@@ -31,7 +32,11 @@ export function PushToggle({ className }: PushTogglePropsT) {
   if (!permission || permission === 'unsupported' || subscribed === undefined) return null
 
   if (permission === 'denied' || refused) {
-    return <p className="text-muted-foreground self-center text-sm">{t('pushBlocked')}</p>
+    return (
+      <Description withIcon={false} className="self-center">
+        {t('pushBlocked')}
+      </Description>
+    )
   }
 
   const publicKey = VAPID_PUBLIC_KEY

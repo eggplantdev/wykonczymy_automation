@@ -34,6 +34,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import type { PreviewFileT, PreviewLabelsT } from '@/types/media'
+import { Description } from '@/components/ui/description'
 
 // Every surface carrying a preview trigger statically imports this dialog, so a bare import would
 // ship the ~160 KB zoom engine to users who never open a preview.
@@ -257,12 +258,12 @@ export function MediaPreviewDialog({
             />
           )}
           {pdf?.status === 'error' && (
-            <p className="text-muted-foreground text-sm">{t('previewLoadFailed')}</p>
+            <Description withIcon={false}>{t('previewLoadFailed')}</Description>
           )}
           {active && !isImage && !isPdf && (
-            <p className="text-muted-foreground text-sm">{t('previewUnavailable')}</p>
+            <Description withIcon={false}>{t('previewUnavailable')}</Description>
           )}
-          {!active && <p className="text-muted-foreground text-sm">{labels.empty}</p>}
+          {!active && <Description withIcon={false}>{labels.empty}</Description>}
         </div>
 
         <div

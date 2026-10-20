@@ -67,9 +67,9 @@ export function SheetCompareDialog() {
             onMappingSaved={read}
           />
         ) : !comparison || !refresh ? (
-          <p className="text-muted-foreground text-sm">
+          <Description withIcon={false}>
             Arkusz Google odczytany, ale porównanie nie wróciło — spróbuj ponownie.
-          </p>
+          </Description>
         ) : (
           <>
             <SheetPointedColumnsBlock
@@ -143,10 +143,10 @@ function MoneyBlock({ comparison }: { comparison: SheetComparisonT }) {
       <ExecutedDiffList diffs={comparison.executedDiffs} link={comparison.sheetLink} />
 
       {unassignedInSheet !== null && (
-        <p className="text-muted-foreground text-xs">
+        <Description withIcon={false} size="xs">
           „{COLUMN_LABELS.divergence}" to praca zmierzona w arkuszu Google, której nie rozpisano
           jeszcze na żaden etap.
-        </p>
+        </Description>
       )}
       {comparison.globalDiscountMismatch && (
         <Description tone="error" size="xs">
@@ -203,12 +203,12 @@ function SheetFooterBlock({ footer }: { footer: readonly FooterComparisonT[] }) 
         ))}
       </ComparisonTable>
       {disagreeing.length > 0 && (
-        <p className="text-muted-foreground text-xs">
+        <Description withIcon={false} size="xs">
           Kwot powyżej to nie zmienia — te liczymy z prac arkusza, wiersz po wierszu, a nie z jego
           podsumowania. Ale warto sprawdzić, po której stronie leży błąd: albo formuły sumujące na
           dole arkusza (pominięta sekcja, kwota wpisana ręcznie w kolumnie wartości etapu), albo
           nasz odczyt cen i rabatów — a wtedy kwoty powyżej też będą złe.
-        </p>
+        </Description>
       )}
     </SheetReportBlock>
   )
@@ -247,10 +247,10 @@ function ItemsBlock({ comparison }: { comparison: SheetComparisonT }) {
             items={onlyInSheet}
           />
           <SideOnlyList label="Tylko w aplikacji — nie ma ich w arkuszu Google" items={onlyInApp} />
-          <p className="text-muted-foreground text-xs">
+          <Description withIcon={false} size="xs">
             Prace kojarzymy po nazwie sekcji i opisie, bo arkusz Google nie ma identyfikatorów.
             Poprawiona literówka w opisie wystarczy, żeby ta sama praca trafiła na obie listy.
-          </p>
+          </Description>
         </>
       )}
     </SheetReportBlock>
@@ -306,11 +306,11 @@ function RefreshLine({ refresh }: { refresh: NonNullable<SheetCompareResultT['re
       ? ` Pominięto ${unmatched} ${itemNoun(unmatched)} bez odpowiednika w arkuszu Google.`
       : ''
   return (
-    <p className="text-muted-foreground text-xs">
+    <Description withIcon={false} size="xs">
       {updated === 0 && cleared === 0
         ? `Zapisany Pomiar z natury był już zgodny z arkuszem Google.${skipped}`
         : `Zaciągnięto Pomiar z natury: zaktualizowano ${updated}, wyczyszczono ${cleared}.${skipped}`}
-    </p>
+    </Description>
   )
 }
 
@@ -329,9 +329,9 @@ function SampleList({
   return (
     <ReportFold summary={summary} tone={tone}>
       {samples.map((sample) => (
-        <p key={sample.cell} className="text-muted-foreground text-xs">
+        <Description key={sample.cell} withIcon={false} size="xs">
           <SheetCellLink cell={sample.cell} link={link} /> · {sample.description}
-        </p>
+        </Description>
       ))}
     </ReportFold>
   )

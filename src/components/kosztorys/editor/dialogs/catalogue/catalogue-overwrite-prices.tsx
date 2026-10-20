@@ -5,6 +5,7 @@ import {
   type CataloguePricesT,
 } from '@/lib/kosztorys/work-catalogue/catalogue-overwrite-text'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { Description } from '@/components/ui/description'
 
 // An EMPTY kategoria is a value like any other — hence `undefined` (not falsiness) hides the row, so
 // „bez kategorii" still renders on both sides.
@@ -27,7 +28,9 @@ export function PriceList({
   ]
   return (
     <div className="space-y-1">
-      <p className="text-muted-foreground text-xs">{title}</p>
+      <Description withIcon={false} size="xs">
+        {title}
+      </Description>
       {rows.map(([label, value, numeric]) => (
         <div key={label} className="flex justify-between text-sm">
           <span className="text-muted-foreground">{label}</span>

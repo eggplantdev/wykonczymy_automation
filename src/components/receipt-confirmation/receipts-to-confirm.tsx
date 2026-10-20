@@ -18,6 +18,7 @@ import { settleAction } from '@/lib/utils/settle-action'
 import { syncAppBadge } from '@/lib/push/push-client'
 import { toastMessage } from '@/lib/utils/toast'
 import { useTranslation } from '@/hooks/use-translation'
+import { Description } from '@/components/ui/description'
 
 type OpenDialogT = { kind: 'accept' | 'reject'; receipt: ReceiptToConfirmT }
 
@@ -78,9 +79,9 @@ export function ReceiptsToConfirm({ receipts }: { receipts: ReceiptToConfirmT[] 
             </p>
           )}
           {receipt.status === 'rejected' && receipt.rejectionReason && (
-            <p className="text-muted-foreground text-sm whitespace-pre-line">
+            <Description withIcon={false} className="whitespace-pre-line">
               {t('receiptRejectionReason', { reason: receipt.rejectionReason })}
-            </p>
+            </Description>
           )}
           <div className="mt-1 grid auto-cols-fr grid-flow-col gap-2">
             <Button

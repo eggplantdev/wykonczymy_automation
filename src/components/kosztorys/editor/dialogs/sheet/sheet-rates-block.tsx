@@ -19,6 +19,7 @@ import type {
 } from '@/lib/kosztorys/sheet-import/resolve-rates'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { Description } from '@/components/ui/description'
 
 type PropsT = {
   mode: RatesReportModeT
@@ -100,7 +101,7 @@ function ConflictFold({
   return (
     <ReportFold summary={mode === 'import' ? `${summary}, wejdą puste` : summary}>
       <RatesByTabTable rows={rows.map(conflictRow)} />
-      <p className="text-muted-foreground text-xs">
+      <Description withIcon={false} size="xs">
         {reason === 'disagree' ? (
           <>
             Obie zakładki „zakres pracy" mają obie kolumny — i „z narzędziami", i „bez narzędzi" —
@@ -119,7 +120,7 @@ function ConflictFold({
           ? 'Te prace wejdą bez stawki wykonawcy (0 zł) i czekają na uzupełnienie.'
           : 'Dla tych prac arkusz nie podaje jednej stawki wykonawcy, więc nie ma z czym porównać kosztorysu.'}{' '}
         Znajdziesz je w kosztorysie przez „Problemy → bez ceny wykonawcy".
-      </p>
+      </Description>
     </ReportFold>
   )
 }

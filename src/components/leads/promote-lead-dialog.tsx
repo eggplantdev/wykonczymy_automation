@@ -22,6 +22,7 @@ import type { LeadRowT } from '@/lib/leads/types'
 import { EMPTY_INVESTMENT_FORM_VALUES } from '@/components/forms/investment-form/empty-form-values'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 import { PICK_LABEL } from '@/components/leads/lead-assets-dialog'
+import { Description } from '@/components/ui/description'
 
 function buildNotes(lead: LeadRowT): string {
   return [
@@ -90,9 +91,9 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
         <>
           {visibleFiles.length > 0 && (
             <section className="mb-2 space-y-2">
-              <p className="text-muted-foreground text-sm">
+              <Description withIcon={false}>
                 Przejdą do inwestycji: {chosenIds.length} z {visibleFiles.length}
-              </p>
+              </Description>
               <MediaStrip
                 files={visibleFiles}
                 labels={ASSET_PREVIEW_LABELS}

@@ -71,9 +71,9 @@ export function CatalogueSwapDialog({
     <Dialog open onOpenChange={(open) => !open && !isPending && onClose()}>
       <DialogContent className="sm:max-w-dialog-xl gap-0 overflow-hidden p-0 sm:p-0">
         <DialogHeader className="px-4 pt-4" title="Dodaj pracę do rozpiski" />
-        <p className="text-muted-foreground px-4 pt-1 text-sm">
+        <Description withIcon={false} className="px-4 pt-1">
           Zgłoszono: „{reported.description}” ({unitLabel(reported.unit)})
-        </p>
+        </Description>
         <div className="px-4 pt-3">
           <Label className="gap-2 text-sm font-normal">
             Do sekcji

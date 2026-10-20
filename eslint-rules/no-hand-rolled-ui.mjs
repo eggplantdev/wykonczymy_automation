@@ -5,6 +5,8 @@ const RAW_DIALOG_WIDTH = /\bsm:max-w-(sm|md|lg|xl|\dxl|\[)/
 const DIALOG_SHELLS = new Set(['DialogContent', 'AlertDialogContent', 'FormDialogShell'])
 const ERROR_TEXT = /\btext-destructive\b/
 const SMALL_TEXT = /\btext-(xs|sm)\b/
+const MUTED_TEXT = /\btext-muted-foreground\b/
+const NOTE_TEXT = /\btext-(2xs|xs|sm)\b/
 
 function classStrings(node) {
   if (!node) return []
@@ -54,6 +56,7 @@ export const noHandRolledUiRule = {
       dialogWidth:
         'Raw dialog width `{{match}}` — use the dialog width tokens (sm:max-w-dialog-sm … dialog-3xl).',
       errorText: 'Error text paragraph — use <Description tone="error"> or <FieldError> from ui/.',
+      mutedText: 'Muted note paragraph — use <Description> from ui/ (withIcon={false} for a bare note).',
       details: '<details> — use Collapsible / CollapsibleSection from ui/.',
       label: '<label> — use Label / FieldLabel / CheckboxRow from ui/.',
       button: '<button className> — use Button / TextButton from ui/.',
@@ -104,6 +107,9 @@ export const noHandRolledUiRule = {
         }
         if ((name === 'p' || name === 'span') && ERROR_TEXT.test(classText) && SMALL_TEXT.test(classText)) {
           context.report({ node, messageId: 'errorText' })
+        }
+        if (name === 'p' && MUTED_TEXT.test(classText) && NOTE_TEXT.test(classText)) {
+          context.report({ node, messageId: 'mutedText' })
         }
         if (name === 'details') context.report({ node, messageId: 'details' })
         if (name === 'label') context.report({ node, messageId: 'label' })

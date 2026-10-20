@@ -24,6 +24,7 @@ import { toastMessage } from '@/lib/utils/toast'
 import { activeOrSelected } from '@/lib/utils/is-active-ref'
 import type { LeadRowT } from '@/lib/leads/types'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
+import { Description } from '@/components/ui/description'
 
 export const PICK_LABEL = 'Dodaj to zdjęcie do inwestycji'
 
@@ -139,11 +140,11 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
             <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
           </div>
           {options.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
+            <Description withIcon={false}>
               {investments.length === 0
                 ? 'Brak inwestycji do wyboru.'
                 : 'Brak aktywnych inwestycji'}
-            </p>
+            </Description>
           ) : (
             <SearchSelect
               id="lead-assets-target"

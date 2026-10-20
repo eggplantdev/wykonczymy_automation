@@ -59,9 +59,9 @@ export function KosztorysWorkersMenu() {
         )}
         {assigned.length === 0 && (
           <>
-            <p className="text-muted-foreground px-2 py-1.5 text-xs">
+            <Description withIcon={false} size="xs" className="px-2 py-1.5">
               Żaden etap nie ma przypisanego pracownika.
-            </p>
+            </Description>
             <DropdownMenuSeparator />
           </>
         )}
