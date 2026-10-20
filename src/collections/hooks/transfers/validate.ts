@@ -61,6 +61,8 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
   const vatPlane = resolved('vatPlane')
   const paymentMethod = resolved('paymentMethod')
 
+  // Same receiving-kasa rule as `RECIPIENT` in lib/db/receipt-confirmation.ts — change one without
+  // the other and a stamped row is decidable by nobody.
   const asksForReceipt = async (): Promise<boolean> => {
     if (type === 'PAYOUT') return true
     if (!carriesPayoutStatus(type)) return false
