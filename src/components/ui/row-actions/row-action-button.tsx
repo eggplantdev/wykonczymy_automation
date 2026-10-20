@@ -1,3 +1,5 @@
+'use client'
+
 import type { LucideIcon } from 'lucide-react'
 import { Button, type ButtonPropsT } from '@/components/ui/button'
 import { SimpleTooltip } from '@/components/ui/tooltip'
