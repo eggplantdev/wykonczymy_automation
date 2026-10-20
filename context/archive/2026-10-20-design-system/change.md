@@ -1,10 +1,10 @@
 ---
 change_id: design-system
 title: In-app design system page — inventory, consolidate and document UI primitives
-status: implemented
+status: archived
 created: 2026-10-20
 updated: 2026-10-20
-archived_at: null
+archived_at: 2026-10-20T15:30:48Z
 branch: design-system
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/design-system
 ---
@@ -51,3 +51,15 @@ Storybook: overkill for now — not planned. Page loops over each component's ow
 (the `/warianty-badge` pattern), so nothing is listed twice.
 
 Not in scope: per-page breakpoint mockups.
+
+Known gaps left for the consolidation change:
+
+- `font-sans` is never set, so body text is the OS system stack. No `success` / `warning` / `info`
+  tokens — green and amber states pick raw palette colours at the call site.
+- `ui/` is not fully domain-agnostic: `balance-cell`, `signed-money-display`, `toggle-stat-buttons`,
+  `decision-progress-badge`, `label-hint-icon` and `env-badge` (imports `serverEnv`) carry domain or env
+  knowledge.
+- Variant props are guarded by `satisfies Record<VariantT, true>`, so `tsc` fails when a variant changes.
+  Primitives with a private hand-written class map are listed by hand and can drift silently.
+- The colours section shows both themes via a second copy inside a `.dark` wrapper; portalled content
+  (overlays, dialogs) escapes it, so check those through `ThemeToggle`.
