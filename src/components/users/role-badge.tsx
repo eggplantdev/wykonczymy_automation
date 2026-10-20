@@ -8,7 +8,7 @@ const ROLE_TONES: Record<RoleT, BadgeToneT> = {
   EMPLOYEE: 'positive',
 }
 
-type RoleBadgePropsT = Omit<React.ComponentProps<typeof Badge>, 'tone'> & {
+type RoleBadgePropsT = Omit<React.ComponentProps<typeof Badge>, 'tone' | 'appearance'> & {
   role: RoleT
 }
 

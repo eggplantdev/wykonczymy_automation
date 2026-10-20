@@ -32,7 +32,6 @@ function UnreadBadgeCount({ stream, path }: { stream: UnreadStreamT; path: strin
 
   return (
     <Badge
-      tone="primary"
       appearance="solid"
       shape="pill"
       className="ml-auto h-5 min-w-5 justify-center tabular-nums"

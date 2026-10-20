@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Badge, BadgeButton, BADGE_OUTLINE_TONES, type BadgeToneT } from '@/components/ui/badge'
+import { Badge, BadgeButton, BADGE_TONES, type BadgeToneT } from '@/components/ui/badge'
 import { DecisionProgressBadge } from '@/components/ui/decision-progress-badge'
 import { CardChip } from '@/components/transfers/cards/card-chip'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
@@ -11,7 +11,7 @@ import { COLOR_TOKENS } from '@/styles/color-tokens'
 import { SectionPill } from '@/components/worker-reports/section-pill'
 import { PayoutStatusBadge } from '@/components/receipt-confirmation/payout-status-badge'
 import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
-import { AiProgressBadge, AI_PROGRESS_TONES } from '@/components/investments/ai-progress-badge'
+import { AiProgressBadge } from '@/components/investments/ai-progress-badge'
 import { RoleBadge } from '@/components/users/role-badge'
 import { VehicleStatusBadge } from '@/components/fleet/vehicle-status-badge'
 import { EquipmentStatusBadge } from '@/components/equipment/equipment-status-badge'
@@ -31,7 +31,7 @@ import type { TransferRowT } from '@/types/transfers'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
 
-const TONES = Object.keys(BADGE_OUTLINE_TONES) as BadgeToneT[]
+const TONES = Object.keys(BADGE_TONES) as BadgeToneT[]
 const DECISIONS = ['pending', 'accepted', 'rejected'] as const
 
 export function BadgesSection() {
@@ -50,23 +50,14 @@ export function BadgesSection() {
           </Badge>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="Badge — wszystkie tony, obrys" source='<Badge tone appearance="outline">'>
-        {TONES.map((tone) => (
-          <Badge key={tone} tone={tone} appearance="outline">
-            {tone}
-          </Badge>
-        ))}
+      <ShowcaseRow title="Badge — obrys" source='<Badge appearance="outline">'>
+        <Badge appearance="outline">outline</Badge>
       </ShowcaseRow>
-      <ShowcaseRow title="Badge — wszystkie tony, pełny" source='<Badge tone appearance="solid">'>
-        {TONES.map((tone) => (
-          <Badge key={tone} tone={tone} appearance="solid">
-            {tone}
-          </Badge>
-        ))}
+      <ShowcaseRow title="Badge — pełny" source='<Badge appearance="solid">'>
+        <Badge appearance="solid">solid</Badge>
       </ShowcaseRow>
       <ShowcaseRow title="Badge — pigułka z akcją" source='<Badge shape="pill" onRemove>'>
         <Badge
-          tone="muted"
           appearance="outline"
           shape="pill"
           onRemove={() => {}}
@@ -190,16 +181,6 @@ export function BadgesSection() {
           </span>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow
-        title="AI etap — obrys (trigger selecta)"
-        source="investments/ai-stage-select.tsx"
-      >
-        {AI_PROGRESS_STEPS.map((step) => (
-          <Badge key={step} tone={AI_PROGRESS_TONES[step]} appearance="outline">
-            {step}
-          </Badge>
-        ))}
-      </ShowcaseRow>
       <ShowcaseRow title="BadgeButton (klikalny badge)" source="ui/badge.tsx">
         <BadgeButton tone="positive">Aktywny</BadgeButton>
         <BadgeButton tone="muted">Nieaktywny</BadgeButton>
@@ -213,12 +194,11 @@ export function BadgesSection() {
       </ShowcaseRow>
       <ShowcaseRow
         title="Licznik (pełna pigułka)"
-        source='<Badge tone="primary" appearance="solid" shape="pill">'
+        source='<Badge appearance="solid" shape="pill">'
       >
         {[1, 12, 120].map((count) => (
           <Badge
             key={count}
-            tone="primary"
             appearance="solid"
             shape="pill"
             className="h-5 min-w-5 justify-center tabular-nums"

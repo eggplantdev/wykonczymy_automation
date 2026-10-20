@@ -24,7 +24,6 @@ export function CardChip({
 }) {
   return (
     <Badge
-      tone="muted"
       appearance="outline"
       className={cn('max-w-full gap-1 font-normal', BADGE_BORDER_CLASS[CHIP_BORDER[kind]])}
     >

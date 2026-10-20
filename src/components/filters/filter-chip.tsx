@@ -12,7 +12,6 @@ type FilterChipPropsT = {
 export function FilterChip({ label, onRemove, count, removeLabel, className }: FilterChipPropsT) {
   return (
     <Badge
-      tone="muted"
       appearance="outline"
       shape="pill"
       onRemove={onRemove}

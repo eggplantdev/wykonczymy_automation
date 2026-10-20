@@ -10,7 +10,6 @@ type DotBadgePropsT = Omit<React.ComponentProps<'span'>, 'color'> & {
 export function DotBadge({ color, className, children, ...props }: DotBadgePropsT) {
   return (
     <Badge
-      tone="muted"
       appearance="outline"
       className={cn('min-w-0 gap-1.5', BADGE_BORDER_CLASS[color], className)}
       {...props}
