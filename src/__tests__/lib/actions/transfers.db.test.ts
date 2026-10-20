@@ -19,6 +19,8 @@ import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { warsawToday } from '@/lib/utils/days'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { flushAfter, scheduled } from '@/__tests__/stubs/next-server'
+import { notifyPendingReceipts } from '@/lib/push/notify-pending-receipts'
 
 const {
   createTransferAction,
@@ -523,5 +525,38 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
     expect(await cancellationsOf(id)).toHaveLength(1)
     expected = { ...expected, loss: 0, balance: 4_000 }
     expect(await figures()).toEqual(expected)
+  })
+
+  it('pushes a transfer to the worker who owns the receiving kasa, and none into a manager’s', async () => {
+    // Earlier specs left their own after() tasks queued; only this booking's may run.
+    scheduled.length = 0
+    vi.mocked(notifyPendingReceipts).mockClear().mockResolvedValue(undefined)
+    const { registerId: managerRegister } = await createRegisterOwner(
+      payload,
+      {
+        name: 'Ledger M',
+        email: 'transfers-db-m@test.local',
+        registerName: 'Kasa M',
+        role: 'MANAGER',
+      },
+      ctx,
+    )
+    const transfer = (to: number) => ({
+      type: 'REGISTER_TRANSFER' as const,
+      amount: 250,
+      sourceRegister: registerB,
+      targetRegister: to,
+      description: `${MARKER} push`,
+      date: today,
+    })
+
+    expect(await createTransferAction(transfer(registerA))).toMatchObject({ success: true })
+    expect(await createTransferAction(transfer(managerRegister))).toMatchObject({ success: true })
+    await flushAfter()
+
+    expect(vi.mocked(notifyPendingReceipts).mock.calls.map(([, receipts]) => receipts)).toEqual([
+      [{ recipientId: workerId, amount: 250 }],
+      [],
+    ])
   })
 })
