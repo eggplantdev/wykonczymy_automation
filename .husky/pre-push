@@ -68,7 +68,7 @@ case "$dump_go" in [Yy]*)
   fi
 
   echo "Pruning dumps older than 7 days..."
-  pruned=$(find dumps -name 'dump-*.sql' ! -name 'dump-latest.sql' -mtime +7 -print -delete 2>/dev/null | wc -l | tr -d ' ')
+  pruned=$(find dumps -name 'dump-*.sql*' ! -name 'dump-latest.sql' -mtime +7 -print -delete 2>/dev/null | wc -l | tr -d ' ')
   echo "✅ Pruned ${pruned:-0} old dump(s)"
   ;;
 esac
