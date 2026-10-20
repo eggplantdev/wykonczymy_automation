@@ -30,7 +30,7 @@ const LANGUAGES = Object.keys({
 } satisfies Record<LanguageT, true>) as LanguageT[]
 
 const TOTAL_DOCS = 237
-const BASE_URL = '/design-system'
+const BASE_URL = '/design'
 
 export function NavigationSection() {
   const [page, setPage] = useState(3)
@@ -40,7 +40,11 @@ export function NavigationSection() {
 
   return (
     <ShowcaseSection id="navigation">
-      <ShowcaseRow title="ClientPagination" source="ui/pagination/client-pagination.tsx" className="flex-col items-stretch">
+      <ShowcaseRow
+        title="ClientPagination"
+        source="ui/pagination/client-pagination.tsx"
+        className="flex-col items-stretch"
+      >
         <ClientPagination
           totalDocs={TOTAL_DOCS}
           pageSize={pageSize}
@@ -50,7 +54,11 @@ export function NavigationSection() {
           onPageSizeChange={setPageSize}
         />
       </ShowcaseRow>
-      <ShowcaseRow title="PageNav + PaginationBar" source="ui/pagination/page-nav.tsx, ui/pagination/pagination-bar.tsx" className="flex-col items-stretch">
+      <ShowcaseRow
+        title="PageNav + PaginationBar"
+        source="ui/pagination/page-nav.tsx, ui/pagination/pagination-bar.tsx"
+        className="flex-col items-stretch"
+      >
         <PageNav
           currentPage={navPage}
           totalPages={30}
@@ -83,7 +91,11 @@ export function NavigationSection() {
           </PaginationContent>
         </Pagination>
       </ShowcaseRow>
-      <ShowcaseRow title="Paginacja w URL (zmienia ?page)" source="ui/pagination/url-pagination.tsx, ui/pagination/pagination-footer.tsx" className="flex-col items-stretch">
+      <ShowcaseRow
+        title="Paginacja w URL (zmienia ?page)"
+        source="ui/pagination/url-pagination.tsx, ui/pagination/pagination-footer.tsx"
+        className="flex-col items-stretch"
+      >
         <Suspense>
           <UrlPagination currentPage={1} totalPages={8} baseUrl={BASE_URL} />
           <PaginationFooter
@@ -92,7 +104,10 @@ export function NavigationSection() {
           />
         </Suspense>
       </ShowcaseRow>
-      <ShowcaseRow title="Linki" source="ui/auth-link.tsx, ui/contact-link.tsx, ui/optional-link.tsx">
+      <ShowcaseRow
+        title="Linki"
+        source="ui/auth-link.tsx, ui/contact-link.tsx, ui/optional-link.tsx"
+      >
         <AuthLink href="/zaloguj">AuthLink</AuthLink>
         <ContactLink type="email" value="biuro@example.com" />
         <ContactLink type="phone" value="+48 600 000 000" />

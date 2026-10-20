@@ -995,11 +995,11 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Zamówienie otwarte → zębatka → zmień domyślnego dostawcę big bagu → „Zapisz”: krok zamówienia
       od razu pokazuje nowego dostawcę, a przycisk „Dostawca domyślny” jest nieaktywny.
 
-## EX-1111 — design-system — strona `/design-system` z całym zestawem komponentów
+## EX-1111 — design-system — strona `/design` z całym zestawem komponentów
 
-- [ ] Konto zarządu otwiera `/design-system`: linki spisu treści skaczą do sekcji, a spis zostaje
+- [ ] Konto zarządu otwiera `/design`: linki spisu treści skaczą do sekcji, a spis zostaje
       widoczny przy przewijaniu.
-- [ ] Konto pracownika (EMPLOYEE) wchodzące na `/design-system` zostaje przekierowane.
+- [ ] Konto pracownika (EMPLOYEE) wchodzące na `/design` zostaje przekierowane.
 - [ ] Sekcja „Kolory": siatki jasna i ciemna stoją obok siebie, żadna próbka nie jest pusta.
 - [ ] `/warianty-badge` zwraca 404.
 - [ ] Każda sekcja renderuje się w jasnym i ciemnym motywie bez błędów w konsoli.

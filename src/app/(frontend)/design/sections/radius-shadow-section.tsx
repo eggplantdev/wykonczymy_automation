@@ -27,7 +27,11 @@ const SHADOWS = [
 export function RadiusShadowSection() {
   return (
     <ShowcaseSection id="radius-shadow">
-      <ShowcaseRow title="Zaokrąglenia" source="styles/globals.css --radius: 0.625rem" className="gap-4">
+      <ShowcaseRow
+        title="Zaokrąglenia"
+        source="styles/globals.css --radius: 0.625rem"
+        className="gap-4"
+      >
         {RADII.map((radius) => (
           <div key={radius.name} className="flex flex-col items-center gap-1">
             <div className={cn('bg-muted size-16 border-2', radius.className)} />
@@ -35,7 +39,11 @@ export function RadiusShadowSection() {
           </div>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="Cienie" source="styles/globals.css --shadow-panel + Tailwind" className="gap-6">
+      <ShowcaseRow
+        title="Cienie"
+        source="styles/globals.css --shadow-panel + Tailwind"
+        className="gap-6"
+      >
         {SHADOWS.map((shadow) => (
           <div key={shadow.name} className="flex flex-col items-center gap-2">
             <div className={cn('bg-card size-16 rounded-md', shadow.className)} />

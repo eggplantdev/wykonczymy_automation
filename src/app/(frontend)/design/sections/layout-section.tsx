@@ -56,7 +56,10 @@ const SUMMARY_COLS = `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`
 export function LayoutSection() {
   return (
     <ShowcaseSection id="layout">
-      <ShowcaseRow title="PageWrapper + SectionHeader" source="ui/page-wrapper.tsx, ui/section-header.tsx">
+      <ShowcaseRow
+        title="PageWrapper + SectionHeader"
+        source="ui/page-wrapper.tsx, ui/section-header.tsx"
+      >
         <div className="w-full rounded-md border">
           <PageWrapper title="Tytuł strony" description="Opis strony">
             <SectionHeader title="Nagłówek sekcji" />
@@ -65,12 +68,24 @@ export function LayoutSection() {
       </ShowcaseRow>
       <ShowcaseRow title="SettingsCard" source="ui/settings-card.tsx">
         <div className="w-full max-w-md">
-          <SettingsCard icon={Settings} title="Ustawienia" action={<Button size="xs" variant="outline">Akcja</Button>}>
+          <SettingsCard
+            icon={Settings}
+            title="Ustawienia"
+            action={
+              <Button size="xs" variant="outline">
+                Akcja
+              </Button>
+            }
+          >
             <p className="text-muted-foreground pt-2 text-sm">Treść karty.</p>
           </SettingsCard>
         </div>
       </ShowcaseRow>
-      <ShowcaseRow title="CollapsibleSection — rozmiar × stan" source="ui/collapsible-section.tsx" className="grid sm:grid-cols-2">
+      <ShowcaseRow
+        title="CollapsibleSection — rozmiar × stan"
+        source="ui/collapsible-section.tsx"
+        className="grid sm:grid-cols-2"
+      >
         {COLLAPSIBLE_SIZES.flatMap((size) =>
           OPEN_STATES.map((state) => (
             <CollapsibleSection
@@ -93,9 +108,15 @@ export function LayoutSection() {
       </ShowcaseRow>
       <ShowcaseRow title="ControlGrid" source="ui/control-grid.tsx">
         <ControlGrid>
-          <Button variant="outline" size="sm">Filtr 1</Button>
-          <Button variant="outline" size="sm">Filtr 2</Button>
-          <Button variant="outline" size="sm">Filtr 3</Button>
+          <Button variant="outline" size="sm">
+            Filtr 1
+          </Button>
+          <Button variant="outline" size="sm">
+            Filtr 2
+          </Button>
+          <Button variant="outline" size="sm">
+            Filtr 3
+          </Button>
         </ControlGrid>
       </ShowcaseRow>
       <ShowcaseRow title="SummaryTable" source="ui/summary-grid.tsx">
@@ -114,21 +135,32 @@ export function LayoutSection() {
           <SummaryValueCell weight="bold">7 880,00 zł</SummaryValueCell>
         </SummaryTable>
       </ShowcaseRow>
-      <ShowcaseRow title="InfoList — układy" source="ui/info-list.tsx" className="grid sm:grid-cols-2">
+      <ShowcaseRow
+        title="InfoList — układy"
+        source="ui/info-list.tsx"
+        className="grid sm:grid-cols-2"
+      >
         {INFO_LIST_LAYOUTS.map((layout) => (
           <InfoList key={layout} items={INFO_ITEMS} layout={layout} />
         ))}
       </ShowcaseRow>
       <ShowcaseRow title="EdgeHandlePill (najedź)" source="ui/edge-handle-pill.tsx">
         {EDGE_HANDLE_ORIENTATIONS.map((orientation) => (
-          <span key={orientation} className="group flex size-28 items-center justify-center rounded-md border">
+          <span
+            key={orientation}
+            className="group flex size-28 items-center justify-center rounded-md border"
+          >
             <EdgeHandlePill orientation={orientation}>
               <ChevronRight className="size-3" />
             </EdgeHandlePill>
           </span>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="AuthPageLayout + AuthSuccessCard (w ramce)" source="ui/auth-page-layout.tsx, ui/auth-success-card.tsx" className="grid sm:grid-cols-2">
+      <ShowcaseRow
+        title="AuthPageLayout + AuthSuccessCard (w ramce)"
+        source="ui/auth-page-layout.tsx, ui/auth-success-card.tsx"
+        className="grid sm:grid-cols-2"
+      >
         <div className="flex justify-center rounded-md border py-6">
           <AuthPageLayout title="Zaloguj się" description="Podaj e-mail i hasło.">
             <Input placeholder="E-mail" />

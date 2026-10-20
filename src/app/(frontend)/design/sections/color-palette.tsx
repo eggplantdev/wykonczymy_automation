@@ -62,7 +62,10 @@ export function ColorPalette() {
       </ShowcaseRow>
       <ShowcaseRow title="Pary tekst / tło" source="styles/globals.css">
         {TEXT_PAIRS.map((pair) => (
-          <div key={pair.name} className={cn('rounded-md border px-3 py-2 text-sm', pair.className)}>
+          <div
+            key={pair.name}
+            className={cn('rounded-md border px-3 py-2 text-sm', pair.className)}
+          >
             {pair.name}
           </div>
         ))}

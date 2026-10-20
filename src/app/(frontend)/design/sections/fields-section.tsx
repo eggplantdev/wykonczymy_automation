@@ -70,8 +70,8 @@ const TOGGLE_GROUP_SIZES = Object.keys({
 } satisfies Record<ToggleGroupSizeT, true>) as ToggleGroupSizeT[]
 
 const OPTIONS: SelectOptionT[] = [
-  { value: 'netto', label: 'Netto' },
-  { value: 'brutto', label: 'Brutto' },
+  { value: 'net', label: 'Netto' },
+  { value: 'gross', label: 'Brutto' },
   { value: 'vat', label: 'VAT', description: 'Opcja z opisem pod etykietą' },
 ]
 
@@ -93,7 +93,7 @@ export function FieldsSection() {
   const [text, setText] = useState('')
   const [decimal, setDecimal] = useState<number | null>(12.5)
   const [isChecked, setIsChecked] = useState(true)
-  const [selectValue, setSelectValue] = useState('netto')
+  const [selectValue, setSelectValue] = useState('net')
   const [searchValue, setSearchValue] = useState('')
   const [comboboxValue, setComboboxValue] = useState('m²')
   const [language, setLanguage] = useState<LanguageT>('pl')
@@ -109,7 +109,11 @@ export function FieldsSection() {
         <Input placeholder="Disabled" disabled />
         <Input placeholder="Błąd" aria-invalid />
       </ShowcaseRow>
-      <ShowcaseRow title="Textarea — stany" source="ui/textarea.tsx" className="grid sm:grid-cols-3">
+      <ShowcaseRow
+        title="Textarea — stany"
+        source="ui/textarea.tsx"
+        className="grid sm:grid-cols-3"
+      >
         <Textarea placeholder="Normalny" />
         <Textarea placeholder="Disabled" disabled />
         <Textarea placeholder="Błąd" aria-invalid />
@@ -117,10 +121,20 @@ export function FieldsSection() {
       <ShowcaseRow title="Liczby" source="ui/decimal-input.tsx, ui/decimal-field.tsx">
         <DecimalInput defaultValue="1,5" />
         <DecimalInput defaultValue="1,5" disabled />
-        <DecimalField label="Rabat" hint="Przykładowa podpowiedź" suffix="%" value={decimal} onCommit={setDecimal} />
+        <DecimalField
+          label="Rabat"
+          hint="Przykładowa podpowiedź"
+          suffix="%"
+          value={decimal}
+          onCommit={setDecimal}
+        />
         <DecimalField label="Z zapisem" labelAbove withSave value={decimal} onCommit={setDecimal} />
       </ShowcaseRow>
-      <ShowcaseRow title="Field — orientacje" source="ui/field.tsx, ui/label.tsx" className="grid sm:grid-cols-3">
+      <ShowcaseRow
+        title="Field — orientacje"
+        source="ui/field.tsx, ui/label.tsx"
+        className="grid sm:grid-cols-3"
+      >
         {FIELD_ORIENTATIONS.map((orientation) => (
           <Field key={orientation} orientation={orientation}>
             <FieldLabel htmlFor={`field-${orientation}`}>orientation={orientation}</FieldLabel>
@@ -139,7 +153,12 @@ export function FieldsSection() {
           <div key={variant} className="flex items-center gap-3">
             <code className="text-muted-foreground text-xs">{variant}</code>
             {CHECKBOX_STATES.map((state) => (
-              <Checkbox key={String(state)} variant={variant} checked={state} aria-label={String(state)} />
+              <Checkbox
+                key={String(state)}
+                variant={variant}
+                checked={state}
+                aria-label={String(state)}
+              />
             ))}
             <Checkbox variant={variant} checked disabled aria-label="disabled" />
             <Checkbox variant={variant} aria-invalid aria-label="invalid" />
@@ -152,7 +171,11 @@ export function FieldsSection() {
           CheckboxRow ai
         </CheckboxRow>
       </ShowcaseRow>
-      <ShowcaseRow title="SelectTrigger — rozmiary" source="ui/select.tsx" className="grid sm:grid-cols-4">
+      <ShowcaseRow
+        title="SelectTrigger — rozmiary"
+        source="ui/select.tsx"
+        className="grid sm:grid-cols-4"
+      >
         {SELECT_TRIGGER_SIZES.map((size) => (
           <Select key={size} value={selectValue} onValueChange={setSelectValue}>
             <SelectTrigger size={size}>
@@ -178,29 +201,79 @@ export function FieldsSection() {
         {SIMPLE_SELECT_VARIANTS.map((variant) => (
           <div key={variant} className="flex flex-col gap-1">
             <code className="text-muted-foreground text-xs">{variant}</code>
-            <SimpleSelect variant={variant} value={selectValue} onValueChange={setSelectValue} options={OPTIONS} />
+            <SimpleSelect
+              variant={variant}
+              value={selectValue}
+              onValueChange={setSelectValue}
+              options={OPTIONS}
+            />
           </div>
         ))}
         <div className="flex flex-col gap-1">
           <code className="text-muted-foreground text-xs">invalid</code>
-          <SimpleSelect value="" placeholder="Wybierz" onValueChange={setSelectValue} options={OPTIONS} invalid />
+          <SimpleSelect
+            value=""
+            placeholder="Wybierz"
+            onValueChange={setSelectValue}
+            options={OPTIONS}
+            invalid
+          />
         </div>
       </ShowcaseRow>
-      <ShowcaseRow title="Wyszukiwanie i wybór" source="ui/search-select.tsx, ui/combobox.tsx" className="grid sm:grid-cols-3">
-        <SearchSelect value={searchValue} onChange={setSearchValue} items={SEARCH_ITEMS} placeholder="Wybierz inwestycję" />
-        <SearchSelect value="" onChange={setSearchValue} items={SEARCH_ITEMS} placeholder="Błąd" isInvalid />
-        <Combobox value={comboboxValue} onChange={setComboboxValue} options={COMBOBOX_OPTIONS} allowCustom />
+      <ShowcaseRow
+        title="Wyszukiwanie i wybór"
+        source="ui/search-select.tsx, ui/combobox.tsx"
+        className="grid sm:grid-cols-3"
+      >
+        <SearchSelect
+          value={searchValue}
+          onChange={setSearchValue}
+          items={SEARCH_ITEMS}
+          placeholder="Wybierz inwestycję"
+        />
+        <SearchSelect
+          value=""
+          onChange={setSearchValue}
+          items={SEARCH_ITEMS}
+          placeholder="Błąd"
+          isInvalid
+        />
+        <Combobox
+          value={comboboxValue}
+          onChange={setComboboxValue}
+          options={COMBOBOX_OPTIONS}
+          allowCustom
+        />
       </ShowcaseRow>
-      <ShowcaseRow title="Selecty złożone" source="ui/inline-mode-select.tsx, ui/language-select.tsx">
-        <InlineModeSelect label="Widok" value={selectValue} onValueChange={setSelectValue} options={OPTIONS} description="Przykładowy opis" />
-        <InlineModeSelect label="Zablokowany" value={selectValue} onValueChange={setSelectValue} options={OPTIONS} lockedReason="Powód blokady" />
+      <ShowcaseRow
+        title="Selecty złożone"
+        source="ui/inline-mode-select.tsx, ui/language-select.tsx"
+      >
+        <InlineModeSelect
+          label="Widok"
+          value={selectValue}
+          onValueChange={setSelectValue}
+          options={OPTIONS}
+          description="Przykładowy opis"
+        />
+        <InlineModeSelect
+          label="Zablokowany"
+          value={selectValue}
+          onValueChange={setSelectValue}
+          options={OPTIONS}
+          lockedReason="Powód blokady"
+        />
         <LanguageSelect value={language} onValueChange={setLanguage} />
       </ShowcaseRow>
       <ShowcaseRow title="FileInput" source="ui/file-input.tsx" className="grid sm:grid-cols-2">
         <FileInput label="Załącznik" />
         <FileInput label="Disabled" disabled />
       </ShowcaseRow>
-      <ShowcaseRow title="ReasonField (autoFocus)" source="ui/reason-field.tsx" className="flex-col items-start">
+      <ShowcaseRow
+        title="ReasonField (autoFocus)"
+        source="ui/reason-field.tsx"
+        className="flex-col items-start"
+      >
         <Button variant="outline" size="sm" onClick={() => setIsReasonShown((shown) => !shown)}>
           {isReasonShown ? 'Ukryj' : 'Pokaż'} ReasonField
         </Button>
@@ -214,20 +287,51 @@ export function FieldsSection() {
               max={200}
               label="Powód zmiany"
               placeholder="Opisz powód"
-              counterText={({ length, missing }) => (missing > 0 ? `Brakuje ${missing} znaków` : `${length} znaków`)}
+              counterText={({ length, missing }) =>
+                missing > 0 ? `Brakuje ${missing} znaków` : `${length} znaków`
+              }
             />
           </div>
         )}
       </ShowcaseRow>
       <ShowcaseRow title="Calendar" source="ui/calendar.tsx">
-        <Calendar mode="single" selected={date} onSelect={setDate} locale={pl} className="rounded-md border" />
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={setDate}
+          locale={pl}
+          className="rounded-md border"
+        />
       </ShowcaseRow>
-      <ShowcaseRow title="ToggleGroup — rozmiary" source="ui/toggle-group.tsx" className="flex-col items-start">
+      <ShowcaseRow
+        title="ToggleGroup — rozmiary"
+        source="ui/toggle-group.tsx"
+        className="flex-col items-start"
+      >
         {TOGGLE_GROUP_SIZES.map((size) => (
-          <ToggleGroup key={size} size={size} options={[...TOGGLE_OPTIONS]} value={period} onChange={setPeriod} aria-label={size} />
+          <ToggleGroup
+            key={size}
+            size={size}
+            options={[...TOGGLE_OPTIONS]}
+            value={period}
+            onChange={setPeriod}
+            aria-label={size}
+          />
         ))}
-        <ToggleGroup options={[...TOGGLE_OPTIONS]} value={period} onChange={setPeriod} isEqualWidth aria-label="isEqualWidth" />
-        <ToggleGroup options={[...TOGGLE_OPTIONS]} value={period} onChange={setPeriod} disabled aria-label="disabled" />
+        <ToggleGroup
+          options={[...TOGGLE_OPTIONS]}
+          value={period}
+          onChange={setPeriod}
+          isEqualWidth
+          aria-label="isEqualWidth"
+        />
+        <ToggleGroup
+          options={[...TOGGLE_OPTIONS]}
+          value={period}
+          onChange={setPeriod}
+          disabled
+          aria-label="disabled"
+        />
       </ShowcaseRow>
     </ShowcaseSection>
   )

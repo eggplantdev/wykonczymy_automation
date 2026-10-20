@@ -60,7 +60,10 @@ export function FeedbackSection() {
 
   return (
     <ShowcaseSection id="feedback">
-      <ShowcaseRow title="Spinnery" source="ui/gradient-spinner.tsx, ui/loader/spinner.tsx, ui/loader/page-loading.tsx">
+      <ShowcaseRow
+        title="Spinnery"
+        source="ui/gradient-spinner.tsx, ui/loader/spinner.tsx, ui/loader/page-loading.tsx"
+      >
         <GradientSpinner />
         <GradientSpinner className="size-8" />
         {SPINNER_VARIANTS.map((variant) => (
@@ -70,7 +73,11 @@ export function FeedbackSection() {
         ))}
         <ContentLoading />
       </ShowcaseRow>
-      <ShowcaseRow title="Ekrany ładowania (w ramce)" source="ui/loader/page-loading.tsx" className="grid sm:grid-cols-3">
+      <ShowcaseRow
+        title="Ekrany ładowania (w ramce)"
+        source="ui/loader/page-loading.tsx"
+        className="grid sm:grid-cols-3"
+      >
         <div className="flex h-48 flex-col rounded-md border">
           <PageLoading />
         </div>
@@ -86,7 +93,12 @@ export function FeedbackSection() {
           <Loader loading portal={false} className="absolute z-0" />
         </div>
         <div className="relative h-32 w-64 rounded-md border">
-          <Loader loading portal={false} className="absolute z-0" loaderComponent={<GradientSpinner className="size-8" />} />
+          <Loader
+            loading
+            portal={false}
+            className="absolute z-0"
+            loaderComponent={<GradientSpinner className="size-8" />}
+          />
         </div>
         <Button variant="outline" size="sm" onClick={showFixedLoader}>
           Loader w portalu ({FIXED_LOADER_MS} ms)
@@ -107,14 +119,21 @@ export function FeedbackSection() {
           </EmptyState>
         </div>
       </ShowcaseRow>
-      <ShowcaseRow title="Ostrzeżenia" source="ui/warning-banner.tsx, ui/alert-icon.tsx, ui/label-hint-icon.tsx">
+      <ShowcaseRow
+        title="Ostrzeżenia"
+        source="ui/warning-banner.tsx, ui/alert-icon.tsx, ui/label-hint-icon.tsx"
+      >
         <WarningBanner className="px-2">Kwoty nie zgadzają się z kosztorysem.</WarningBanner>
         <AlertIcon />
         {LABEL_HINTS.map((hint) => (
           <LabelHintIcon key={hint.variant} {...hint} size="md" />
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="Description — rozmiar × ton" source="ui/description.tsx" className="grid sm:grid-cols-2">
+      <ShowcaseRow
+        title="Description — rozmiar × ton"
+        source="ui/description.tsx"
+        className="grid sm:grid-cols-2"
+      >
         {DESCRIPTION_TONES.flatMap((tone) =>
           DESCRIPTION_SIZES.map((size) => (
             <Description key={`${tone}-${size}`} tone={tone} size={size}>

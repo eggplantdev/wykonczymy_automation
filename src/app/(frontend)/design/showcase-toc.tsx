@@ -8,7 +8,7 @@ export function ShowcaseToc() {
           <li key={section.id}>
             <a
               href={`#${section.id}`}
-              className="text-muted-foreground hover:text-foreground block rounded-md px-2 py-1 hover:bg-accent"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent block rounded-md px-2 py-1"
             >
               {section.label}
             </a>

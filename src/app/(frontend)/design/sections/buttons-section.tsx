@@ -59,9 +59,14 @@ const SIZES = Object.keys({
   iconLg: true,
 } satisfies Record<ButtonSizeT, true>) as ButtonSizeT[]
 
-const ALIGNS = Object.keys({ center: true, start: true } satisfies Record<ButtonAlignT, true>) as ButtonAlignT[]
+const ALIGNS = Object.keys({ center: true, start: true } satisfies Record<
+  ButtonAlignT,
+  true
+>) as ButtonAlignT[]
 
-const ANIMATIONS = Object.keys(BUTTON_ANIMATION_CLASSES) as (keyof typeof BUTTON_ANIMATION_CLASSES)[]
+const ANIMATIONS = Object.keys(
+  BUTTON_ANIMATION_CLASSES,
+) as (keyof typeof BUTTON_ANIMATION_CLASSES)[]
 
 const VIEW_OPTIONS = [
   { value: 'list', label: 'Lista' },
@@ -141,10 +146,18 @@ export function ButtonsSection() {
         <EditButton onClick={() => undefined} showLabel />
         <DeleteButton onClick={() => undefined} />
         <DeleteButton onClick={() => undefined} showLabel />
-        <RowActionButton icon={Plus} label="Dodaj" tooltip="Dodaj pozycję" onClick={() => undefined} />
+        <RowActionButton
+          icon={Plus}
+          label="Dodaj"
+          tooltip="Dodaj pozycję"
+          onClick={() => undefined}
+        />
         <RemoveButton onClick={() => undefined} aria-label="Usuń" />
       </ShowcaseRow>
-      <ShowcaseRow title="Przyciski z zachowaniem" source="ui/upload-button.tsx, save-as-default-button.tsx, auth-submit-button.tsx">
+      <ShowcaseRow
+        title="Przyciski z zachowaniem"
+        source="ui/upload-button.tsx, save-as-default-button.tsx, auth-submit-button.tsx"
+      >
         <UploadButton label="Wgraj plik" isUploading={false} onClick={() => undefined} />
         <UploadButton label="Wgraj plik" isUploading onClick={() => undefined} />
         <SaveAsDefaultButton
@@ -178,9 +191,17 @@ export function ButtonsSection() {
           onChange={setView}
         />
       </ShowcaseRow>
-      <ShowcaseRow title="Kafle statystyk — dwie implementacje" source="ui/stat-button.tsx, ui/toggle-stat-buttons.tsx">
+      <ShowcaseRow
+        title="Kafle statystyk — dwie implementacje"
+        source="ui/stat-button.tsx, ui/toggle-stat-buttons.tsx"
+      >
         <StatButton label="Bilans" value="12 345,00 zł" />
-        <StatButton label="Marża" value="2 100,00 zł" color="chart-green" tooltip="Przykładowa podpowiedź" />
+        <StatButton
+          label="Marża"
+          value="2 100,00 zł"
+          color="chart-green"
+          tooltip="Przykładowa podpowiedź"
+        />
         <ToggleStatButtons
           rows={[
             [
@@ -203,7 +224,10 @@ export function ButtonsSection() {
           colorValues
         />
       </ShowcaseRow>
-      <ShowcaseRow title="Linki w kształcie przycisku" source="ui/history-back-button.tsx, ui/external-link.tsx">
+      <ShowcaseRow
+        title="Linki w kształcie przycisku"
+        source="ui/history-back-button.tsx, ui/external-link.tsx"
+      >
         <HistoryBackButton fallbackHref="/" />
         <ExternalLink href="https://example.com">ExternalLink text</ExternalLink>
         <ExternalLink href="https://example.com" variant="button">

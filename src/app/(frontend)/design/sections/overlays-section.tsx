@@ -53,7 +53,7 @@ const COLUMNS = [
 
 export function OverlaysSection() {
   const [isChecked, setIsChecked] = useState(true)
-  const [radio, setRadio] = useState('netto')
+  const [radio, setRadio] = useState('net')
   const [activeIds, setActiveIds] = useState<Set<string>>(() => new Set(['a']))
   const [hiddenColumns, setHiddenColumns] = useState<Set<string>>(() => new Set(['note']))
   const [ranks, setRanks] = useState<ColumnRanksT>({})
@@ -69,7 +69,11 @@ export function OverlaysSection() {
 
   return (
     <ShowcaseSection id="overlays">
-      <ShowcaseRow title="Tooltip — trzymany otwarty" source="ui/tooltip.tsx SimpleTooltip open" className="pt-10">
+      <ShowcaseRow
+        title="Tooltip — trzymany otwarty"
+        source="ui/tooltip.tsx SimpleTooltip open"
+        className="pt-10"
+      >
         <SimpleTooltip content="SimpleTooltip (open)" open>
           <Button variant="outline" size="sm">
             Zawsze otwarty
@@ -105,7 +109,10 @@ export function OverlaysSection() {
           </PopoverContent>
         </Popover>
       </ShowcaseRow>
-      <ShowcaseRow title="DropdownMenu" source="ui/dropdown-menu.tsx, ui/menu-item-body.tsx, ui/dropdown-check-groups.tsx">
+      <ShowcaseRow
+        title="DropdownMenu"
+        source="ui/dropdown-menu.tsx, ui/menu-item-body.tsx, ui/dropdown-check-groups.tsx"
+      >
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
@@ -139,8 +146,8 @@ export function OverlaysSection() {
             />
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup value={radio} onValueChange={setRadio}>
-              <DropdownMenuRadioItem value="netto">Netto</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="brutto">Brutto</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="net">Netto</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="gross">Brutto</DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
             <DropdownMenuSeparator />
             <DropdownMenuSub>
@@ -165,11 +172,16 @@ export function OverlaysSection() {
           </DropdownMenuContent>
         </DropdownMenu>
       </ShowcaseRow>
-      <ShowcaseRow title="ColumnToggleMenu (+ ColumnOrderDialog)" source="ui/column-toggle-menu.tsx">
+      <ShowcaseRow
+        title="ColumnToggleMenu (+ ColumnOrderDialog)"
+        source="ui/column-toggle-menu.tsx"
+      >
         <ColumnToggleMenu
           items={columnItems}
           onToggle={(id) => setHiddenColumns((previous) => toggleInSet(previous, id))}
-          onToggleAll={(visible) => setHiddenColumns(new Set(visible ? [] : COLUMNS.map((column) => column.id)))}
+          onToggleAll={(visible) =>
+            setHiddenColumns(new Set(visible ? [] : COLUMNS.map((column) => column.id)))
+          }
           align="start"
           order={{
             description: 'Przeciągnij, aby zmienić kolejność kolumn.',

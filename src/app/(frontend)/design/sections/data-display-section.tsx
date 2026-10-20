@@ -4,7 +4,10 @@ import { useState, type ComponentProps } from 'react'
 import { Bar, BarChart, XAxis } from 'recharts'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { SignedMoneyDisplay } from '@/components/ui/signed-money-display'
-import { DecisionProgressBadge, type DecisionStatusT } from '@/components/ui/decision-progress-badge'
+import {
+  DecisionProgressBadge,
+  type DecisionStatusT,
+} from '@/components/ui/decision-progress-badge'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { SlicePie } from '@/components/ui/slice-pie'
 import { PieSliceLegend, type PieSliceT } from '@/components/ui/pie-legend'
@@ -68,7 +71,9 @@ const BAR_DATA = [
 ]
 
 export function DataDisplaySection() {
-  const [hiddenStatuses, setHiddenStatuses] = useState<ReadonlySet<DecisionStatusT>>(() => new Set())
+  const [hiddenStatuses, setHiddenStatuses] = useState<ReadonlySet<DecisionStatusT>>(
+    () => new Set(),
+  )
 
   return (
     <ShowcaseSection id="data-display">
@@ -78,7 +83,11 @@ export function DataDisplaySection() {
         ))}
         <SignedMoneyDisplay amount={12500} label="Saldo" />
         <SignedMoneyDisplay amount={-830.5} label="Saldo" tooltip="Suma zaznaczonych" />
-        <SignedMoneyDisplay amount={4200} label="Zaznaczone" selectionCount={{ selected: 3, total: 12 }} />
+        <SignedMoneyDisplay
+          amount={4200}
+          label="Zaznaczone"
+          selectionCount={{ selected: 3, total: 12 }}
+        />
       </ShowcaseRow>
       <ShowcaseRow title="DecisionProgressBadge" source="ui/decision-progress-badge.tsx">
         <DecisionProgressBadge accepted={7} rejected={2} pending={4} />
@@ -90,18 +99,33 @@ export function DataDisplaySection() {
           onToggle={(status) => setHiddenStatuses((previous) => toggleInSet(previous, status))}
         />
       </ShowcaseRow>
-      <ShowcaseRow title="Wykresy" source="ui/chart.tsx, ui/slice-pie.tsx, ui/pie-legend.tsx" className="grid sm:grid-cols-3">
+      <ShowcaseRow
+        title="Wykresy"
+        source="ui/chart.tsx, ui/slice-pie.tsx, ui/pie-legend.tsx"
+        className="grid sm:grid-cols-3"
+      >
         <ChartContainer className="h-48">
           <BarChart data={BAR_DATA}>
             <XAxis dataKey="month" tickLine={false} axisLine={false} />
-            <ChartTooltip content={<ChartTooltipContent valueFormatter={(value) => formatPLN(Number(value))} />} />
+            <ChartTooltip
+              content={<ChartTooltipContent valueFormatter={(value) => formatPLN(Number(value))} />}
+            />
             <Bar dataKey="value" name="Obrót" fill="var(--color-chart-blue)" radius={4} />
           </BarChart>
         </ChartContainer>
-        <SlicePie slices={SLICES} formatShare={formatPercent} formatValue={formatPLN} caption="Koszty inwestycji" />
+        <SlicePie
+          slices={SLICES}
+          formatShare={formatPercent}
+          formatValue={formatPLN}
+          caption="Koszty inwestycji"
+        />
         <PieSliceLegend slices={SLICES} formatShare={formatPercent} />
       </ShowcaseRow>
-      <ShowcaseRow title="Icon — nazwa × rozmiar" source="ui/icons/icon.tsx" className="flex-col items-start">
+      <ShowcaseRow
+        title="Icon — nazwa × rozmiar"
+        source="ui/icons/icon.tsx"
+        className="flex-col items-start"
+      >
         {ICON_NAMES.map((iconName) => (
           <div key={iconName} className="flex items-center gap-3">
             <code className="text-muted-foreground w-28 text-xs">{iconName}</code>
@@ -111,7 +135,10 @@ export function DataDisplaySection() {
           </div>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="Ikony kierunkowe" source="ui/icons/arrow-icon.tsx, ui/icons/dropdown-icon.tsx, ui/icons/menu-dots-icon.tsx">
+      <ShowcaseRow
+        title="Ikony kierunkowe"
+        source="ui/icons/arrow-icon.tsx, ui/icons/dropdown-icon.tsx, ui/icons/menu-dots-icon.tsx"
+      >
         {ARROW_DIRECTIONS.map((direction) => (
           <ArrowIcon key={direction} direction={direction} />
         ))}

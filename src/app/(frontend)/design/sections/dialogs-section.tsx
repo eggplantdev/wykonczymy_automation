@@ -111,7 +111,12 @@ export function DialogsSection() {
       </ShowcaseRow>
       <ShowcaseRow title="ConfirmDialog — warianty" source="ui/confirm-dialog.tsx">
         {CONFIRM_VARIANTS.map((variant) => (
-          <Button key={variant} variant="outline" size="sm" onClick={() => setConfirmVariant(variant)}>
+          <Button
+            key={variant}
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirmVariant(variant)}
+          >
             variant={variant}
           </Button>
         ))}

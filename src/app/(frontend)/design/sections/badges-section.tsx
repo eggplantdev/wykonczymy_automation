@@ -41,7 +41,9 @@ export function BadgesSection() {
 
   return (
     <ShowcaseSection id="badges">
-      <h3 className="mt-4 text-xs font-semibold tracking-wide uppercase">A. Rodzina Badge (ui/badge.tsx)</h3>
+      <h3 className="mt-4 text-xs font-semibold tracking-wide uppercase">
+        A. Rodzina Badge (ui/badge.tsx)
+      </h3>
       <ShowcaseRow title="Badge — wszystkie tony" source="<Badge tone>">
         {TONES.map((tone) => (
           <Badge key={tone} tone={tone}>
@@ -91,7 +93,10 @@ export function BadgesSection() {
           </RoleBadge>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="Vehicle / Equipment status" source="fleet/vehicle-status-badge.tsx, equipment/…">
+      <ShowcaseRow
+        title="Vehicle / Equipment status"
+        source="fleet/vehicle-status-badge.tsx, equipment/…"
+      >
         {VEHICLE_STATUSES.map((status) => (
           <VehicleStatusBadge key={status} status={status} />
         ))}
@@ -123,7 +128,9 @@ export function BadgesSection() {
         <DecisionProgressBadge accepted={3} rejected={1} pending={2} />
       </ShowcaseRow>
 
-      <h3 className="mt-6 text-xs font-semibold tracking-wide uppercase">B. Poza Badge — osobny kod</h3>
+      <h3 className="mt-6 text-xs font-semibold tracking-wide uppercase">
+        B. Poza Badge — osobny kod
+      </h3>
       <ShowcaseRow title="CardChip (obrys, label: wartość)" source="transfers/cards/card-chip.tsx">
         <CardChip kind="register" label="Kasa">
           Główna
@@ -153,14 +160,20 @@ export function BadgesSection() {
           />
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="SectionPill (kolor z --section-rail)" source="worker-reports/section-pill.tsx">
+      <ShowcaseRow
+        title="SectionPill (kolor z --section-rail)"
+        source="worker-reports/section-pill.tsx"
+      >
         {(['blue', 'green', 'purple'] as const).map((color) => (
           <span key={color} className={cn('worker-report', sectionColorRail(color))}>
             <SectionPill name="Łazienka" />
           </span>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="AI etap — obrys (trigger selecta)" source="investments/ai-stage-select.tsx">
+      <ShowcaseRow
+        title="AI etap — obrys (trigger selecta)"
+        source="investments/ai-stage-select.tsx"
+      >
         {AI_PROGRESS_STEPS.map((step) => (
           <Badge key={step} tone={AI_PROGRESS_TONES[step]} appearance="outline">
             {step}

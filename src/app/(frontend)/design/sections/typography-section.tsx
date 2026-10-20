@@ -40,7 +40,11 @@ const TONES = [
 export function TypographySection() {
   return (
     <ShowcaseSection id="typography">
-      <ShowcaseRow title="Rodziny" source="fonts/index.ts, styles/globals.css --font-mono" className="flex-col items-start">
+      <ShowcaseRow
+        title="Rodziny"
+        source="fonts/index.ts, styles/globals.css --font-mono"
+        className="flex-col items-start"
+      >
         {FAMILIES.map((family) => (
           <p key={family.name} className={family.className}>
             <code className="text-muted-foreground mr-3 font-mono text-xs">{family.name}</code>
@@ -48,7 +52,11 @@ export function TypographySection() {
           </p>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="Rozmiary" source="styles/globals.css --text-2xs, --text-3xs, @utility grid-*" className="flex-col items-start">
+      <ShowcaseRow
+        title="Rozmiary"
+        source="styles/globals.css --text-2xs, --text-3xs, @utility grid-*"
+        className="flex-col items-start"
+      >
         {SIZES.map((size) => (
           <p key={size.name} className="flex items-baseline gap-3">
             <code className="text-muted-foreground w-28 shrink-0 text-xs">{size.name}</code>
@@ -64,7 +72,11 @@ export function TypographySection() {
           </p>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="Kolory tekstu" source="styles/globals.css" className="flex-col items-start">
+      <ShowcaseRow
+        title="Kolory tekstu"
+        source="styles/globals.css"
+        className="flex-col items-start"
+      >
         {TONES.map((tone) => (
           <p key={tone.name} className="flex items-baseline gap-3">
             <code className="text-muted-foreground w-40 shrink-0 text-xs">{tone.name}</code>
