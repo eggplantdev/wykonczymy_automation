@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-commit-on-settle
 title: Kosztorys numeric cells commit on settle, not per keystroke (EX-1116)
-status: implementing
+status: implemented
 created: 2026-10-20
 updated: 2026-10-20
 archived_at: null

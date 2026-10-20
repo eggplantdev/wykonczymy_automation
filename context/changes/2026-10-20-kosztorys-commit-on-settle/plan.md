@@ -253,11 +253,11 @@ Run once, after Phase 2:
 
 #### Automated
 
-- [ ] 1.1 Lib specs pass
-- [ ] 1.2 Cell DOM specs pass
+- [x] 1.1 Lib specs pass — 372b8ad7d
+- [x] 1.2 Cell DOM specs pass — 372b8ad7d
 
 ### Phase 2: Harness and docs
 
 #### Automated
 
-- [x] 2.1 None — prose and a dev-only script
+- [x] 2.1 None — prose and a dev-only script — 352e73365

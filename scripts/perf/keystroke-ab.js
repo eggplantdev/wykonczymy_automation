@@ -9,7 +9,6 @@
 
   await page.goto(STAGING + PATH)
   await page.waitForTimeout(3000)
-  // Saved column widths/order move the cells off the x positions.
   const backup = await page.evaluate(() => {
     const all = { ...localStorage }
     for (const key of Object.keys(localStorage))
@@ -38,29 +37,33 @@
     // Keys typed past the cell paint nothing and read as the two-frame floor, faking a win.
     if (original === undefined) throw new Error(`no grid cell at ${x},${ROW_Y}`)
     const latencies = []
-    for (let round = 0; round < 3; round++) {
+    try {
+      for (let round = 0; round < 3; round++) {
+        await page.mouse.click(x, ROW_Y)
+        await page.waitForTimeout(300)
+        for (const key of '123456789') {
+          const start = await page.evaluate(() => performance.now())
+          await page.keyboard.press(key)
+          latencies.push((await nextPaint()) - start)
+        }
+        const typed = await cellValue(x)
+        if (typed !== '123456789') throw new Error(`cell at ${x} holds "${typed}" after typing`)
+        await page.keyboard.press('Enter')
+        await page.waitForTimeout(1500)
+      }
+    } finally {
       await page.mouse.click(x, ROW_Y)
       await page.waitForTimeout(300)
-      for (const key of '123456789') {
-        const start = await page.evaluate(() => performance.now())
-        await page.keyboard.press(key)
-        latencies.push((await nextPaint()) - start)
-      }
-      const typed = await cellValue(x)
-      if (typed !== '123456789') throw new Error(`cell at ${x} holds "${typed}" after typing`)
+      await page.keyboard.type(String(original))
       await page.keyboard.press('Enter')
-      await page.waitForTimeout(1500)
+      await page.waitForTimeout(2500)
     }
-    await page.mouse.click(x, ROW_Y)
-    await page.waitForTimeout(300)
-    await page.keyboard.type(String(original))
-    await page.keyboard.press('Enter')
-    await page.waitForTimeout(2500)
+    const restored = await cellValue(x)
+    if (restored !== original)
+      throw new Error(`cell at ${x} restored to "${restored}", was "${original}"`)
     const sorted = [...latencies].sort((a, b) => a - b)
     const quantile = (p) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]
     return {
-      original,
-      restored: await cellValue(x),
       median: +quantile(0.5).toFixed(1),
       p90: +quantile(0.9).toFixed(1),
       max: +sorted.at(-1).toFixed(1),
