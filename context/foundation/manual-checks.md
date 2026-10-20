@@ -981,6 +981,20 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Telefon, raport pracownika → wpisz ilość, bez Entera przełącz się na inną aplikację i wróć:
       ilość została w szkicu.
 
+## 2026-10-20 — order-default-supplier-per-item — osobny domyślny dostawca big bagu i kontenera
+
+- [ ] Zamówienie na stronie inwestycji: „Big bag” wybiera domyślnego dostawcę big bagu; przełączenie
+      na „Kontener” wybiera domyślnego dostawcę kontenera (albo pierwszego z listy, gdy go nie ma).
+- [ ] Na „Kontener” wybierz innego dostawcę → „Zapisz jako domyślnego dostawcę” → komunikat; otwórz
+      zamówienie ponownie: „Kontener” wybiera go od razu, „Big bag” nadal swojego.
+- [ ] „Dalej” → zapisz wydatek kontenera: SMS idzie na numer dostawcy kontenera.
+- [ ] „Ustawienia zamówień” (zębatka): „Domyślny dostawca big bag” i „Domyślny dostawca kontenera”
+      pokazują obecne wybory; zmień kontener → „Zapisz” → zamówienie wybiera nowego dostawcę.
+- [ ] „Ustawienia zamówień” → usuń wiersz dostawcy, który jest domyślny dla kontenera: jego pole
+      pokazuje „— brak —”; po „Zapisz” domyślny big bagu zostaje, kontener nie ma domyślnego.
+- [ ] Zamówienie otwarte → zębatka → zmień domyślnego dostawcę big bagu → „Zapisz”: krok zamówienia
+      od razu pokazuje nowego dostawcę, a przycisk „Dostawca domyślny” jest nieaktywny.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
