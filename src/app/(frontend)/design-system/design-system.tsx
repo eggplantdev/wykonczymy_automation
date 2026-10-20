@@ -5,6 +5,14 @@ import { ColorsSection } from './sections/colors-section'
 import { TypographySection } from './sections/typography-section'
 import { RadiusShadowSection } from './sections/radius-shadow-section'
 import { BadgesSection } from './sections/badges-section'
+import { ButtonsSection } from './sections/buttons-section'
+import { FieldsSection } from './sections/fields-section'
+import { OverlaysSection } from './sections/overlays-section'
+import { DialogsSection } from './sections/dialogs-section'
+import { FeedbackSection } from './sections/feedback-section'
+import { LayoutSection } from './sections/layout-section'
+import { NavigationSection } from './sections/navigation-section'
+import { DataDisplaySection } from './sections/data-display-section'
 
 export function DesignSystem() {
   return (
@@ -16,6 +24,14 @@ export function DesignSystem() {
         <TypographySection />
         <RadiusShadowSection />
         <BadgesSection />
+        <ButtonsSection />
+        <FieldsSection />
+        <OverlaysSection />
+        <DialogsSection />
+        <FeedbackSection />
+        <LayoutSection />
+        <NavigationSection />
+        <DataDisplaySection />
       </div>
     </div>
   )

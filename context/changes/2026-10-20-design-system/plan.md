@@ -333,10 +333,10 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 1.1 No live reference to `/warianty-badge` remains
+- [x] 1.1 No live reference to `/warianty-badge` remains — f66e2fc6e
 
 ### Phase 2: Components
 
 #### Automated
 
-- [ ] 2.1 Every non-excluded `ui/` module is imported by the page
+- [x] 2.1 Every non-excluded `ui/` module is imported by the page
