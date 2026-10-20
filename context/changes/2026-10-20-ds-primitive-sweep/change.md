@@ -1,7 +1,7 @@
 ---
 change_id: ds-primitive-sweep
 title: Sweep hand-rolled UI onto shared ui/ primitives and guard against new copies
-status: implementing
+status: implemented
 created: 2026-10-20
 updated: 2026-10-20
 archived_at: null

@@ -721,7 +721,8 @@ Run once, after phase 12:
 
 - [x] 1.1 Rule spec passes — a4f667efd
 - [x] 1.2 Rule spec seen red with one check disabled, then restored — a4f667efd
-- [ ] 1.3 Lint passes on components/app/hooks with the baseline
+- [x] 1.3 Lint passes on components/app/hooks with the baseline
+  - Checked at the end of run, with the baseline already pruned to empty and deleted.
 - [x] 1.4 Scratch raw `<button className>` fails lint — a4f667efd
 
 ### Phase 2: Bugs (test-first)
@@ -759,52 +760,62 @@ Run once, after phase 12:
 
 #### Automated
 
-- [ ] 5.1 Specs mirroring touched files pass
-- [ ] 5.2 Suppressions pruned; lint green on touched dirs
+- [x] 5.1 Specs mirroring touched files pass — 5153cb4b7
+  - Adapted: phases 5–11 landed as one commit. Four parallel agents split the tree by directory and
+    each swapped every family in its directories, so per-phase commits weren't separable.
+- [x] 5.2 Suppressions pruned; lint green on touched dirs — 5153cb4b7
 
 ### Phase 6: Swaps — dialogs, overlays, tooltips
 
 #### Automated
 
-- [ ] 6.1 Specs mirroring touched dialogs pass
-- [ ] 6.2 Suppressions pruned
+- [x] 6.1 Specs mirroring touched dialogs pass — 5153cb4b7
+- [x] 6.2 Suppressions pruned — 5153cb4b7
 
 ### Phase 7: Swaps — cards, headings, tables
 
 #### Automated
 
-- [ ] 7.1 Data-table memoization spec + mirrored specs pass
-- [ ] 7.2 Suppressions pruned
+- [x] 7.1 Data-table memoization spec + mirrored specs pass — 5153cb4b7
+- [x] 7.2 Suppressions pruned — 5153cb4b7
 
 ### Phase 8: Swaps — loading
 
 #### Automated
 
-- [ ] 8.1 Mirrored specs pass; no Loader2/LoaderCircle outside ui/
-- [ ] 8.2 Suppressions pruned
+- [x] 8.1 Mirrored specs pass; no Loader2/LoaderCircle outside ui/ — 5153cb4b7
+- [x] 8.2 Suppressions pruned — 5153cb4b7
 
 ### Phase 9: Swaps — feedback and status colour
 
 #### Automated
 
-- [ ] 9.1 Mirrored specs pass
-- [ ] 9.2 Suppressions pruned
+- [x] 9.1 Mirrored specs pass — 5153cb4b7
+- [x] 9.2 Suppressions pruned — 5153cb4b7
 
 ### Phase 10: Swaps — form fields
 
 #### Automated
 
-- [ ] 10.1 Mirrored form specs pass
-- [ ] 10.2 Suppressions pruned
+- [x] 10.1 Mirrored form specs pass — 5153cb4b7
+- [x] 10.2 Suppressions pruned — 5153cb4b7
 
 ### Phase 11: Swaps — disclosure and tabs
 
 #### Automated
 
-- [ ] 11.1 Mirrored specs pass; suppressions pruned
+- [x] 11.1 Mirrored specs pass; suppressions pruned — 5153cb4b7
+  - Adapted: started before staging's uncommitted `ui/collapsible` rewrite landed (it renames the
+    exports to `Root`/`Trigger`/`Content`/`Chevron`). The new `Collapsible*` callers here need renaming
+    at merge. `totals-panel-overlay` keeps its raw Radix import (disable comment) and the side chevron
+    waits for that rewrite — see census „Close-out".
 
 ### Phase 12: Close-out
 
 #### Automated
 
-- [ ] 12.1 `eslint-suppressions.json` absent and `pnpm lint` green
+- [x] 12.1 `eslint-suppressions.json` absent and `pnpm lint` green
+  - The lint-staged `--pass-on-unpruned-suppressions` flag is dropped with the file.
+  - Whole-tree gate: tsc clean apart from the generated `importMap.js` the worktree lacks; lint 0
+    errors. `pnpm build` can't run in the worktree (Turbopack rejects the symlinked
+    `node_modules`) — run it in the main checkout after the merge.

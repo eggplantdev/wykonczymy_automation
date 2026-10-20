@@ -1079,6 +1079,38 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       menu, a po zamknięciu menu tooltip nie wyskakuje ponownie.
 - [ ] Pola liczbowe w siatce/tabeli (wpisywanie kwoty w wierszu): tekst nie jest ucięty, wyrównany
       do prawej.
+- [ ] Telefon (390px, przez LAN) → menu: logo w lewym górnym rogu, X w prawym; za panelem
+      przyciemnione tło, Esc i kliknięcie w tło zamykają panel z animacją, fokus wraca na przycisk menu.
+- [ ] Telefon (390px) → konto pracownika z wypłatami do potwierdzenia i strona raportu pracownika
+      (link z „Udostępnij"): przyciski i pasek raportu mieszczą się w szerokości, nic się nie ucina.
+- [ ] „Rozlicz wypłaty": podczas wczytywania gradientowy wskaźnik; „Brak wypłat do rozliczenia."
+      wyśrodkowane; wysłanie z błędem pokazuje komunikat „formularz ma błędy".
+- [ ] „Anulowanie transakcji" i odrzucenie wypłaty: okno węższe, bez X w rogu; zamyka „Anuluj" i Esc.
+- [ ] „Nowy kosztorys": przycisk „Dodaj kosztorys" w stopce okna (na komputerze po prawej, nie na
+      całą szerokość), etykiety pól czytelne.
+- [ ] „Nowy wydatek" i „Wczytaj kartkę": przycisk wysyłki w stopce; kliknięcie etykiety otwiera
+      fokus na jej polu wyboru; „Ładowanie salda..." ma wskaźnik.
+- [ ] Kosztorys edytor → po kolei otwórz „Wersje kosztorysu", „Udostępnij", „Ustawienia podglądu",
+      „Wyczyść kosztorys", „Wczytaj z szablonu", „Dodaj sekcję z szablonu", „Zmień kolejność",
+      „Podział etapu": każde okno ma sensowną szerokość, nic się nie zawija ani nie ucina.
+- [ ] Kosztorys edytor → „Podział etapu": „Główny" wybiera się jak opcję (tylko jeden naraz).
+- [ ] Kosztorys edytor → „Zgłoszenia prac": przełącznik „Wg daty / Wg pracownika" działa jako
+      jeden segmentowy przełącznik; pusta lista pokazuje wyśrodkowany komunikat.
+- [ ] Kosztorys → „Porównaj z arkuszem", „Pobierz z arkusza", „Stawki", „Raport": ostrzeżenia
+      bursztynowe, różnice czerwone, zgodności zielone — czytelne w jasnym i ciemnym motywie;
+      linki „komórka X" działają.
+- [ ] „Dodaj pracę z katalogu" / „Zamień pracę" bez wybranej sekcji przy zapisie: pole sekcji z
+      czerwoną ramką jak inne pola formularza.
+- [ ] „Manual Wykończymy", „Synchronizacja wydatków inwestycyjnych", „Sprawdź faktury Telmak",
+      „Załączniki" w zgłoszeniach: okna się otwierają, wskaźnik ładowania gradientowy, treść mieści się.
+- [ ] Zgłoszenia → „Dodaj" (nowa inwestycja ze zgłoszenia z plikami): odstęp między paskiem plików
+      a formularzem jak w innych oknach — bez dużej przerwy.
+- [ ] Flota i sprzęt: daty po terminie bursztynowe; po najechaniu na plakietkę alertu floty i na
+      saldo OpenRouter pokazuje się dymek (nie systemowy podpis przeglądarki).
+- [ ] Filtry listy: chip aktywnego filtra ma X, który go usuwa; po najechaniu na przyciski filtrów
+      dymek z opisem.
+- [ ] Logowanie, „Nie pamiętasz hasła" i reset hasła: błędny login/hasło pokazuje czerwony
+      komunikat pod formularzem jak dotąd.
 
 # Zamknięte — indeks
 

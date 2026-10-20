@@ -260,3 +260,33 @@ copies `stat-button.tsx` markup; `stat-button.tsx` inline `style` border colour;
 - `materials-transactions-table.tsx:223` → `ColumnTotalRow` (=, §0).
 - `leads/lead-answers-dialog.tsx:30` → `InfoList divided` (Δ).
 - Legit: `worker-report/worker-summary.tsx` (public worker page), `worker-report/branded-header.tsx:22`.
+
+## Close-out (2026-10-20)
+
+Every line above is swapped, except the ones below. The lint rule reports 0 hits with no suppressions
+file. Each genuine exception carries an `eslint-disable-next-line local/no-hand-rolled-ui -- <reason>`
+at its site.
+
+Left, with reason:
+
+- `kosztorys/summary/totals-panel-overlay.tsx` keeps the raw Radix import. It needs `forceMount`, no
+  animation and a className on Content; `ui/collapsible` forces all three. Waiting on the in-flight
+  `ui/collapsible` rewrite on staging.
+- `reorder-dialog.tsx` section toggle and `grid/cells/section-header-cell.tsx:89` need a
+  `CollapsibleChevron variant="side"`. Same wait.
+- `filters/filter-select.tsx` → `SearchSelect`: `SearchSelect` always shows a search box, and both
+  callers show none. Needs `searchable?: boolean` first.
+- `orders/order-pick-step.tsx` Dostawca / Kontakt na miejscu: `Field` stretches every child, which
+  would widen `SaveAsDefaultButton`.
+- `leads/lead-assets-dialog.tsx:135` → `EntityComboboxField`: bound to a TanStack field, and this
+  dialog has no form. Moved onto `Field` + `FieldLabel` → `SearchSelect`.
+- `leads/lead-answers-dialog.tsx:30` → `InfoList divided`: one caller, so the prop would just restate
+  its markup. Dropped.
+- `kosztorys/tones.ts` → a `ReadOnlyCellText tone`: the tones also colour non-grid spans
+  (`tables/work-catalogue.tsx`, the global settings value). Dropped.
+- Discount fields → `DecimalField withSave`: async save with confirmation and a linked netto/brutto
+  pair. Not the same field.
+- `worker-report/report-bar.tsx` → `SearchFilterInput`: needs an `lg` size (h-10).
+- `telmak-check-dialog.tsx:208` → `ToggleGroup`: a single button whose label flips; two segments
+  would need new copy.
+- Media `<Spinner />` callers: `Spinner` already is `GradientSpinner size-10`.
