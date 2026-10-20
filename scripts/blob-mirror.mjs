@@ -96,7 +96,11 @@ if (prevManifestPath) {
     for (const b of prev.blobs ?? []) byPath.set(b.key ?? b.pathname, b)
   } catch (err) { if (err.code !== 'ENOENT') throw err }
 }
-for (const b of current) byPath.set(storageKey(b), { key: storageKey(b), pathname: b.pathname, url: b.url, size: b.size })
+// A failed key stays out of the manifest, else the next run's --prev-manifest marks it known and never retries it.
+const failedKeys = new Set(failures.map((f) => f.key))
+for (const b of current) {
+  if (!failedKeys.has(storageKey(b))) byPath.set(storageKey(b), { key: storageKey(b), pathname: b.pathname, url: b.url, size: b.size })
+}
 const mergedBlobs = [...byPath.values()]
 await writeFile(
   join(outDir, `manifest-${stamp}.json`),
@@ -105,6 +109,6 @@ await writeFile(
 
 const covered = current.every((b) => byPath.has(storageKey(b)))
 console.log(`\nNew files downloaded: ${done}/${fresh.length} · manifest total: ${mergedBlobs.length}`)
-if (!covered) { console.error('FAIL completeness: a live blob is missing from the manifest'); process.exit(1) }
 if (failures.length) { console.error(`FAIL: ${failures.length} downloads errored — see manifest`); process.exit(1) }
+if (!covered) { console.error('FAIL completeness: a live blob is missing from the manifest'); process.exit(1) }
 console.log('OK\n')
