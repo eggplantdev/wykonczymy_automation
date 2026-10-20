@@ -6,8 +6,9 @@
 > cannot be completed at all** (§2, "The Hobby plan cannot execute a restore") — the drill
 > exceeded the Advanced-Operations allowance and suspended every blob store on the account,
 > production included. Resolved by upgrading the plan; drill closed 7/7 the same day.
-> **Phase 4 (§4, §6) is OPEN** — a total-loss rebuild from the FTP server alone, whose real
-> target is the non-backed-up configuration, not the bytes.
+> **Phase 4 (§4) dropped 2026-10-20** — its single-copy gap is closed by the laptop copy
+> (Phase 2b), and both restores are proven (blob drill 7/7, DB restored locally the same day);
+> rehearsing the config rebuild is out of proportion at ~40 accounts.
 > Living document, update as we go.
 > **Linear:** [EX-459](https://linear.app/ex-plant/issue/EX-459) · **Started:** 2026-07-13
 > **Purpose:** Invoice/receipt files live in Vercel Blob with zero backup. Blob has no
@@ -281,6 +282,24 @@ still only feeds `list()`; downloads stay anonymous.
 Handled by the timestamped manifests (reconcile DB dump time ↔ nearest manifest), not by
 coupling the jobs. Bounded to same-day uploads by daily cadence + immutable invoices.
 
+### Phase 2b — Second copy on the laptop (2026-10-20)
+
+The FTP server was the only copy of the bytes, so a daily launchd job on the user's laptop
+(`com.wykonczymy.blob-backup`, 13:10) runs `~/Backups/wykonczymy-blob/backup.sh`: the same
+`scripts/blob-mirror.mjs`, fed `BLOB_READ_WRITE_TOKEN_PROD` at the call site, mirroring straight
+from Vercel into `~/Backups/wykonczymy-blob/mirror/` (`media/<key>` + `manifest-<stamp>.json`).
+Same rules as FTP: append-only, files never pruned, only manifests older than 30 days. Failure
+→ macOS notification, log in `~/Backups/wykonczymy-blob/backup.log`. Machine setup, not in the
+repo; the DB counterpart is `~/Backups/wykonczymy-db/` (13:00).
+
+Drilled 2026-10-20 from the laptop copies alone into staging: the newest
+`~/Backups/wykonczymy-db/*.sql.gz` piped into the preview branch's **direct** host
+(`psql -v ON_ERROR_STOP=1 -1`, ~2 min), then `blob-restore.mjs --dir ~/Backups/wykonczymy-blob/mirror/media
+--skip-existing` with the preview token. Row counts matched prod exactly bar the one transaction
+booked after the dump; every `media.filename` resolved on disk and in the store except the four
+known gaps (§2); sampled invoices came back byte-identical. The restore wipes staging's QA
+accounts — re-create them with `pnpm qa:staging-user`.
+
 ### Phase 3 — Restore drill against a preview store (the acceptance test)
 
 Rehearse recovery on a **throwaway target**, never prod:
@@ -343,7 +362,8 @@ don't start.
 **Preconditions:** you have (a) a DB dump and (b) a blob backup dir with `_manifest.json`,
 ideally time-aligned.
 
-1. **Restore the DB** (if the DB is also lost) from the latest Neon→FTP dump. Skip if only
+1. **Restore the DB** (if the DB is also lost) from the latest Neon→FTP dump, or the laptop
+   copy in `~/Backups/wykonczymy-db/` (skill `restore-prod-backup-local`). Skip if only
    the Blob was lost and the DB is intact.
 2. **Pick the target store** and its `BLOB_READ_WRITE_TOKEN`:
    - Same-store repair (partial loss) → prod store token.
@@ -377,6 +397,8 @@ ideally time-aligned.
      --dir ./blob-restore --concurrency 8 [--allow-prod]
    ```
 
+   FTP down? Skip the `lftp` pull: the laptop copy (Phase 2b) has the same layout, so pass
+   `--dir ~/Backups/wykonczymy-blob/mirror/media`.
    - `addRandomSuffix` is forced to `0` inside the script — **mandatory** (§2 config invariant).
    - Interrupted or partly failed? Re-run with **`--skip-existing`**: it lists the target and
      uploads only what is missing. Transient 5xx are retried with backoff.
@@ -538,17 +560,18 @@ credentials, the OpenRouter key. No collection uses an `encrypted` field, so los
 
 What is genuinely unrecoverable:
 
-| Gap                                | Why it is unrecoverable                                                                                                      | Bound                                                                                            |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| **FTP is a single copy**           | DB dumps _and_ the blob mirror live on one shared box (it also serves `/db_backups_chaoskitchen/`). No second destination.   | That box dying loses both backups at once. No drill fixes this — only a second destination does. |
-| **FTP credentials**                | Held only in GitHub Actions secrets and the owner's `.env`.                                                                  | Backups can be intact and still unreachable.                                                     |
-| **30-day dump retention**          | `RETENTION_DAYS: 30` in `db-backup.yml` prunes older dumps. The blob mirror does not prune.                                  | Corruption noticed on day 31 is gone.                                                            |
-| **Nightly DB window**              | Cron is `0 4-22 * * *` UTC → no dump 00:00–06:00 Warsaw.                                                                     | Up to ~6h of writes, in the lowest-activity hours.                                               |
-| **Same-day blob uploads**          | Mirror runs 03:00 UTC daily.                                                                                                 | Up to ~24h of invoices have a `media` row and no bytes.                                          |
-| **Shared secrets on the far side** | `WPFORMS_WEBHOOK_SECRET` and `META_VERIFY_TOKEN` are re-mintable, but the WordPress and Meta ends must be re-synced by hand. | Recoverable; costs coordination, not data.                                                       |
+| Gap                                | Why it is unrecoverable                                                                                                      | Bound                                                   |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| ~~**FTP is a single copy**~~       | **Closed 2026-10-20:** a daily laptop copy of both planes, pulled straight from Neon and Vercel (Phase 2b).                  | Losing the FTP box now costs at most a day.             |
+| **FTP credentials**                | Held only in GitHub Actions secrets and the owner's `.env`.                                                                  | Backups can be intact and still unreachable.            |
+| **30-day dump retention**          | `RETENTION_DAYS: 30` in `db-backup.yml` prunes older dumps. The blob mirror does not prune.                                  | Corruption noticed on day 31 is gone.                   |
+| **Nightly DB window**              | Cron is `0 4-22 * * *` UTC → no dump 00:00–06:00 Warsaw.                                                                     | Up to ~6h of writes, in the lowest-activity hours.      |
+| **Same-day blob uploads**          | Mirror runs 03:00 UTC daily.                                                                                                 | Up to ~24h of invoices have a `media` row and no bytes. |
+| **Shared secrets on the far side** | `WPFORMS_WEBHOOK_SECRET` and `META_VERIFY_TOKEN` are re-mintable, but the WordPress and Meta ends must be re-synced by hand. | Recoverable; costs coordination, not data.              |
 
-Two fixes that need no drill: a **second backup destination**, and the FTP credentials recorded
-somewhere that survives the laptop.
+The second backup destination is the laptop copy (Phase 2b). The FTP credentials still live only
+in GitHub secrets and the laptop's `.env` — losing the laptop no longer matters for the data,
+since FTP and the laptop are now independent copies.
 
 ---
 
