@@ -21,19 +21,17 @@ import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
 import { useUserListFilters } from '@/hooks/use-user-list-filters'
 import { toggleUserActive } from '@/lib/actions/toggle-active'
 import type { RoleT } from '@/lib/auth/roles'
-import type { ReferenceItemT } from '@/types/reference-data'
 
 const getStatusUpdate = (newActive: boolean) => ({ active: newActive }) as Partial<UserRowT>
 
 type UserDataTablePropsT = {
   data: UserRowT[]
-  cashRegisters: ReferenceItemT[]
   assignableRoles: RoleT[]
 }
 
 const getSearchableText = (row: UserRowT) => `${row.name} ${row.email}`
 
-export function UserDataTable({ data, cashRegisters, assignableRoles }: UserDataTablePropsT) {
+export function UserDataTable({ data, assignableRoles }: UserDataTablePropsT) {
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
     getStatusUpdate,
@@ -86,7 +84,7 @@ export function UserDataTable({ data, cashRegisters, assignableRoles }: UserData
               />
             }
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-            actions={<AddWorkerDialog cashRegisters={cashRegisters} roles={assignableRoles} />}
+            actions={<AddWorkerDialog roles={assignableRoles} />}
           />
         )}
       />

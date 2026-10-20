@@ -9,23 +9,20 @@ import { warsawToday } from '@/lib/utils/days'
 import type { EquipmentTransferFormValuesT } from '@/components/forms/equipment-transfer-form/equipment-transfer-schema'
 import type { EquipmentRowT } from '@/lib/equipment/types'
 import type { WarehouseOptionT } from '@/lib/equipment/types'
-import type { InvestmentRefT, WorkerRefT } from '@/types/reference-data'
+import { useReferenceData } from '@/hooks/use-reference-data'
 
 type TransferEquipmentDialogPropsT = {
   equipment: EquipmentRowT
-  workers: WorkerRefT[]
   warehouses: WarehouseOptionT[]
-  investments: InvestmentRefT[]
   showLabel?: boolean
 }
 
 export function TransferEquipmentDialog({
   equipment,
-  workers,
   warehouses,
-  investments,
   showLabel,
 }: TransferEquipmentDialogPropsT) {
+  const referenceData = useReferenceData()
   const formId = `transfer-equipment-${equipment.id}`
 
   const defaultValues: EquipmentTransferFormValuesT = {
@@ -62,9 +59,9 @@ export function TransferEquipmentDialog({
           action={transferEquipmentAction}
           onSubmitSuccess={onSubmitSuccess}
           keepOpen={keepOpen}
-          workers={workers}
+          workers={referenceData?.workers ?? []}
           warehouses={warehouses}
-          investments={investments}
+          investments={referenceData?.investments ?? []}
         />
       )}
     </FormDialog>

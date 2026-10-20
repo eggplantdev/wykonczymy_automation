@@ -19,7 +19,6 @@ import { toggleCashRegisterActive } from '@/lib/actions/toggle-active'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { canManageRegister } from '@/lib/auth/roles'
 import type { CashRegisterRowT } from '@/types/table-rows'
-import type { WorkerRefT } from '@/types/reference-data'
 
 const isCashRegisterActive = (row: CashRegisterRowT) => row.active
 const getActiveUpdate = (newActive: boolean) => ({ active: newActive })
@@ -29,7 +28,6 @@ const getCashRegisterSearchText = (row: CashRegisterRowT) => `${row.name} ${row.
 
 type CashRegistersTablePropsT = {
   data: CashRegisterRowT[]
-  workers: WorkerRefT[]
   className?: string
 }
 
@@ -38,7 +36,7 @@ const TYPE_OPTIONS = REGISTER_TYPES.map((value) => ({
   label: REGISTER_TYPE_LABELS[value],
 }))
 
-export function CashRegistersTable({ data, workers, className }: CashRegistersTablePropsT) {
+export function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
   const currentUser = useCurrentUser()
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
@@ -116,7 +114,7 @@ export function CashRegistersTable({ data, workers, className }: CashRegistersTa
               </>
             }
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-            actions={<AddCashRegisterDialog workers={workers} />}
+            actions={<AddCashRegisterDialog />}
           />
         )}
       />

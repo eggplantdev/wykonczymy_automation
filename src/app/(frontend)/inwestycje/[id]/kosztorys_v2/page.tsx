@@ -101,7 +101,6 @@ export default async function InvestmentKosztorysV2Page({
       payoutTransactions={payoutTransactions}
       depositTransactions={depositTransactions}
       materialTransactions={materialTransactions}
-      workers={refData.workers}
       workCatalogue={workCatalogue}
       assets={assets}
       investment={withDetails(investment, detailsById)}

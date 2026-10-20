@@ -97,7 +97,6 @@ export async function TransferTableServer({ config: pageConfig }: TransferTableS
       data={rows}
       paginationMeta={rawTxResult.paginationMeta}
       config={{ ...config, totalFilteredAmount, listsCancelled }}
-      referenceData={config.excludeColumns?.includes('actions') ? undefined : refData}
     />
   )
 }

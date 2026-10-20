@@ -11,7 +11,6 @@ import { makeModel } from '@/lib/utils/make-model'
 import { classifyWarranty, warrantyDaysLeft } from '@/lib/equipment/warranty-thresholds'
 import type { EquipmentRowT, WarehouseOptionT } from '@/lib/equipment/types'
 import type { DayT } from '@/lib/utils/days'
-import type { InvestmentRefT, WorkerRefT } from '@/types/reference-data'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashEquipmentAction } from '@/lib/actions/equipment-trash'
 import { describeEquipmentTrash } from '@/lib/equipment/describe-trash'
@@ -20,9 +19,7 @@ const col = createColumnHelper<EquipmentRowT>()
 
 type EquipmentColumnsArgsT = {
   today: DayT
-  workers: WorkerRefT[]
   warehouses: WarehouseOptionT[]
-  investments: InvestmentRefT[]
 }
 
 /**
@@ -30,12 +27,7 @@ type EquipmentColumnsArgsT = {
  * a cell that reads the clock re-renders itself into a different answer than its neighbour after
  * midnight.
  */
-export function getEquipmentColumns({
-  today,
-  workers,
-  warehouses,
-  investments,
-}: EquipmentColumnsArgsT) {
+export function getEquipmentColumns({ today, warehouses }: EquipmentColumnsArgsT) {
   return [
     col.accessor('name', {
       id: 'name',
@@ -112,9 +104,7 @@ export function getEquipmentColumns({
         <div className="flex items-center justify-end gap-1">
           <TransferEquipmentDialog
             equipment={info.row.original}
-            workers={workers}
             warehouses={warehouses}
-            investments={investments}
           />
           <EditEquipmentDialog equipment={info.row.original} />
           <TrashRowButton

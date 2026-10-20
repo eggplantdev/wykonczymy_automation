@@ -39,7 +39,6 @@ export default async function UsersListPage() {
     <PageWrapper title={PAGE_TITLES.employees}>
       <UserDataTable
         data={rows}
-        cashRegisters={refData.cashRegisters}
         assignableRoles={assignableRoles(session.user.role)}
       />
     </PageWrapper>

@@ -9,6 +9,7 @@ import { findExpenseDraftDuplicates } from '@/lib/queries/expense-draft-duplicat
 import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
+import { useReferenceData } from '@/hooks/use-reference-data'
 import { router } from '@/__tests__/stubs/next-navigation'
 import { ingestFiles as ingestFilesStub } from '@/__tests__/stubs/ingest-files'
 import { ingestFiles } from '@/lib/media/ingest-files'
@@ -45,6 +46,7 @@ const referenceData = {
   cashRegisters: [{ id: 1, name: 'Kasa główna', type: 'MAIN' as const }],
   investments: [{ id: 3, name: 'Mieszkanie Mokotów', status: 'active' as const }],
 } as unknown as ReturnType<typeof referenceDataFor>
+vi.mocked(useReferenceData).mockReturnValue(referenceData)
 
 beforeEach(() => {
   vi.stubGlobal(
@@ -59,7 +61,7 @@ describe('„Zweryfikuj" na zgłoszeniu bez odczytu', () => {
   it('ponowne otwarcie w trakcie odczytu nie zleca drugiego', async () => {
     const readCall = Promise.withResolvers<Awaited<ReturnType<typeof readExpenseDraftAction>>>()
     vi.mocked(readExpenseDraftAction).mockReturnValue(readCall.promise)
-    render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
+    render(<PendingExpenseDrafts drafts={[draft]} />)
     const user = userEvent.setup()
 
     await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
@@ -75,7 +77,7 @@ describe('„Zweryfikuj" na zgłoszeniu bez odczytu', () => {
 
   it('nieudany odczyt mówi, dlaczego, i odblokowuje pusty wiersz', async () => {
     vi.mocked(readExpenseDraftAction).mockResolvedValue({ success: false, error: 'Brak uprawnień' })
-    render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
+    render(<PendingExpenseDrafts drafts={[draft]} />)
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Zweryfikuj' }))
 
@@ -94,7 +96,7 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
 
   it('otwiera dialog bez zapisu i bez odczytu, a zgłoszenie da się odrzucić', async () => {
     vi.mocked(rejectExpenseDraftAction).mockResolvedValue({ success: true })
-    render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
+    render(<PendingExpenseDrafts drafts={[draft]} />)
     const user = userEvent.setup()
 
     await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
@@ -116,7 +118,7 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
   it('w odczytanym zgłoszeniu blokuje przyjęcie paragonu bez zdjęcia, a zdjęcie dodane ręcznie je zdejmuje', async () => {
     const user = userEvent.setup()
     render(
-      <PendingExpenseDrafts drafts={[{ ...draft, aiRead: read }]} referenceData={referenceData} />,
+      <PendingExpenseDrafts drafts={[{ ...draft, aiRead: read }]} />,
     )
 
     await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
@@ -153,7 +155,7 @@ describe('„Zweryfikuj" na zgłoszeniu, którego zdjęć nie da się pobrać', 
         ],
       },
     }
-    render(<PendingExpenseDrafts drafts={[twoParagons]} referenceData={referenceData} />)
+    render(<PendingExpenseDrafts drafts={[twoParagons]} />)
 
     await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
     await user.click(await screen.findByRole('checkbox', { name: 'Zaznacz pozycję 1' }))
@@ -211,7 +213,7 @@ describe('podpowiedzi duplikatów', () => {
         ],
       },
     }
-    render(<PendingExpenseDrafts drafts={[twoParagons]} referenceData={referenceData} />)
+    render(<PendingExpenseDrafts drafts={[twoParagons]} />)
 
     await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
     await user.click(await screen.findByRole('button', { name: 'OK, to nie duplikat' }))
@@ -229,7 +231,6 @@ describe('zgłoszenie bez inwestycji', () => {
     render(
       <PendingExpenseDrafts
         drafts={[{ ...draft, investmentId: null, investmentName: null }]}
-        referenceData={referenceData}
       />,
     )
 
@@ -248,7 +249,6 @@ describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
     const { rerender } = render(
       <PendingExpenseDrafts
         drafts={[draft]}
-        referenceData={referenceData}
         openDraftId={draft.id}
       />,
     )
@@ -260,7 +260,6 @@ describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
     rerender(
       <PendingExpenseDrafts
         drafts={[{ ...draft }]}
-        referenceData={referenceData}
         openDraftId={draft.id}
       />,
     )
@@ -272,7 +271,7 @@ describe('link z „Szukaj duplikatów” (?zgloszenie=N)', () => {
   })
 
   it('o rozpatrzonym już zgłoszeniu mówi toastem i niczego nie otwiera, także przy pustej kolejce', () => {
-    render(<PendingExpenseDrafts drafts={[]} referenceData={referenceData} openDraftId={99} />)
+    render(<PendingExpenseDrafts drafts={[]} openDraftId={99} />)
 
     expect(toastMessage).toHaveBeenCalledWith('To zgłoszenie zostało już rozpatrzone.', 'warning')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()

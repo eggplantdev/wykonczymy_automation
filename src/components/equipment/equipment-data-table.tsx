@@ -18,14 +18,11 @@ import {
 } from '@/lib/equipment/equipment-status'
 import type { EquipmentRowT, WarehouseOptionT } from '@/lib/equipment/types'
 import type { DayT } from '@/lib/utils/days'
-import type { InvestmentRefT, WorkerRefT } from '@/types/reference-data'
 
 type EquipmentDataTablePropsT = {
   data: EquipmentRowT[]
   today: DayT
-  workers: WorkerRefT[]
   warehouses: WarehouseOptionT[]
-  investments: InvestmentRefT[]
 }
 
 const INITIAL_SORTING = [{ id: 'name', desc: false }]
@@ -43,9 +40,7 @@ const getSearchableText = (row: EquipmentRowT) =>
 export function EquipmentDataTable({
   data,
   today,
-  workers,
   warehouses,
-  investments,
 }: EquipmentDataTablePropsT) {
   const {
     filteredData: searched,
@@ -69,7 +64,7 @@ export function EquipmentDataTable({
   // last matching row is hidden, and the filter can then no longer be undone.
   const placeOptions = whereFilterOptions(data)
 
-  const columns = getEquipmentColumns({ today, workers, warehouses, investments })
+  const columns = getEquipmentColumns({ today, warehouses })
 
   return (
     <DataTable
@@ -109,11 +104,7 @@ export function EquipmentDataTable({
             </>
           }
           actions={
-            <AddEquipmentDialog
-              workers={workers}
-              warehouses={warehouses}
-              investments={investments}
-            />
+<AddEquipmentDialog warehouses={warehouses} />
           }
         />
       )}

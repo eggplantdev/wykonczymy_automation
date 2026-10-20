@@ -8,7 +8,7 @@ import { WorkerForm } from '@/components/forms/worker-form/worker-form'
 import { createWorkerAction } from '@/lib/actions/workers'
 import type { WorkerFormValuesT } from '@/components/forms/worker-form/worker-schema'
 import type { RoleT } from '@/lib/auth/roles'
-import type { ReferenceItemT } from '@/types/reference-data'
+import { useReferenceData } from '@/hooks/use-reference-data'
 
 const EMPTY_DEFAULTS: WorkerFormValuesT = {
   name: '',
@@ -22,11 +22,11 @@ const EMPTY_DEFAULTS: WorkerFormValuesT = {
 }
 
 type AddWorkerDialogPropsT = {
-  cashRegisters: ReferenceItemT[]
   roles: RoleT[]
 }
 
-export function AddWorkerDialog({ cashRegisters, roles }: AddWorkerDialogPropsT) {
+export function AddWorkerDialog({ roles }: AddWorkerDialogPropsT) {
+  const cashRegisters = useReferenceData()?.cashRegisters ?? []
   return (
     <FormDialog
       formId="add-worker"

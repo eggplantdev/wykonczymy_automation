@@ -6,15 +6,16 @@ import { WorkerForm } from '@/components/forms/worker-form/worker-form'
 import { updateWorkerAction } from '@/lib/actions/workers'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import type { RoleT } from '@/lib/auth/roles'
-import type { WorkerRefT, ReferenceItemT } from '@/types/reference-data'
+import { useReferenceData } from '@/hooks/use-reference-data'
+import type { WorkerRefT } from '@/types/reference-data'
 
 type EditWorkerDialogPropsT = {
   worker: WorkerRefT
-  cashRegisters: ReferenceItemT[]
   roles: RoleT[]
 }
 
-export function EditWorkerDialog({ worker, cashRegisters, roles }: EditWorkerDialogPropsT) {
+export function EditWorkerDialog({ worker, roles }: EditWorkerDialogPropsT) {
+  const cashRegisters = useReferenceData()?.cashRegisters ?? []
   const formId = `edit-worker-${worker.id}`
 
   return (

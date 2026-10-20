@@ -420,21 +420,21 @@ by Critical Implementation Details and gated by Phases 2 and 5.
 #### Automated
 
 - [x] 1.1 Top-nav dialog specs pass on the hook — 0954a5ebf
-- [x] 1.2 `canAddExpensesWithoutInvestment` count unchanged (×64 OWNER, ×0 EMPLOYEE) — p2
+- [x] 1.2 `canAddExpensesWithoutInvestment` count unchanged (×64 OWNER, ×0 EMPLOYEE) — b1b9ae14a
 
 ### Phase 2: Perf checkpoint (layout only)
 
 #### Automated
 
-- [x] 2.1 Pass criteria from research.md § Load timings hold on every page — p2
-- [x] 2.2 refData copies stay 1 on OWNER pages and 0 for EMPLOYEE — p2
+- [x] 2.1 Pass criteria from research.md § Load timings hold on every page — b1b9ae14a
+- [x] 2.2 refData copies stay 1 on OWNER pages and 0 for EMPLOYEE — b1b9ae14a
 
 ### Phase 3: Switch every consumer
 
 #### Automated
 
-- [ ] 3.1 Touched specs pass
-- [ ] 3.2 No reference-data props left between a server page and a client component
+- [x] 3.1 Touched specs pass
+- [x] 3.2 No reference-data props left between a server page and a client component
 
 ### Phase 4: Shared `InvestmentOverview`
 

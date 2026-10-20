@@ -150,7 +150,6 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
           {isManager && (isOwnPage || canManageAccount(currentUser.role, role)) && (
             <EditWorkerDialog
               worker={worker}
-              cashRegisters={refData.cashRegisters}
               roles={assignableRoles(currentUser.role, role)}
             />
           )}

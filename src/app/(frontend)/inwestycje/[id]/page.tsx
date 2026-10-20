@@ -78,7 +78,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       )}
       <div className="flex flex-wrap items-center gap-2">
         {!trashed && (
-          <EditInvestmentDialog investment={investment} workers={refData.workers} showLabel />
+          <EditInvestmentDialog investment={investment} showSiteManager showLabel />
         )}
         {!trashed && <ContractDialog investment={investment} />}
         {investmentLockOf({ status: investment.status, trashed }) === 'completed' && (

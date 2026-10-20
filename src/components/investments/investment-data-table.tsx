@@ -25,8 +25,7 @@ import type { TemplateMetaT } from '@/lib/db/templates'
 import { AI_PROGRESS_LABELS, AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 import { isClosedStatus } from '@/lib/constants/investment-status'
 import { OrderDialog } from '@/components/orders/order-dialog'
-import type { OrderSettingsT } from '@/types/order-settings'
-import type { ReferenceDataT } from '@/types/reference-data'
+import { useOrderSettings, useReferenceData } from '@/hooks/use-reference-data'
 
 const getStatus = (row: InvestmentRowT) => row.status
 const getAiProgress = (row: InvestmentRowT) => row.aiProgress
@@ -47,17 +46,12 @@ const LAYERS = [
 type InvestmentDataTablePropsT = {
   data: InvestmentRowT[]
   presets: TemplateMetaT[]
-  referenceData: ReferenceDataT
-  orderSettings: OrderSettingsT
 }
 
-export function InvestmentDataTable({
-  data,
-  presets,
-  referenceData,
-  orderSettings,
-}: InvestmentDataTablePropsT) {
+export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT) {
   const { role: userRole } = useCurrentUser()
+  const referenceData = useReferenceData()
+  const orderSettings = useOrderSettings()
 
   const {
     filteredData: statusFiltered,
@@ -82,7 +76,6 @@ export function InvestmentDataTable({
   const [orderTarget, setOrderTarget] = useState<InvestmentRowT | null>(null)
   const columns = getInvestmentColumns({
     userRole,
-    workers: referenceData.workers,
     onSettle: (investment) =>
       setSettleTarget({ kind: 'investment', id: investment.id, name: investment.name }),
     onOrder: setOrderTarget,
@@ -152,7 +145,7 @@ export function InvestmentDataTable({
         }}
       />
       <SettlePayoutsDialog target={settleTarget} onClose={() => setSettleTarget(null)} />
-      {orderTarget && (
+      {orderTarget && referenceData && orderSettings && (
         <OrderDialog
           investment={{
             id: orderTarget.id,

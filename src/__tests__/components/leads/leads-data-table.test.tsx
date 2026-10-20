@@ -41,7 +41,7 @@ const PAGINATION: PaginationMetaT = {
 }
 
 const renderTable = (data: LeadRowT[] = PAGE) =>
-  render(<LeadsDataTable data={data} paginationMeta={PAGINATION} investments={[]} />)
+  render(<LeadsDataTable data={data} paginationMeta={PAGINATION} />)
 
 beforeEach(() => {
   localStorage.clear()
@@ -85,7 +85,7 @@ describe('/zgloszenia — zaznaczanie i „Do kosza"', () => {
     expect(screen.getByRole('button', { name: /Do kosza \(1\)/ })).toBeInTheDocument()
 
     const nextPage = [leadRow(4, 'Piotr Zieliński'), leadRow(5, 'Ola Lis')]
-    rerender(<LeadsDataTable data={nextPage} paginationMeta={PAGINATION} investments={[]} />)
+    rerender(<LeadsDataTable data={nextPage} paginationMeta={PAGINATION} />)
 
     expect(screen.queryByRole('button', { name: /Do kosza/ })).not.toBeInTheDocument()
   })
@@ -95,7 +95,7 @@ describe('/zgloszenia — zaznaczanie i „Do kosza"', () => {
     const { rerender } = renderTable()
 
     await user.click(screen.getByRole('checkbox', { name: 'Zaznacz Jan Nowak' }))
-    rerender(<LeadsDataTable data={[...PAGE]} paginationMeta={PAGINATION} investments={[]} />)
+    rerender(<LeadsDataTable data={[...PAGE]} paginationMeta={PAGINATION} />)
 
     expect(screen.getByRole('checkbox', { name: 'Zaznacz Jan Nowak' })).toBeChecked()
     expect(screen.getByRole('button', { name: /Do kosza \(1\)/ })).toBeInTheDocument()

@@ -10,7 +10,7 @@ import { PaginationFooter } from '@/components/ui/pagination/pagination-footer'
 import { getLeadColumns } from '@/components/tables/leads'
 import { SelectedIdsContext } from '@/components/tables/data-table/select-column'
 import { TrashLeadsButton } from '@/components/leads/trash-leads-button'
-import type { InvestmentOptionT } from '@/components/leads/lead-assets-dialog'
+import { useReferenceData } from '@/hooks/use-reference-data'
 import type { LeadRowT } from '@/lib/leads/types'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
@@ -31,10 +31,10 @@ const getContactStatusUpdate = (contacted: boolean) =>
 type LeadsDataTablePropsT = {
   data: LeadRowT[]
   paginationMeta: PaginationMetaT
-  investments: InvestmentOptionT[]
 }
 
-export function LeadsDataTable({ data, paginationMeta, investments }: LeadsDataTablePropsT) {
+export function LeadsDataTable({ data, paginationMeta }: LeadsDataTablePropsT) {
+  const investments = useReferenceData()?.investments ?? []
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
     getContactStatusUpdate,

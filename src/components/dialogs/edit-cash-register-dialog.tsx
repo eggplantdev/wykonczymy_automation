@@ -4,19 +4,19 @@ import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { CashRegisterForm } from '@/components/forms/cash-register-form/cash-register-form'
 import { updateCashRegisterAction } from '@/lib/actions/cash-registers'
-import type { CashRegisterRefT, WorkerRefT } from '@/types/reference-data'
+import { useReferenceData } from '@/hooks/use-reference-data'
+import type { CashRegisterRefT } from '@/types/reference-data'
 
 type EditCashRegisterDialogPropsT = {
   register: CashRegisterRefT
-  workers: WorkerRefT[]
   isOwnerLocked: boolean
 }
 
 export function EditCashRegisterDialog({
   register,
-  workers,
   isOwnerLocked,
 }: EditCashRegisterDialogPropsT) {
+  const workers = useReferenceData()?.workers ?? []
   const formId = `edit-cash-register-${register.id}`
 
   return (

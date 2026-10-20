@@ -11,7 +11,6 @@ import { axisShows } from '@/lib/kosztorys/money-axis'
 import { settlementModeLabel, settlementModeToMoneyAxis } from '@/lib/kosztorys/settlement-mode'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { InvestmentRowT } from '@/types/table-rows'
-import type { WorkerRefT } from '@/types/reference-data'
 import { INVESTMENT_HEADER_TIPS } from '@/components/tables/investments-header-tips'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { Button } from '@/components/ui/button'
@@ -85,14 +84,12 @@ const balanceOrUndefined = (plane: 'net' | 'gross') => (row: InvestmentRowT) =>
 
 type InvestmentColumnOptionsT = {
   userRole: RoleT
-  workers: WorkerRefT[]
   onSettle: (investment: InvestmentRowT) => void
   onOrder: (investment: InvestmentRowT) => void
 }
 
 export function getInvestmentColumns({
   userRole,
-  workers,
   onSettle,
   onOrder,
 }: InvestmentColumnOptionsT) {
@@ -347,7 +344,7 @@ export function getInvestmentColumns({
           {isLockedStatus(info.row.original.status) && (
             <RequestReviewButton investment={info.row.original} />
           )}
-          <EditInvestmentDialog investment={info.row.original} workers={workers} />
+          <EditInvestmentDialog investment={info.row.original} showSiteManager />
           <TrashInvestmentButton investment={info.row.original} />
         </div>
       ),

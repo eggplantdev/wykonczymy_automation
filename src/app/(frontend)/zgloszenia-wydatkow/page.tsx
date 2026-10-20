@@ -6,7 +6,6 @@ import {
 import { parseQueueFilters } from '@/lib/queries/queue-filters'
 import { isExpenseDraftStatus, OPEN_DRAFT_PARAM } from '@/lib/constants/worker-expense-drafts'
 import { expenseDraftSort } from '@/lib/worker-expenses/sortable-columns'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseIdParam } from '@/lib/utils/parse-id-param'
 import { ExpenseDraftsDataTable } from '@/components/worker-expenses/expense-drafts-data-table'
@@ -16,25 +15,21 @@ import { PAGE_TITLES } from '@/lib/constants/sections'
 import type { PagePropsT } from '@/types/page'
 
 export default async function ExpenseDraftsPage({ searchParams }: PagePropsT) {
-  const user = await requireManagementPage()
+  await requireManagementPage()
   const sp = await searchParams
-  const [drafts, pendingDrafts, referenceDataBase] = await Promise.all([
+  const [drafts, pendingDrafts] = await Promise.all([
     fetchExpenseDraftsPage(
       { ...parseQueueFilters(sp, isExpenseDraftStatus), duplicatesOnly: sp.duplicates === '1' },
       parsePagination(sp),
       expenseDraftSort.parse(sp),
     ),
     fetchPendingExpenseDrafts(),
-    fetchReferenceData(),
   ])
-
-  const referenceData = { ...referenceDataBase, currentUserId: user.id, currentUserRole: user.role }
 
   return (
     <PageWrapper title={PAGE_TITLES.expenseDrafts}>
       <PendingExpenseDrafts
         drafts={pendingDrafts}
-        referenceData={referenceData}
         storageKey="expense-drafts-page:pending"
         openDraftId={parseIdParam(sp[OPEN_DRAFT_PARAM])}
       />
@@ -43,7 +38,6 @@ export default async function ExpenseDraftsPage({ searchParams }: PagePropsT) {
         paginationMeta={drafts.paginationMeta}
         investments={drafts.investments}
         workers={drafts.workers}
-        referenceData={referenceData}
       />
     </PageWrapper>
   )

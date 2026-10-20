@@ -8,7 +8,6 @@ import { fetchLeadsPage, LEADS_DEFAULT_LIMIT } from '@/lib/queries/leads'
 import { leadSort } from '@/lib/leads/sortable-columns'
 import { parsePagination } from '@/lib/utils/pagination'
 import { fetchRecipientLists } from '@/lib/queries/notification-recipients'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { LeadsDataTable } from '@/components/leads/leads-data-table'
 import { RecipientListCard } from '@/components/notification-recipients/recipient-list-card'
 import { Description } from '@/components/ui/description'
@@ -27,17 +26,11 @@ export default async function LeadsPage({ searchParams }: PagePropsT) {
   const noFiles = sp.noFiles === '1'
 
   const payload = await getPayload({ config })
-  const [, leads, recipients, refData] = await Promise.all([
+  const [, leads, recipients] = await Promise.all([
     markSeen(payload, session.user.id, STREAMS.leads),
     fetchLeadsPage(page, limit, sort, search, noFiles),
     fetchRecipientLists(),
-    fetchReferenceData(),
   ])
-  const investmentOptions = refData.investments.map(({ id, name, active }) => ({
-    id,
-    name,
-    active,
-  }))
   const canEditRecipients = isAdminOrOwnerRole(session.user.role)
 
   return (
@@ -46,7 +39,6 @@ export default async function LeadsPage({ searchParams }: PagePropsT) {
       <LeadsDataTable
         data={leads.rows}
         paginationMeta={leads.paginationMeta}
-        investments={investmentOptions}
       />
       <div className="grid gap-4 sm:grid-cols-2">
         <RecipientListCard
