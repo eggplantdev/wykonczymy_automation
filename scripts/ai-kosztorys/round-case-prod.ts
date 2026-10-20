@@ -17,18 +17,28 @@ import {
   BASE,
   CASES_ROOT,
   forAiAnalysis,
+  initialInfoLines,
+  initialInfoMarkdown,
   itemsOf,
   norm,
   type AssetT,
+  type InitialInfoT,
   type ItemT,
 } from './prod-client'
 
 type CaseT = { investmentId: number; files: { name: string }[] }
-type InvestmentT = { notes: string | null; aiNotes: string | null; assets: AssetT[] | null }
+type InvestmentT = {
+  notes: string | null
+  initialInfo?: InitialInfoT | null
+  aiNotes: string | null
+  assets: AssetT[] | null
+}
 type RoundRecordT = {
   round: number
   at: string
   notes: string
+  // Missing from a record written before the section existed.
+  initialInfo?: string[]
   files: { name: string; createdAt: string | null }[]
   aiNotes: string
 }
@@ -50,10 +60,14 @@ function baseline(kase: CaseT): RoundRecordT {
   const previous = path.join(ROUNDS_DIR, `${ROUND - 1}.json`)
   if (existsSync(previous)) return JSON.parse(readFileSync(previous, 'utf8'))
   if (ROUND !== 2) throw new Error(`no record of round ${ROUND - 1} (${previous})`)
+  const initialInfoFile = path.join(CASE_DIR, 'inputs/initial-info.md')
   return {
     round: 1,
     at: '',
     notes: readFileSync(path.join(CASE_DIR, 'inputs/client-inquiry.md'), 'utf8'),
+    initialInfo: existsSync(initialInfoFile)
+      ? lines(readFileSync(initialInfoFile, 'utf8')).filter((line) => !line.startsWith('#'))
+      : [],
     files: kase.files.map((file) => ({ name: file.name, createdAt: null })),
     aiNotes: '',
   }
@@ -92,15 +106,20 @@ async function run() {
   const notes = (investment.notes ?? '').trim()
   const knownLines = new Set(lines(previous.notes))
   const newNotes = lines(notes).filter((line) => !knownLines.has(line))
+  const initialInfo = initialInfoLines(investment.initialInfo)
+  const knownInitialInfo = new Set(previous.initialInfo ?? [])
+  const newInitialInfo = initialInfo.filter((line) => !knownInitialInfo.has(line))
   const items = await itemsOf(kase.investmentId)
   assertRoundFieldsDeployed(items)
   const kosztorys = items.toSorted(byKosztorysOrder).map(kosztorysLine)
 
   for (const asset of newFiles) console.log(`new file  ${asset.filename}`)
   for (const line of newNotes) console.log(`new note  ${line}`)
+  for (const line of newInitialInfo) console.log(`new initial info  ${line}`)
   console.log(
     `ok: #${kase.investmentId} round ${ROUND} against round ${previous.round}: ` +
-      `${newFiles.length} new files, ${newNotes.length} new Notatki lines, ${items.length} pozycji → ${ROUND_DIR}`,
+      `${newFiles.length} new files, ${newNotes.length} new Notatki lines, ` +
+        `${newInitialInfo.length} changed Wstępne informacje lines, ${items.length} pozycji → ${ROUND_DIR}`,
   )
   if (DRY) return
 
@@ -112,6 +131,7 @@ async function run() {
   }
   writeFileSync(path.join(ROUND_DIR, 'notes.md'), notes + '\n')
   writeFileSync(path.join(ROUND_DIR, 'new-notes.md'), newNotes.join('\n') + '\n')
+  writeFileSync(path.join(ROUND_DIR, 'initial-info.md'), initialInfoMarkdown(initialInfo))
   writeFileSync(
     path.join(ROUND_DIR, 'new-files.txt'),
     newFiles.map((asset) => asset.filename).join('\n') + '\n',
@@ -127,6 +147,7 @@ async function run() {
     round: ROUND,
     at: new Date().toISOString(),
     notes,
+    initialInfo,
     files: assets.map((asset) => ({ name: asset.filename, createdAt: asset.createdAt })),
     aiNotes: investment.aiNotes ?? '',
   }
