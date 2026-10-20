@@ -16,12 +16,12 @@ const rotations: Record<DirectionT, string> = {
   left: '270deg',
 }
 
-export default function ArrowIcon({ className, direction }: PropsT) {
+export default function ArrowIcon({ size = 'md', className, direction }: PropsT) {
   return (
     <svg
       data-slot="icon"
       data-icon="arrow"
-      className={cn('transition-transform', className)}
+      className={cn(iconVariants({ size }), 'transition-transform', className)}
       style={{ transform: `rotate(${rotations[direction]})` }}
       viewBox="0 0 8.0009 9.99439"
       fill="none"
