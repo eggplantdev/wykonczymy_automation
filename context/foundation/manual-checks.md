@@ -1292,6 +1292,14 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Wersja preview / lokalna → znacznik środowiska przy dolnej krawędzi wygląda i podpisuje się
       jak wcześniej.
 
+## 2026-10-20 — restore-bouncing-loader — 🚧 wraca jako loader strony
+
+- [ ] Przejście między stronami (np. lista przelewów → inwestycja) oraz logowanie: na środku podskakuje
+      🚧, nie gradientowe kółko.
+- [ ] Zapis formularza przelewu i zmiana filtra dat na liście przelewów: 🚧 na środku ekranu nad
+      całą stroną, znika po zakończeniu — jak wcześniej.
+- [ ] Przyciski w trakcie zapisu i małe wskaźniki „Wczytywanie…" dalej pokazują gradientowe kółko.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 
-import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 
 // Route-segment fallback: sits inside the layout's <main>, so it fills the flex row
@@ -14,7 +13,7 @@ export function PageLoading() {
 }
 
 export function ContentLoading() {
-  return <GradientSpinner className="size-10" />
+  return <p className="animate-bounce text-3xl font-semibold lg:text-5xl">🚧</p>
 }
 
 export function OverlayLoading() {
