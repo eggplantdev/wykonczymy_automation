@@ -19,8 +19,9 @@ A second copy that skips GitHub and FTP lives on the user's laptop: a launchd jo
 (`com.wykonczymy.db-backup`, `~/Library/LaunchAgents/`) runs `~/Backups/wykonczymy-db/backup.sh`
 daily at 13:00 — `pg_dump` straight from Neon, gzipped, kept 30 days, a macOS notification on
 failure, log in `backup.log` there. It is machine setup, not in the repo. When FTP is down or its
-newest dump is stale, restore from the newest `~/Backups/wykonczymy-db/wykonczymy-*.sql.gz` instead
-of steps 3–4 (`gzip -dc` it into step 5's `SQL` path). `pnpm db:dump` also leaves gzipped
+newest dump is stale, skip steps 3–4 and replace step 5's `gzip -dkf` / `SQL=` lines with
+`SQL=dumps/wykonczymy-backup-laptop.sql; gzip -dc "$(ls ~/Backups/wykonczymy-db/wykonczymy-*.sql.gz | sort | tail -1)" > "$SQL"`
+— the name keeps step 6's cleanup glob matching it. `pnpm db:dump` also leaves gzipped
 history in `dumps/dump-<date>.sql.gz` beside the plain `dumps/dump-latest.sql` that
 `pnpm db:import` reads.
 

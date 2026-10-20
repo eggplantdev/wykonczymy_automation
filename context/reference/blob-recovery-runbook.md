@@ -320,6 +320,8 @@ put-by-filename, no URL rewrite.
 
 ### Phase 4 — Total-loss drill: rebuild from the FTP server alone
 
+> **Dropped 2026-10-20 — not pending work.** Kept as the scope reasoning only; see the header.
+
 **Scope.** Not "Neon and Vercel died the same night". The realistic single event with a two-plane
 blast radius is one compromised or locked **Vercel account** — it holds the Blob store _and_
 `DB_POSTGRES_URL_PROD` as an env var — or one destructive run from a laptop whose `.env` carries the
@@ -569,9 +571,9 @@ What is genuinely unrecoverable:
 | **Same-day blob uploads**          | Mirror runs 03:00 UTC daily.                                                                                                 | Up to ~24h of invoices have a `media` row and no bytes. |
 | **Shared secrets on the far side** | `WPFORMS_WEBHOOK_SECRET` and `META_VERIFY_TOKEN` are re-mintable, but the WordPress and Meta ends must be re-synced by hand. | Recoverable; costs coordination, not data.              |
 
-The second backup destination is the laptop copy (Phase 2b). The FTP credentials still live only
-in GitHub secrets and the laptop's `.env` — losing the laptop no longer matters for the data,
-since FTP and the laptop are now independent copies.
+The second backup destination is the laptop copy (Phase 2b). Losing the laptop leaves the FTP
+copy intact, but its credentials then live only in GitHub secrets — the „FTP credentials" row
+above still holds.
 
 ---
 
