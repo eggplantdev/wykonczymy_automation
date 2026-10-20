@@ -11,7 +11,6 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         outline:
           'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
@@ -44,6 +43,7 @@ const buttonVariants = cva(
         inline: 'h-auto p-0',
         inlineXs: 'h-auto p-0 text-xs',
         row: 'h-auto w-full gap-2 px-1 py-1 text-xs font-normal whitespace-normal',
+        listRow: 'h-auto w-full gap-2 rounded-none px-3 py-2 text-sm font-normal whitespace-normal',
         iconLg: "size-9 [&_svg:not([class*='size-'])]:size-5",
       },
       align: {

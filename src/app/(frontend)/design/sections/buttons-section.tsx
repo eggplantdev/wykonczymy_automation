@@ -28,7 +28,6 @@ type ButtonAlignT = NonNullable<ButtonVariantsT['align']>
 
 const VARIANTS = Object.keys({
   default: true,
-  secondary: true,
   outline: true,
   ghost: true,
   ghostDestructive: true,
@@ -51,7 +50,9 @@ const SIZES = Object.keys({
   touch: true,
   lg: true,
   inline: true,
+  inlineXs: true,
   row: true,
+  listRow: true,
   icon: true,
   iconSm: true,
   iconLg: true,

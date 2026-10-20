@@ -130,17 +130,14 @@ export function AddSectionsFromPresetDialog({
                     <Button
                       key={group.templateId}
                       variant="ghost"
-                      size="row"
+                      size="listRow"
                       align="start"
                       onClick={() => {
                         setActivePresetId(group.templateId)
                         setPane('sections')
                       }}
                       aria-current={group.templateId === activeGroup.templateId}
-                      className={cn(
-                        'rounded-none px-3 py-2 text-sm',
-                        group.templateId === activeGroup.templateId && 'bg-accent',
-                      )}
+                      className={cn(group.templateId === activeGroup.templateId && 'bg-accent')}
                     >
                       <span className="flex-1 truncate">{group.templateName}</span>
                       {group.selectedCount > 0 && (
@@ -164,10 +161,10 @@ export function AddSectionsFromPresetDialog({
             >
               <Button
                 variant="ghost"
-                size="row"
+                size="listRow"
                 align="start"
                 onClick={() => setPane('presets')}
-                className="gap-1 rounded-none border-b px-3 py-2 text-sm sm:hidden"
+                className="gap-1 border-b sm:hidden"
               >
                 <ChevronLeft />
                 <span className="truncate">{activeGroup.templateName}</span>
@@ -178,11 +175,10 @@ export function AddSectionsFromPresetDialog({
               <div className="min-h-0 flex-1 overflow-y-auto py-2">
                 <Button
                   variant="ghost"
-                  size="row"
+                  size="listRow"
                   align="start"
                   onClick={() => toggleGroup(activeGroup.metas.map((meta) => meta.sectionId))}
                   aria-pressed={allActiveSelected}
-                  className="rounded-none px-3 py-2"
                 >
                   <Check className={cn(allActiveSelected ? 'opacity-100' : 'opacity-0')} />
                   <span className="text-muted-foreground flex-1 text-xs">
@@ -196,11 +192,10 @@ export function AddSectionsFromPresetDialog({
                     <Button
                       key={key}
                       variant="ghost"
-                      size="row"
+                      size="listRow"
                       align="start"
                       onClick={() => toggle(key)}
                       aria-pressed={isSelected}
-                      className="rounded-none px-3 py-2 text-sm"
                     >
                       <Check className={cn(isSelected ? 'opacity-100' : 'opacity-0')} />
                       <span className="flex-1 truncate">{meta.sectionName}</span>

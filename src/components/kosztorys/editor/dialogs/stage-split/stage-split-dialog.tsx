@@ -142,7 +142,7 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
                     role="radio"
                     aria-checked={member.takesRest}
                     aria-label={`Główny — ${nameOf(member.workerId)}`}
-                    className="group justify-self-center rounded-sm"
+                    className="group justify-self-center"
                     onClick={() => setDraft(setRestHolder(draft, member.workerId))}
                   >
                     <CheckIcon

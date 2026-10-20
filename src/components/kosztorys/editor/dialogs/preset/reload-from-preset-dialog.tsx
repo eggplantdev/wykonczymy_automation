@@ -133,11 +133,11 @@ export function ReloadFromPresetDialog() {
                   <Button
                     key={group.templateId}
                     variant="ghost"
-                    size="row"
+                    size="listRow"
                     align="start"
                     onClick={() => setSelectedPresetId(group.templateId)}
                     aria-pressed={isSelected}
-                    className={cn('rounded-none px-3 py-2 text-sm', isSelected && 'bg-accent')}
+                    className={cn(isSelected && 'bg-accent')}
                   >
                     <Check className={cn(isSelected ? 'opacity-100' : 'opacity-0')} />
                     <span className="flex-1 truncate">{group.templateName}</span>

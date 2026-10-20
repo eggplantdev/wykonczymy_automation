@@ -52,10 +52,10 @@ export function WorkerReportsList({ reports, onOpen }: PropsT) {
                 <li key={report.id}>
                   <Button
                     variant="ghost"
-                    size="row"
+                    size="listRow"
                     align="start"
                     onClick={() => onOpen(report.id)}
-                    className="hover:bg-muted/50 gap-3 rounded-none px-3 py-2.5 text-left text-sm"
+                    className="hover:bg-muted/50 gap-3 py-2.5 text-left"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="font-medium">
