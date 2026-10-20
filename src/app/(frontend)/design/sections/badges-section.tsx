@@ -7,6 +7,7 @@ import { CardChip } from '@/components/transfers/cards/card-chip'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
 import { DotBadge } from '@/components/ui/dot-badge'
 import { BadgeSelect } from '@/components/ui/badge-select'
+import { EnvBadgeShell } from '@/components/ui/env-badge-shell'
 import { COLOR_TOKENS } from '@/styles/color-tokens'
 import { SectionPill } from '@/components/worker-reports/section-pill'
 import { PayoutStatusBadge } from '@/components/receipt-confirmation/payout-status-badge'
@@ -30,9 +31,21 @@ import { cn } from '@/lib/utils/cn'
 import type { TransferRowT } from '@/types/transfers'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
+import { OpenPreview } from '../open-preview'
 
 const TONES = Object.keys(BADGE_TONES) as BadgeToneT[]
+
+const ENV_BADGES = [
+  { env: 'development', db: 'wykonczymy-db:5433' },
+  { env: 'preview', db: 'neondb@ep-preview' },
+  { env: 'production' },
+] as const
 const DECISIONS = ['pending', 'accepted', 'rejected'] as const
+
+const TONE_OPTIONS = TONES.map((tone) => ({
+  value: tone,
+  badge: <Badge tone={tone}>{tone}</Badge>,
+}))
 
 export function BadgesSection() {
   const transfersTranslator = useTranslation('transfers')
@@ -57,12 +70,7 @@ export function BadgesSection() {
         <Badge appearance="solid">solid</Badge>
       </ShowcaseRow>
       <ShowcaseRow title="Badge — pigułka z akcją" source='<Badge shape="pill" onRemove>'>
-        <Badge
-          appearance="outline"
-          shape="pill"
-          onRemove={() => {}}
-          removeLabel="Usuń"
-        >
+        <Badge appearance="outline" shape="pill" onRemove={() => {}} removeLabel="Usuń">
           Filtr
         </Badge>
         <Badge tone="section" shape="pill">
@@ -186,16 +194,36 @@ export function BadgesSection() {
         <BadgeButton tone="muted">Nieaktywny</BadgeButton>
       </ShowcaseRow>
       <ShowcaseRow title="BadgeSelect (select z badge jako triggerem)" source="ui/badge-select.tsx">
+        <BadgeSelect value={selectedTone} onValueChange={setSelectedTone} options={TONE_OPTIONS} />
         <BadgeSelect
           value={selectedTone}
           onValueChange={setSelectedTone}
-          options={TONES.map((tone) => ({ value: tone, badge: <Badge tone={tone}>{tone}</Badge> }))}
+          options={TONE_OPTIONS}
+          hideChevron
         />
+        <OpenPreview backdrop={false}>
+          <BadgeSelect
+            value={selectedTone}
+            onValueChange={setSelectedTone}
+            options={TONE_OPTIONS}
+          />
+        </OpenPreview>
       </ShowcaseRow>
       <ShowcaseRow
-        title="Licznik (pełna pigułka)"
-        source='<Badge appearance="solid" shape="pill">'
+        title="Znacznik środowiska (w aplikacji przypięty do dołu; PROD się nie renderuje)"
+        source="ui/env-badge-shell.tsx, ui/env-badge.tsx"
       >
+        {ENV_BADGES.map((badge) => (
+          <EnvBadgeShell
+            key={badge.env}
+            env={badge.env}
+            db={'db' in badge ? badge.db : undefined}
+            title={`Środowisko: ${badge.env}`}
+            className="static translate-x-0"
+          />
+        ))}
+      </ShowcaseRow>
+      <ShowcaseRow title="Licznik (pełna pigułka)" source='<Badge appearance="solid" shape="pill">'>
         {[1, 12, 120].map((count) => (
           <Badge
             key={count}

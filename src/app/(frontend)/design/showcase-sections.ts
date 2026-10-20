@@ -2,6 +2,8 @@ export const SHOWCASE_SECTIONS = [
   { id: 'colors', label: 'Kolory' },
   { id: 'typography', label: 'Typografia' },
   { id: 'radius-shadow', label: 'Zaokrąglenia i cienie' },
+  { id: 'tokens', label: 'Tokeny i efekty' },
+  { id: 'icons', label: 'Ikony' },
   { id: 'badges', label: 'Badge' },
   { id: 'buttons', label: 'Przyciski' },
   { id: 'fields', label: 'Pola formularzy' },
@@ -11,6 +13,14 @@ export const SHOWCASE_SECTIONS = [
   { id: 'layout', label: 'Bloki układu' },
   { id: 'navigation', label: 'Nawigacja' },
   { id: 'data-display', label: 'Prezentacja danych' },
+  { id: 'tables', label: 'Tabele' },
+  { id: 'cards', label: 'Karty' },
+  { id: 'statuses', label: 'Statusy domenowe' },
+  { id: 'banners', label: 'Banery i ostrzeżenia' },
+  { id: 'filters', label: 'Filtry' },
+  { id: 'form-composites', label: 'Złożone pola formularzy' },
+  { id: 'media', label: 'Media i wykresy' },
+  { id: 'grid-cells', label: 'Komórki arkusza' },
 ] as const
 
 export type ShowcaseSectionIdT = (typeof SHOWCASE_SECTIONS)[number]['id']

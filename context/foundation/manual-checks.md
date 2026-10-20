@@ -1275,6 +1275,23 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       chipy z kolorowym obrysem; licznik nieprzeczytanych w menu to pełna pigułka w kolorze głównym.
 - [ ] Lista użytkowników i menu mobilne → badge roli w kolorach jak wcześniej.
 
+## 2026-10-20 — design-full-coverage — `/design` pokazuje każdą rodzinę komponentów i otwarte nakładki
+
+- [ ] `/design` → każda sekcja zwija się i rozwija; po przeładowaniu zostaje w stanie, w którym ją
+      zostawiono. Spis treści podświetla sekcję, którą akurat widać.
+- [ ] `/design` → nowe sekcje („Tokeny i efekty", „Ikony", „Tabele", „Karty", „Statusy domenowe",
+      „Banery i ostrzeżenia", „Filtry", „Złożone pola formularzy", „Media i wykresy", „Komórki
+      arkusza") renderują się w jasnym i ciemnym motywie bez błędów w konsoli.
+- [ ] „Nakładki", „Dialogi", „Pola formularzy": obok przycisku otwierającego każdy dialog, sheet,
+      popover, select i menu stoi jego zawsze otwarta kopia; strona się przy tym nie blokuje i da
+      się przewijać.
+- [ ] Aplikacja poza `/design`: dialogi, sheety, popovery, selecty i menu otwierają się i zamykają
+      jak wcześniej (Escape, klik poza, przycisk zamknięcia).
+- [ ] Wybór z wyszukiwaniem (np. inwestycja w formularzu przelewu) → strzałka przy polu ma ten sam
+      rozmiar co wcześniej.
+- [ ] Wersja preview / lokalna → znacznik środowiska przy dolnej krawędzi wygląda i podpisuje się
+      jak wcześniej.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
