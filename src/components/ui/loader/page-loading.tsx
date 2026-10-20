@@ -13,7 +13,15 @@ export function PageLoading() {
 }
 
 export function ContentLoading() {
-  return <p className="animate-bounce text-3xl font-semibold lg:text-5xl">🚧</p>
+  return (
+    <p
+      role="status"
+      aria-label="Ładowanie"
+      className="animate-bounce text-3xl font-semibold lg:text-5xl"
+    >
+      🚧
+    </p>
+  )
 }
 
 export function TitledPageLoading({ title }: { title: ReactNode }) {

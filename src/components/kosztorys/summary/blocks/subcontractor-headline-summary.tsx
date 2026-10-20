@@ -8,6 +8,7 @@ import {
   SummaryTable,
   SummaryValueCell,
 } from '@/components/ui/summary-grid'
+import { isNegativeMoney } from '@/components/ui/signed-money-display'
 import { formatNet } from '@/lib/kosztorys/format'
 import { PLANE_LABELS, SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { SubcontractorSummaryT } from '@/lib/kosztorys/subcontractor-summary'
@@ -66,7 +67,7 @@ export function SubcontractorHeadlineSummary({
       </SummaryValueCell>
 
       <SummaryLabelCell weight="bold">{SUBCONTRACTOR_FIGURE_LABELS.remaining}</SummaryLabelCell>
-      <SummaryValueCell tone={summary.remaining < 0 ? 'error' : 'default'} weight="bold">
+      <SummaryValueCell tone={isNegativeMoney(summary.remaining) ? 'error' : 'default'} weight="bold">
         {formatNet(summary.remaining)}
       </SummaryValueCell>
     </SummaryTable>

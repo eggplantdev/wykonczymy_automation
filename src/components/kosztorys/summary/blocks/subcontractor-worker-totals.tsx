@@ -12,6 +12,7 @@ import {
   SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { OptionalLink } from '@/components/ui/optional-link'
+import { isNegativeMoney } from '@/components/ui/signed-money-display'
 import { formatNet } from '@/lib/kosztorys/format'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
@@ -35,7 +36,7 @@ const STATE_QUALIFIER: Record<
 }
 
 function RemainingCell({ amount, weight }: { amount: number; weight?: 'medium' | 'bold' }) {
-  const isNegative = amount < 0
+  const isNegative = isNegativeMoney(amount)
   return (
     <SummaryValueCell
       tone={isNegative ? 'error' : 'default'}

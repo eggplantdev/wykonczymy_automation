@@ -719,16 +719,23 @@ Run once, after phase 12:
 
 #### Automated
 
-- [ ] 1.1 Rule spec passes
-- [ ] 1.2 Rule spec seen red with one check disabled, then restored
+- [x] 1.1 Rule spec passes — a4f667efd
+- [x] 1.2 Rule spec seen red with one check disabled, then restored — a4f667efd
 - [ ] 1.3 Lint passes on components/app/hooks with the baseline
-- [x] 1.4 Scratch raw `<button className>` fails lint
+- [x] 1.4 Scratch raw `<button className>` fails lint — a4f667efd
 
 ### Phase 2: Bugs (test-first)
 
 #### Automated
 
-- [ ] 2.1 Each new spec seen red before its fix, green after
+- [x] 2.1 Each new spec seen red before its fix, green after
+  - Adapted: the materials footer is unreachable as a bug (the table renders no toolbar, so no
+    column can be hidden) — swapped onto `ColumnTotalRow` as a dedup, guarded by a netto-dataset
+    footer spec instead of a hidden-column one.
+  - Adapted: the Input ring was removed on purpose (`8ed806695`); only the non-utility
+    `focus-visible:ring-none` class is dropped, no ring added. Its manual check is void.
+  - Pulled forward from phase 3: `AuthSubmitButton` → `GradientSpinner`, `ContentLoading` gets
+    `role="status"`, so the login spec could count indicators.
 
 ### Phase 3: Consolidate inside `ui/`
 

@@ -6,7 +6,6 @@ import { AuthLink } from '@/components/ui/auth-link'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { loginAction } from '@/lib/actions/auth'
 import { settleAction } from '@/lib/utils/settle-action'
-import { Loader } from '@/components/ui/loader/loader'
 import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
 
 type ButtonStateT = 'idle' | 'pending' | 'success'
@@ -81,7 +80,6 @@ export function LoginForm() {
         successText="Zalogowano"
       />
       <AuthLink href="/zaloguj/zapomniane-haslo">Nie pamiętasz hasła?</AuthLink>
-      {isPending && <Loader loading={true} />}
     </form>
   )
 }

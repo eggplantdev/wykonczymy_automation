@@ -1,5 +1,6 @@
-import { LoaderCircle, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { cn } from '@/lib/utils/cn'
 
 type AuthSubmitButtonPropsT = {
@@ -28,7 +29,7 @@ export function AuthSubmitButton({
     >
       {isPending && (
         <>
-          <LoaderCircle className="animate-spin" />
+          <GradientSpinner />
           {pendingText}
         </>
       )}

@@ -5,6 +5,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { FileArchive, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/tables/data-table/data-table'
+import { ColumnTotalRow } from '@/components/tables/data-table/column-total-row'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { MediaPreviewButton } from '@/components/media/media-preview-button'
@@ -221,15 +222,13 @@ export function MaterialsTransactionsTable({
         initialSorting={[{ id: 'date', desc: true }]}
         getRowHref={preview ? undefined : (row) => expenseRowHref(investmentId, row)}
         footer={(visibleColumnIds) => (
-          <tr>
-            <td className="font-bold" colSpan={visibleColumnIds.length - (isNetDataset ? 2 : 1)}>
-              Razem
-            </td>
-            <td className="text-right font-bold tabular-nums">
-              {formatNet(listing.sum(visibleRows))}
-            </td>
-            {isNetDataset && <td />}
-          </tr>
+          <ColumnTotalRow
+            visibleColumnIds={visibleColumnIds}
+            columnId={isNetDataset ? 'billed' : 'amount'}
+            label="Razem"
+          >
+            {formatNet(listing.sum(visibleRows))}
+          </ColumnTotalRow>
         )}
         className="w-full"
       />

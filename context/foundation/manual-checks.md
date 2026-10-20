@@ -1054,6 +1054,19 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Kosztorys → przegląd zgłoszenia prac: strzałka przy nagłówku grupy obraca się, a grupa ukrywa
       i pokazuje wiersze jak dotąd.
 
+## EX-1110 — ds-primitive-sweep — wspólne komponenty zamiast ręcznych kopii
+
+- [ ] Profil użytkownika z kasą, której saldo wychodzi na zero: „0,00 zł" w sekcji jego kas jest
+      bez koloru (nie czerwone), także w sumie.
+- [ ] Kosztorys → podsumowanie podwykonawców, pracownik rozliczony do zera: „Pozostało" pokazuje
+      „0,00 zł" bez koloru i bez dopisku „nadpłacone".
+- [ ] Pusty kosztorys → przycisk „Podsumowanie" jest wyszarzony, a po najechaniu pokazuje tooltip
+      „Kosztorys jest pusty — nie ma czego podsumować".
+- [ ] Logowanie: po kliknięciu „Zaloguj" kręci się tylko wskaźnik w przycisku („Logowanie...") —
+      bez drugiego, pełnoekranowego wskaźnika na środku strony.
+- [ ] Kosztorys → materiały, zestaw „Materiały rozliczane netto": „Razem" stoi pod kolumną
+      „Netto", kolumna „Brutto" w stopce pusta.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
