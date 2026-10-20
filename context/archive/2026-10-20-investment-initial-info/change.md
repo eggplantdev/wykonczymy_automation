@@ -1,10 +1,10 @@
 ---
 change_id: investment-initial-info
 title: Investment „Wstępne informacje” section with a rynek pierwotny/wtórny field
-status: implemented
+status: archived
 created: 2026-10-20
 updated: 2026-10-20
-archived_at: null
+archived_at: 2026-10-20T15:30:48Z
 branch: investment-initial-info
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/investment-initial-info
 ---
