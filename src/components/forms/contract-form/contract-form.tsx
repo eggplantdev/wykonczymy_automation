@@ -79,7 +79,7 @@ export function ContractForm({ investment, plannedNet, onClose }: PropsT) {
             {(field) => <field.Input label="Kwota netto około (zł)" />}
           </form.AppField>
           {loadedPlannedNet === undefined && (
-            <Description size="xs" tone="error">
+            <Description size="xs" tone="error" withIcon>
               Nie udało się wczytać kwoty z kosztorysu — wpisz ją ręcznie.
             </Description>
           )}

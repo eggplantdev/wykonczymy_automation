@@ -1,5 +1,7 @@
 'use client'
 
+import { Description } from '@/components/ui/description'
+import { ExternalLink } from '@/components/ui/external-link'
 import { SheetAccessBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-access-block'
 import { SheetMissingColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-missing-columns-block'
 import { SheetPointedColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-pointed-columns-block'
@@ -147,12 +149,12 @@ function MoneyBlock({ comparison }: { comparison: SheetComparisonT }) {
         </p>
       )}
       {comparison.globalDiscountMismatch && (
-        <p className="text-destructive text-xs">
+        <Description tone="error" size="xs">
           Ta inwestycja ma aktywny rabat globalny, więc kwoty w tym oknie rozjeżdżają się z tymi w
           kosztorysie. Tutaj każda praca liczy się ze swoim własnym rabatem, tak jak w arkuszu
           Google — rabat globalny nie wchodzi. W kosztorysie jest odwrotnie: prace idą bez rabatu, a
           rabat globalny schodzi raz od sumy.
-        </p>
+        </Description>
       )}
     </SheetReportBlock>
   )
@@ -286,10 +288,10 @@ function ReadingBlock({ comparison }: { comparison: SheetComparisonT }) {
             link={sheetLink}
           />
           {health.measuredCopiedFromPlanned > 0 && (
-            <p className="text-xs text-amber-600">
+            <Description tone="warning" size="xs" withIcon={false}>
               W {health.measuredCopiedFromPlanned} z {health.totalRows} prac Pomiar z natury
               wskazuje na Przedmiar. U nas pomiar to zawsze suma etapów.
-            </p>
+            </Description>
           )}
         </>
       )}
@@ -375,14 +377,11 @@ function ExecutedDiffList({
 function SheetCellLink({ cell, link }: { cell: string; link: SheetComparisonT['sheetLink'] }) {
   if (!link) return <>komórka {cell}</>
   return (
-    <a
+    <ExternalLink
       href={`https://docs.google.com/spreadsheets/d/${link.spreadsheetId}/edit#gid=${link.gid}&range=${cell}`}
-      target="_blank"
-      rel="noreferrer"
-      className="underline underline-offset-2"
     >
       komórka {cell}
-    </a>
+    </ExternalLink>
   )
 }
 

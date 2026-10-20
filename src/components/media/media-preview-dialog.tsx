@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Spinner } from '@/components/ui/loader/spinner'
+import { OverlayLoading } from '@/components/ui/loader/page-loading'
 import { useFileArchive } from '@/hooks/use-file-archive'
 import { usePdfObjectUrl } from '@/hooks/use-pdf-object-url'
 import { preloadPreviewNeighbours } from './preload-preview-neighbours'
@@ -233,9 +233,7 @@ export function MediaPreviewDialog({
 
         <div className="relative flex min-h-0 w-full flex-1 items-center justify-center">
           {((isImage && loadedImageUrl !== active?.url) || pdf?.status === 'loading') && (
-            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-              <Spinner />
-            </div>
+            <OverlayLoading />
           )}
           {active && isImage && (
             // `key` is what resets the zoom: a remount per page drops scale, offset and the

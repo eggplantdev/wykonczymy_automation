@@ -4,18 +4,19 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
-import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { FileInput } from '@/components/ui/file-input'
 import { GradientSpinner } from '@/components/ui/gradient-spinner'
-import { Label } from '@/components/ui/label'
 import { Loader } from '@/components/ui/loader/loader'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { SimpleSelect } from '@/components/ui/simple-select'
 import { Textarea } from '@/components/ui/textarea'
 import { useFilePickIngest } from '@/hooks/use-file-pick-ingest'
 import { sendExpenseDraftAction } from '@/lib/actions/worker-expense-drafts'
@@ -131,48 +132,46 @@ export function ExpenseDraftDialog({
           {t('add')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
+      <DialogContent className="sm:max-w-dialog-sm" aria-describedby={undefined}>
         <Loader
           loading={isIngesting || isSending}
           loaderComponent={<GradientSpinner className="size-12" />}
           portal
         />
         <DialogHeader title={t('newTitle')} />
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label>{t('investment')}</Label>
-            <Select value={investmentId} onValueChange={setInvestmentId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t('chooseInvestment')} />
-              </SelectTrigger>
-              <SelectContent>
-                {investments.map((investment) => (
-                  <SelectItem key={investment.investmentId} value={String(investment.investmentId)}>
-                    {investment.name}
-                  </SelectItem>
-                ))}
-                {canSkipInvestment && (
-                  <SelectItem value={NO_INVESTMENT}>{t('noInvestment')}</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+        <DialogBody>
+          <Field gap="md">
+            <FieldLabel htmlFor="expense-draft-investment">{t('investment')}</FieldLabel>
+            <SimpleSelect
+              id="expense-draft-investment"
+              value={investmentId}
+              onValueChange={setInvestmentId}
+              placeholder={t('chooseInvestment')}
+              className="w-full"
+              options={[
+                ...investments.map((investment) => ({
+                  value: String(investment.investmentId),
+                  label: investment.name,
+                })),
+                ...(canSkipInvestment ? [{ value: NO_INVESTMENT, label: t('noInvestment') }] : []),
+              ]}
+            />
+          </Field>
           {registers.length > 1 && (
-            <div className="flex flex-col gap-2">
-              <Label>{t('register')}</Label>
-              <Select value={cashRegisterId} onValueChange={setCashRegisterId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t('chooseRegister')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {registers.map((register) => (
-                    <SelectItem key={register.id} value={String(register.id)}>
-                      {register.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Field gap="md">
+              <FieldLabel htmlFor="expense-draft-register">{t('register')}</FieldLabel>
+              <SimpleSelect
+                id="expense-draft-register"
+                value={cashRegisterId}
+                onValueChange={setCashRegisterId}
+                placeholder={t('chooseRegister')}
+                className="w-full"
+                options={registers.map((register) => ({
+                  value: String(register.id),
+                  label: register.name,
+                }))}
+              />
+            </Field>
           )}
           <FileInput
             key={inputKey}
@@ -182,25 +181,27 @@ export function ExpenseDraftDialog({
             {...fileInputProps}
           />
           {hasTooManyPhotos ? (
-            <Description size="xs" tone="error" role="alert">
+            <Description size="xs" tone="error" withIcon role="alert">
               {t('tooManyPhotos', { max: MAX_DRAFT_PAGES })}
             </Description>
           ) : (
             <Description size="xs">{t('photoLimit', { max: MAX_DRAFT_PAGES })}</Description>
           )}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="expense-draft-note">{t('noteOptional')}</Label>
+          <Field gap="md">
+            <FieldLabel htmlFor="expense-draft-note">{t('noteOptional')}</FieldLabel>
             <Textarea
               id="expense-draft-note"
               rows={2}
               value={note}
               onChange={(event) => setNote(event.target.value)}
             />
-          </div>
+          </Field>
+        </DialogBody>
+        <DialogFooter>
           <Button onClick={handleSend} disabled={!canSend}>
             {t(isSending ? 'sending' : 'send')}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

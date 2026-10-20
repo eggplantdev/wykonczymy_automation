@@ -22,13 +22,9 @@ export function TrashButton({ active, collapsed = false, ...props }: TrashButton
   return (
     <Button
       {...props}
-      variant="outline"
+      variant={active ? 'active' : 'outline'}
       size="sm"
-      className={cn(
-        collapsed && 'px-0',
-        active &&
-          'border-primary/40 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',
-      )}
+      className={cn(collapsed && 'px-0', active && 'border-primary/40 border shadow-sm')}
       asChild
     >
       <Link href={TRASH_HREF} aria-current={active ? 'page' : undefined}>

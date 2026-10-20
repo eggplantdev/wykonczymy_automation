@@ -29,7 +29,7 @@ export function KosztorysShareDialog() {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-dialog-sm">
         <DialogHeader
           title="Udostępnij inwestorowi"
           description="Kto ma link, ten widzi kosztorys — bez logowania. Ceny podwykonawców nigdy się w nim nie pojawiają."

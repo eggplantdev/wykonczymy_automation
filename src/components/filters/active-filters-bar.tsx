@@ -42,9 +42,9 @@ export function ActiveFiltersBar<ChipT extends ActiveFiltersBarChipT>({
       {chips.length > 1 && (
         <Button
           variant="ghost"
-          size="sm"
+          size="2xs"
           onClick={onClearAll}
-          className="text-muted-foreground h-6 shrink-0 px-2 text-xs"
+          className="text-muted-foreground shrink-0"
         >
           {t('clearFilters')}
         </Button>

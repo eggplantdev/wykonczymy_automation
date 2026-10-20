@@ -6,6 +6,7 @@ import { forgotPasswordAction } from '@/lib/actions/auth'
 import { settleAction } from '@/lib/utils/settle-action'
 import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
 import { AuthSuccessCard } from '@/components/ui/auth-success-card'
+import { Description } from '@/components/ui/description'
 
 type FormStateT = 'idle' | 'pending' | 'success'
 
@@ -57,7 +58,7 @@ export function ForgotPasswordForm() {
         )}
       </form.AppField>
 
-      {error && <p className="text-destructive text-sm">{error}</p>}
+      {error && <Description tone="error">{error}</Description>}
 
       <AuthSubmitButton isPending={isPending} idleText="Wyślij link" pendingText="Wysyłanie..." />
     </form>

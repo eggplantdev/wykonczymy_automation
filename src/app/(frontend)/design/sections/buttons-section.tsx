@@ -12,6 +12,7 @@ import { ToolbarToggle } from '@/components/ui/toolbar-toggle'
 import { StatButton } from '@/components/ui/stat-button'
 import { ToggleStatButtons } from '@/components/ui/toggle-stat-buttons'
 import { HistoryBackButton } from '@/components/ui/history-back-button'
+import { TextButton, TextLink } from '@/components/ui/text-link'
 import { ExternalLink } from '@/components/ui/external-link'
 import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
@@ -27,36 +28,34 @@ type ButtonAlignT = NonNullable<ButtonVariantsT['align']>
 
 const VARIANTS = Object.keys({
   default: true,
-  defaultOutline: true,
   secondary: true,
   outline: true,
   ghost: true,
   ghostDestructive: true,
-  outlineDestructive: true,
   destructive: true,
   destructiveOutline: true,
   link: true,
-  activeFilter: true,
-  green: true,
+  active: true,
   greenOutline: true,
-  red: true,
-  redOutline: true,
-  blue: true,
   blueOutline: true,
-  teal: true,
-  tealOutline: true,
-  turquoise: true,
   turquoiseOutline: true,
+  warningOutline: true,
   ai: true,
 } satisfies Record<ButtonVariantT, true>) as ButtonVariantT[]
 
 const SIZES = Object.keys({
+  '2xs': true,
   xs: true,
   sm: true,
   default: true,
+  touch: true,
   lg: true,
+  inline: true,
+  row: true,
   icon: true,
+  iconSm: true,
   iconLg: true,
+  iconTouch: true,
 } satisfies Record<ButtonSizeT, true>) as ButtonSizeT[]
 
 const ALIGNS = Object.keys({ center: true, start: true } satisfies Record<
@@ -74,7 +73,7 @@ const VIEW_OPTIONS = [
 ] as const
 
 function isIconSize(size: ButtonSizeT) {
-  return size === 'icon' || size === 'iconLg'
+  return size === 'icon' || size === 'iconSm' || size === 'iconLg' || size === 'iconTouch'
 }
 
 export function ButtonsSection() {
@@ -141,6 +140,17 @@ export function ButtonsSection() {
           </Button>
         ))}
       </ShowcaseRow>
+      <ShowcaseRow title="Button — pending" source="ui/button.tsx pending">
+        <Button pending>
+          <Plus />
+          Zapisz
+        </Button>
+        <Button variant="outline" size="sm" pending>
+          <Plus />
+          Wgraj
+        </Button>
+        <RowActionButton icon={Plus} label="Dodaj" pending onClick={() => undefined} />
+      </ShowcaseRow>
       <ShowcaseRow title="Akcje wiersza" source="ui/row-actions/*">
         <EditButton onClick={() => undefined} />
         <EditButton onClick={() => undefined} showLabel />
@@ -199,7 +209,7 @@ export function ButtonsSection() {
         <StatButton
           label="Marża"
           value="2 100,00 zł"
-          color="chart-green"
+          color="transfer-fuchsia"
           tooltip="Przykładowa podpowiedź"
         />
         <ToggleStatButtons
@@ -223,6 +233,13 @@ export function ButtonsSection() {
           summaryLabel="Razem"
           colorValues
         />
+      </ShowcaseRow>
+      <ShowcaseRow title="TextLink, TextButton" source="ui/text-link.tsx">
+        <TextLink asChild>
+          <a href="#buttons">TextLink</a>
+        </TextLink>
+        <TextButton onClick={() => undefined}>TextButton</TextButton>
+        <TextButton disabled>TextButton disabled</TextButton>
       </ShowcaseRow>
       <ShowcaseRow
         title="Linki w kształcie przycisku"

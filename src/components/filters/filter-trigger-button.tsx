@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils/cn'
 
 type FilterTriggerButtonPropsT = Pick<
@@ -23,19 +24,19 @@ export const GRID_FILTER_TRIGGER_CLASS = 'sm:w-fit sm:min-w-0'
 
 export const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerButtonPropsT>(
   function FilterTriggerButton(
-    { active, tone = 'default', icon: Icon, children, className, ...props },
+    { active, tone = 'default', icon: Icon, title, children, className, ...props },
     ref,
   ) {
     const variant =
       tone === 'destructive'
         ? active
           ? 'destructive'
-          : 'outlineDestructive'
+          : 'destructiveOutline'
         : active
-          ? 'activeFilter'
+          ? 'greenOutline'
           : 'outline'
 
-    return (
+    const button = (
       <Button
         ref={ref}
         variant={variant}
@@ -48,5 +49,7 @@ export const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerBu
         <span className="truncate">{children}</span>
       </Button>
     )
+
+    return title ? <SimpleTooltip content={title}>{button}</SimpleTooltip> : button
   },
 )

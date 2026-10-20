@@ -1,4 +1,4 @@
-import { Checkbox } from '@/components/ui/checkbox'
+import { CheckboxRow } from '@/components/ui/checkbox-row'
 
 type ActiveFilterLabelPropsT = {
   activeOnly: boolean
@@ -14,9 +14,13 @@ export function ActiveFilterLabel({
   allLabel = 'Wszystkie',
 }: ActiveFilterLabelPropsT) {
   return (
-    <label className="flex w-fit items-center gap-2 text-sm font-normal">
-      <Checkbox checked={activeOnly} onCheckedChange={(v: boolean) => onToggle(v === true)} />
+    <CheckboxRow
+      variant="plain"
+      checked={activeOnly}
+      onCheckedChange={onToggle}
+      className="w-fit font-normal"
+    >
       {activeOnly ? activeLabel : allLabel}
-    </label>
+    </CheckboxRow>
   )
 }

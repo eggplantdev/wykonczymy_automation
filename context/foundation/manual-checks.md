@@ -1054,6 +1054,81 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Kosztorys → przegląd zgłoszenia prac: strzałka przy nagłówku grupy obraca się, a grupa ukrywa
       i pokazuje wiersze jak dotąd.
 
+## EX-1110 — ds-primitive-sweep — wspólne komponenty zamiast ręcznych kopii
+
+- [ ] Profil użytkownika z kasą, której saldo wychodzi na zero: „0,00 zł" w sekcji jego kas jest
+      bez koloru (nie czerwone), także w sumie.
+- [ ] Kosztorys → podsumowanie podwykonawców, pracownik rozliczony do zera: „Pozostało" pokazuje
+      „0,00 zł" bez koloru i bez dopisku „nadpłacone".
+- [ ] Pusty kosztorys → przycisk „Podsumowanie" jest wyszarzony, a po najechaniu pokazuje tooltip
+      „Kosztorys jest pusty — nie ma czego podsumować".
+- [ ] Logowanie: po kliknięciu „Zaloguj" kręci się tylko wskaźnik w przycisku („Logowanie...") —
+      bez drugiego, pełnoekranowego wskaźnika na środku strony.
+- [ ] Kosztorys → materiały, zestaw „Materiały rozliczane netto": „Razem" stoi pod kolumną
+      „Netto", kolumna „Brutto" w stopce pusta.
+- [ ] `/design`: każda sekcja się renderuje, w jasnym i ciemnym motywie; nowe warianty przycisków,
+      plakietki, panel, wysuwany panel boczny i kolor ostrzeżenia są widoczne i czytelne.
+- [ ] Dowolne okno potwierdzenia (np. usunięcie transakcji): tytuł tej samej wielkości co w zwykłym
+      oknie formularza; na telefonie przyciski jeden pod drugim, na komputerze obok siebie.
+- [ ] Okna formularzy (np. „Dodaj wydatek"): szerokość jak dotąd albo minimalnie większa, nic się
+      nie zawija ani nie ucina.
+- [ ] Lista transakcji → przycisk filtrów z aktywnym filtrem: zielona ramka jak dotąd; przycisk
+      czyszczenia filtrów czerwony obrys, po najechaniu wypełniony.
+- [ ] Menu boczne → licznik nieprzeczytanych: pełna pigułka z liczbą, „99+" powyżej 99, brak przy 0.
+- [ ] Kosztorys edytor → nagłówek etapu: po najechaniu tooltip „Opcje etapu", kliknięcie otwiera
+      menu, a po zamknięciu menu tooltip nie wyskakuje ponownie.
+- [ ] Pola liczbowe w siatce/tabeli (wpisywanie kwoty w wierszu): tekst nie jest ucięty, wyrównany
+      do prawej.
+- [ ] Telefon (390px, przez LAN) → menu: logo w lewym górnym rogu, X w prawym; za panelem
+      przyciemnione tło, Esc i kliknięcie w tło zamykają panel z animacją, fokus wraca na przycisk menu.
+- [ ] Telefon (390px) → konto pracownika z wypłatami do potwierdzenia i strona raportu pracownika
+      (link z „Udostępnij"): przyciski i pasek raportu mieszczą się w szerokości, nic się nie ucina.
+- [ ] „Rozlicz wypłaty": podczas wczytywania gradientowy wskaźnik; „Brak wypłat do rozliczenia."
+      wyśrodkowane; wysłanie z błędem pokazuje komunikat „formularz ma błędy".
+- [ ] „Anulowanie transakcji" i odrzucenie wypłaty: okno węższe, bez X w rogu; zamyka „Anuluj" i Esc.
+- [ ] „Nowy kosztorys": przycisk „Dodaj kosztorys" w stopce okna (na komputerze po prawej, nie na
+      całą szerokość), etykiety pól czytelne.
+- [ ] „Nowy wydatek" i „Wczytaj kartkę": przycisk wysyłki w stopce; kliknięcie etykiety otwiera
+      fokus na jej polu wyboru; „Ładowanie salda..." ma wskaźnik.
+- [ ] Kosztorys edytor → po kolei otwórz „Wersje kosztorysu", „Udostępnij", „Ustawienia podglądu",
+      „Wyczyść kosztorys", „Wczytaj z szablonu", „Dodaj sekcję z szablonu", „Zmień kolejność",
+      „Podział etapu": każde okno ma sensowną szerokość, nic się nie zawija ani nie ucina.
+- [ ] Kosztorys edytor → „Podział etapu": „Główny" wybiera się jak opcję (tylko jeden naraz).
+- [ ] Kosztorys edytor → „Zgłoszenia prac": przełącznik „Wg daty / Wg pracownika" działa jako
+      jeden segmentowy przełącznik; pusta lista pokazuje wyśrodkowany komunikat.
+- [ ] Kosztorys → „Porównaj z arkuszem", „Pobierz z arkusza", „Stawki", „Raport": ostrzeżenia
+      bursztynowe, różnice czerwone, zgodności zielone — czytelne w jasnym i ciemnym motywie;
+      linki „komórka X" działają.
+- [ ] „Dodaj pracę z katalogu" / „Zamień pracę" bez wybranej sekcji przy zapisie: pole sekcji z
+      czerwoną ramką jak inne pola formularza.
+- [ ] „Manual Wykończymy", „Synchronizacja wydatków inwestycyjnych", „Sprawdź faktury Telmak",
+      „Załączniki" w zgłoszeniach: okna się otwierają, wskaźnik ładowania gradientowy, treść mieści się.
+- [ ] Zgłoszenia → „Dodaj" (nowa inwestycja ze zgłoszenia z plikami): odstęp między paskiem plików
+      a formularzem jak w innych oknach — bez dużej przerwy.
+- [ ] Flota i sprzęt: daty po terminie bursztynowe; po najechaniu na plakietkę alertu floty i na
+      saldo OpenRouter pokazuje się dymek (nie systemowy podpis przeglądarki).
+- [ ] Filtry listy: chip aktywnego filtra ma X, który go usuwa; po najechaniu na przyciski filtrów
+      dymek z opisem.
+- [ ] Logowanie, „Nie pamiętasz hasła" i reset hasła: błędny login/hasło pokazuje czerwony
+      komunikat pod formularzem jak dotąd.
+- [ ] Telefon (390px, przez LAN), konto kierownika → menu → „Manual Wykończymy": menu się zamyka,
+      a okno Manuala zostaje otwarte z wczytanymi wpisami.
+- [ ] Telefon → otwórz menu i obróć telefon poziomo (szerokość ≥ 768px): nie zostaje przyciemnione
+      tło nad stroną.
+- [ ] Kosztorys → „Pobierz z arkusza" → „Rozliczenie i wykonawca etapów": pole wyboru wykonawcy ma tę
+      samą wysokość co pole rozliczenia obok.
+- [ ] Kosztorys → „Zgłoszenia prac" → przegląd zgłoszenia: nagłówki grup wielkimi literami; dopisek
+      pod polem ilości wyśrodkowany.
+- [ ] Kosztorys → podsumowanie: kliknij uchwyt panelu, żeby go zwinąć, potem rozwiń — dymek uchwytu
+      nie pojawia się sam.
+- [ ] „Dodaj kosztorys" (link do arkusza), „Podłącz arkusz do inwestycji", „Synchronizuj wydatki
+      inwestycyjne", „Dodaj do inwestycji" w załącznikach zgłoszenia i przycisk potwierdzenia w oknach
+      „Anuluj / Potwierdź": w trakcie wysyłki przycisk jest wyszarzony i kręci się w nim wskaźnik.
+- [ ] Komunikaty błędów pod formularzami (logowanie, „Rozlicz wypłaty", zamówienia): bez ikony
+      trójkąta jak dotąd; małe błędy przy polach (plik, lista odbiorców, „Zapisz szablon") z ikoną.
+- [ ] Plakietka z X (np. aktywny filtr, wybrany odbiorca): X ma ten sam rozmiar, po najechaniu
+      czerwienieje, kliknięcie usuwa.
+
 ## 2026-10-20 — worker-receipt-confirmation — potwierdzenie odbioru dla każdych pieniędzy przekazanych pracownikowi
 
 - [ ] Transfer między kasami z kasy managera do kasy pracownika: pracownik widzi go na swojej stronie

@@ -148,6 +148,7 @@ function WorkNoteCell({
   const close = () => setDialog(null)
   return (
     <>
+      {/* eslint-disable-next-line local/no-hand-rolled-ui -- the whole grid cell is the hit area */}
       <button
         type="button"
         className="size-full cursor-pointer text-left"

@@ -5,6 +5,7 @@ import { CheckIcon, ChevronDown } from 'lucide-react'
 
 import { comboboxCommit } from '@/components/ui/combobox-commit'
 import { Input } from '@/components/ui/input'
+import { SELECT_TRIGGER_CLASS } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils/cn'
 
@@ -17,6 +18,8 @@ type ComboboxPropsT = {
   hideChevron?: boolean
   disabled?: boolean
   modal?: boolean
+  variant?: 'bare' | 'field'
+  invalid?: boolean
   className?: string
   contentClassName?: string
 }
@@ -34,6 +37,8 @@ export function Combobox({
   hideChevron,
   disabled,
   modal = false,
+  variant = 'bare',
+  invalid,
   className,
   contentClassName,
 }: ComboboxPropsT) {
@@ -111,8 +116,13 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
+          aria-invalid={invalid}
+          data-size={variant === 'field' ? 'default' : undefined}
+          data-placeholder={variant === 'field' && !value ? '' : undefined}
           className={cn(
-            'flex items-center justify-between gap-1 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50',
+            variant === 'field'
+              ? SELECT_TRIGGER_CLASS
+              : 'flex items-center justify-between gap-1 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50',
             className,
           )}
           aria-label={placeholder}

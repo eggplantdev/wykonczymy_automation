@@ -1,6 +1,7 @@
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
 import { useTranslation } from '@/hooks/use-translation'
 import { translateUnit } from '@/lib/kosztorys/worker-view/translate-unit'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 
 export function DraftExtraWorks({ extras }: { extras: ExtraWorkT[] }) {
   const { t, locale } = useTranslation('report')
@@ -8,7 +9,7 @@ export function DraftExtraWorks({ extras }: { extras: ExtraWorkT[] }) {
   if (listed.length === 0) return null
   return (
     <section className="flex flex-col gap-2 px-4 pt-6">
-      <h2 className="text-sm font-semibold">{t('extrasTitle')}</h2>
+      <h2 className={SUBSECTION_TITLE_CLASS}>{t('extrasTitle')}</h2>
       <ul className="divide-border flex flex-col divide-y text-sm">
         {listed.map((extra) => (
           <li key={extra.key} className="flex items-center justify-between gap-4 py-2">

@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment } from 'react'
-import Link from 'next/link'
+import { OptionalLink } from '@/components/ui/optional-link'
 import { DEPOSIT_PLANE_LABELS, DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
@@ -47,16 +47,15 @@ export function DepositsTable({
   const flagsOffPlane = !preview
   const dateCell = (row: DepositTransactionRowT) => (
     <SummaryLabelCell className="tabular-nums">
-      {preview ? (
-        formatPLDate(row.date)
-      ) : (
-        <Link
-          href={investmentTransfersHref(investmentId, { types: DEPOSIT_TYPES, id: row.id })}
-          className="hover:underline"
-        >
-          {formatPLDate(row.date)}
-        </Link>
-      )}
+      <OptionalLink
+        href={
+          preview
+            ? null
+            : investmentTransfersHref(investmentId, { types: DEPOSIT_TYPES, id: row.id })
+        }
+      >
+        {formatPLDate(row.date)}
+      </OptionalLink>
     </SummaryLabelCell>
   )
 

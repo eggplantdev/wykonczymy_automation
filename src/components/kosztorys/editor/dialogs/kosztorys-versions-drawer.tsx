@@ -4,6 +4,10 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { EmptyState } from '@/components/ui/empty-state'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
+import { Panel } from '@/components/ui/panel'
+import { EYEBROW_CLASS } from '@/components/ui/section-header'
 import { useSnapshotList } from '@/components/kosztorys/editor/hooks/use-snapshot-list'
 import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import type { SnapshotListItemT } from '@/lib/queries/snapshot-list'
@@ -80,19 +84,17 @@ export function KosztorysVersionsDrawer({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-dialog-sm">
         <DialogHeader title="Wersje" description="Zapisane i automatyczne punkty przywracania." />
         {snapshots === null ? (
-          <p className="text-muted-foreground text-sm">Wczytywanie…</p>
+          <InlineLoading label="Wczytywanie…" />
         ) : snapshots.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Brak zapisanych wersji.</p>
+          <EmptyState size="inline" title="Brak zapisanych wersji." />
         ) : (
           <div className="flex flex-col gap-4 overflow-y-auto">
             {named.length > 0 && (
               <section className="flex flex-col gap-1">
-                <h3 className="text-muted-foreground text-xs font-medium uppercase">
-                  Nazwane wersje
-                </h3>
+                <h3 className={EYEBROW_CLASS}>Nazwane wersje</h3>
                 {named.map((s) => (
                   <SnapshotRow
                     key={s.id}
@@ -107,9 +109,7 @@ export function KosztorysVersionsDrawer({
             )}
             {auto.length > 0 && (
               <section className="flex flex-col gap-1">
-                <h3 className="text-muted-foreground text-xs font-medium uppercase">
-                  Historia automatyczna
-                </h3>
+                <h3 className={EYEBROW_CLASS}>Historia automatyczna</h3>
                 {auto.map((s) => (
                   <SnapshotRow
                     key={s.id}
@@ -154,7 +154,7 @@ function SnapshotRow({
   onRestore: () => void
 }) {
   return (
-    <div className="border-border flex items-center justify-between gap-2 rounded-md border px-3 py-2">
+    <Panel className="flex items-center justify-between gap-2 px-3 py-2">
       <div className="min-w-0">
         <div
           className={`truncate text-sm ${primary ? 'text-foreground font-medium' : 'text-muted-foreground'}`}
@@ -174,6 +174,6 @@ function SnapshotRow({
       <Button size="sm" variant="outline" onClick={onRestore} disabled={restoring}>
         {restoring ? 'Przywracanie…' : 'Przywróć'}
       </Button>
-    </div>
+    </Panel>
   )
 }

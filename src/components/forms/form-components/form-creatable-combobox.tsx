@@ -22,7 +22,9 @@ export function FormCreatableCombobox({
         allowCustom
         disabled={disabled}
         modal
-        className="border-input bg-background h-9 w-full rounded-md border px-3"
+        variant="field"
+        invalid={field.state.meta.errors.length > 0}
+        className="w-full"
         contentClassName="w-(--radix-popover-trigger-width)"
         placeholder={placeholder}
       />

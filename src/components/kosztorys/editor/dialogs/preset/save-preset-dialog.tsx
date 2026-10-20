@@ -103,7 +103,7 @@ export function SavePresetDialog() {
       )}
 
       {mode === 'overwrite' && (
-        <Description tone="error" size="xs">
+        <Description tone="error" withIcon size="xs">
           Nadpisanie zastąpi zawartość wybranego szablonu. Poprzednią przywrócisz z jego „Wersji”.
         </Description>
       )}

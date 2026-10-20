@@ -1,6 +1,6 @@
 import { type VatPlaneT } from '@/lib/constants/transfers'
 import { offPlaneDepositSentence } from '@/lib/kosztorys/off-plane-deposit-copy'
-import { AlertIcon } from '@/components/ui/alert-icon'
+import { Description } from '@/components/ui/description'
 import type { DepositTransactionRowT } from '@/types/transfers'
 
 export function SettlementPlaneWarning({
@@ -13,12 +13,14 @@ export function SettlementPlaneWarning({
   const atStake = rows.reduce((sum, row) => sum + row.amount, 0)
 
   return (
-    <p
+    <Description
+      tone="error"
+      withIcon
+      size="xs"
       role="alert"
-      className="text-destructive flex max-w-lg items-start gap-2 text-xs font-semibold"
+      className="max-w-lg gap-2 font-semibold"
     >
-      <AlertIcon className="mt-0.5 size-3.5" />
-      <span>{offPlaneDepositSentence({ count: rows.length, amount: atStake }, mode)}</span>
-    </p>
+      {offPlaneDepositSentence({ count: rows.length, amount: atStake }, mode)}
+    </Description>
   )
 }

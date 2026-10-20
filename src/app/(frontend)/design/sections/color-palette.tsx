@@ -18,6 +18,8 @@ const SEMANTIC_COLORS = [
   { name: 'accent', className: 'bg-accent' },
   { name: 'accent-foreground', className: 'bg-accent-foreground' },
   { name: 'destructive', className: 'bg-destructive' },
+  { name: 'warning', className: 'bg-warning' },
+  { name: 'warning-foreground', className: 'bg-warning-foreground' },
   { name: 'border', className: 'bg-border' },
   { name: 'input', className: 'bg-input' },
   { name: 'ring', className: 'bg-ring' },
@@ -32,6 +34,7 @@ const TEXT_PAIRS = [
   { name: 'muted', className: 'bg-muted text-muted-foreground' },
   { name: 'accent', className: 'bg-accent text-accent-foreground' },
   { name: 'destructive', className: 'bg-background text-destructive' },
+  { name: 'warning', className: 'bg-warning text-warning-foreground' },
 ] as const
 
 const CHART_COLORS = [

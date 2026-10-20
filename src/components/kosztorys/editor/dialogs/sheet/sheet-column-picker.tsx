@@ -57,8 +57,7 @@ export function SheetColumnPicker({ investmentId, missing, pointed, candidates, 
           Kolumnę „{FIELD_LABELS[field]}" wskazałeś ręcznie.{' '}
           <Button
             variant="link"
-            size="sm"
-            className="h-auto p-0 text-xs"
+            size="inlineXs"
             disabled={pending}
             onClick={() => run(() => clearSheetColumnMappingAction(investmentId, field))}
           >

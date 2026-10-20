@@ -2,12 +2,20 @@
 
 import { useState, type ComponentProps } from 'react'
 import { pl } from 'date-fns/locale'
+import { Calendar1, CalendarDays } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { DecimalInput } from '@/components/ui/decimal-input'
 import { DecimalField } from '@/components/ui/decimal-field'
 import { Label } from '@/components/ui/label'
-import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from '@/components/ui/field'
 import { Checkbox, type CheckboxVariantT } from '@/components/ui/checkbox'
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 import {
@@ -147,6 +155,20 @@ export function FieldsSection() {
           <Input id="field-error" aria-invalid />
           <FieldError>To pole jest wymagane</FieldError>
         </Field>
+        <Field gap="md">
+          <Label size="xs" tone="muted" htmlFor="field-gap">
+            Label xs muted, Field gap=md
+          </Label>
+          <Input id="field-gap" placeholder="Wartość" />
+        </Field>
+        <FieldSet>
+          <FieldLegend variant="label" tone="muted">
+            FieldLegend muted
+          </FieldLegend>
+          <CheckboxRow checked={isChecked} onCheckedChange={setIsChecked} variant="plain">
+            Opcja
+          </CheckboxRow>
+        </FieldSet>
       </ShowcaseRow>
       <ShowcaseRow title="Checkbox — wariant × stan" source="ui/checkbox.tsx, ui/checkbox-row.tsx">
         {CHECKBOX_VARIANTS.map((variant) => (
@@ -169,6 +191,9 @@ export function FieldsSection() {
         </CheckboxRow>
         <CheckboxRow checked={isChecked} onCheckedChange={setIsChecked} variant="ai">
           CheckboxRow ai
+        </CheckboxRow>
+        <CheckboxRow checked={isChecked} onCheckedChange={setIsChecked} variant="plain">
+          CheckboxRow plain
         </CheckboxRow>
       </ShowcaseRow>
       <ShowcaseRow
@@ -238,11 +263,33 @@ export function FieldsSection() {
           placeholder="Błąd"
           isInvalid
         />
+        <SearchSelect
+          value={searchValue}
+          onChange={setSearchValue}
+          items={SEARCH_ITEMS}
+          placeholder="size=sm"
+          size="sm"
+        />
         <Combobox
           value={comboboxValue}
           onChange={setComboboxValue}
           options={COMBOBOX_OPTIONS}
           allowCustom
+        />
+        <Combobox
+          variant="field"
+          value={comboboxValue}
+          onChange={setComboboxValue}
+          options={COMBOBOX_OPTIONS}
+          allowCustom
+        />
+        <Combobox
+          variant="field"
+          invalid
+          value=""
+          placeholder="Błąd"
+          onChange={setComboboxValue}
+          options={COMBOBOX_OPTIONS}
         />
       </ShowcaseRow>
       <ShowcaseRow
@@ -331,6 +378,23 @@ export function FieldsSection() {
           onChange={setPeriod}
           disabled
           aria-label="disabled"
+        />
+        <ToggleGroup
+          variant="muted"
+          options={[...TOGGLE_OPTIONS]}
+          value={period}
+          onChange={setPeriod}
+          aria-label="muted"
+        />
+        <ToggleGroup
+          variant="muted"
+          options={[
+            { value: 'week', label: 'Tydzień', icon: <CalendarDays className="size-4" /> },
+            { value: 'month', label: 'Miesiąc', icon: <Calendar1 className="size-4" /> },
+          ]}
+          value={period}
+          onChange={setPeriod}
+          aria-label="icon"
         />
       </ShowcaseRow>
     </ShowcaseSection>

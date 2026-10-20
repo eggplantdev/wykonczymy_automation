@@ -4,7 +4,14 @@ import { type ReactNode, useState, useTransition } from 'react'
 import { Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { copyToClipboard } from '@/lib/utils/copy-to-clipboard'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
@@ -53,7 +60,7 @@ export function AddSheetDialog({ trigger }: PropsT) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger ?? <Button size="sm">Dodaj kosztorys</Button>}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-dialog-sm">
         <DialogHeader
           title="Nowy kosztorys"
           description="Powiąż istniejący arkusz Google. Inwestycję podepniesz później z listy."
@@ -78,9 +85,9 @@ export function AddSheetDialog({ trigger }: PropsT) {
                 </code>
                 <Button
                   type="button"
-                  size="icon"
+                  size="iconSm"
                   variant="outline"
-                  className="size-7 shrink-0"
+                  className="shrink-0"
                   onClick={copyEmail}
                   aria-label="Kopiuj adres konta usługi"
                 >
@@ -89,10 +96,8 @@ export function AddSheetDialog({ trigger }: PropsT) {
               </div>
             </div>
           )}
-          <div className="space-y-2">
-            <label className="text-xs font-medium" htmlFor="kosztorys-link">
-              Link do arkusza
-            </label>
+          <Field gap="md">
+            <FieldLabel htmlFor="kosztorys-link">Link do arkusza</FieldLabel>
             <Input
               id="kosztorys-link"
               value={link}
@@ -100,11 +105,9 @@ export function AddSheetDialog({ trigger }: PropsT) {
               placeholder="https://docs.google.com/spreadsheets/d/…"
               disabled={pending}
             />
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-medium" htmlFor="kosztorys-name">
-              Nazwa (opcjonalnie)
-            </label>
+          </Field>
+          <Field gap="md">
+            <FieldLabel htmlFor="kosztorys-name">Nazwa (opcjonalnie)</FieldLabel>
             <Input
               id="kosztorys-name"
               value={name}
@@ -112,11 +115,14 @@ export function AddSheetDialog({ trigger }: PropsT) {
               placeholder="Domyślnie: tytuł arkusza"
               disabled={pending}
             />
-          </div>
-          <Button onClick={onSubmit} disabled={pending || !link.trim()} className="w-full">
+          </Field>
+        </div>
+
+        <DialogFooter>
+          <Button onClick={onSubmit} pending={pending} disabled={!link.trim()}>
             {pending ? 'Sprawdzam…' : 'Dodaj kosztorys'}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { TextLink } from '@/components/ui/text-link'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { MediaStrip } from '@/components/media/media-strip'
@@ -46,9 +47,9 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
 
   if (lead.investmentId !== null) {
     return (
-      <Link href={`/inwestycje/${lead.investmentId}`} className="text-primary hover:underline">
-        {lead.investmentName ?? 'Inwestycja'}
-      </Link>
+      <TextLink asChild>
+        <Link href={`/inwestycje/${lead.investmentId}`}>{lead.investmentName ?? 'Inwestycja'}</Link>
+      </TextLink>
     )
   }
 
@@ -88,7 +89,7 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
       {(onSubmitSuccess, keepOpen) => (
         <>
           {visibleFiles.length > 0 && (
-            <section className="mb-6 space-y-2">
+            <section className="mb-2 space-y-2">
               <p className="text-muted-foreground text-sm">
                 Przejdą do inwestycji: {chosenIds.length} z {visibleFiles.length}
               </p>

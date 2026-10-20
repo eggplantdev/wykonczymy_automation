@@ -1,4 +1,5 @@
 import { Fragment } from 'react'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
@@ -38,7 +39,7 @@ export function VehicleCosts({
   return (
     <section className="flex flex-col gap-6">
       <div>
-        <h2 className="mb-2 text-sm font-semibold">Podsumowanie</h2>
+        <h2 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>Podsumowanie</h2>
 
         <SummaryTable cols={COLS} className="w-fit">
           <SummaryHeaderCell variant="label">Rodzaj</SummaryHeaderCell>
@@ -60,7 +61,7 @@ export function VehicleCosts({
       </div>
 
       <div>
-        <h3 className="mb-2 text-sm font-semibold">Szczegóły</h3>
+        <h3 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>Szczegóły</h3>
 
         <SummaryTable cols={COLS} className="w-fit">
           <SummaryHeaderCell variant="label">Data</SummaryHeaderCell>

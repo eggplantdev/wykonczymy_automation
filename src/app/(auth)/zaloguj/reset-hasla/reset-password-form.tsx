@@ -7,6 +7,7 @@ import { resetPasswordAction } from '@/lib/actions/auth'
 import { settleAction } from '@/lib/utils/settle-action'
 import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
 import { AuthSuccessCard } from '@/components/ui/auth-success-card'
+import { Description } from '@/components/ui/description'
 import { passwordSchema, PASSWORD_MISMATCH_MESSAGE } from '@/lib/schemas/password'
 
 type FormStateT = 'idle' | 'pending' | 'success'
@@ -52,9 +53,9 @@ export function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <p className="text-destructive text-center text-sm">
+      <Description tone="error" className="justify-center text-center">
         Brak tokenu resetowania. Sprawdź link z wiadomości email.
-      </p>
+      </Description>
     )
   }
 
@@ -98,7 +99,7 @@ export function ResetPasswordForm() {
         )}
       </form.AppField>
 
-      {error && <p className="text-destructive text-sm">{error}</p>}
+      {error && <Description tone="error">{error}</Description>}
 
       <AuthSubmitButton
         isPending={isPending}

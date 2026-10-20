@@ -10,7 +10,6 @@ import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { LineItemInvoiceField } from '@/components/forms/expense-form/line-item-invoice-field'
-import { Label } from '@/components/ui/label'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { billsNetAmount } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
@@ -192,12 +191,7 @@ export function LineItemsField({
                 />
               )}
               {(failedIds?.has(item.id) || receiptGrouping?.incompleteIds.has(item.id)) && (
-                <Description
-                  tone="error"
-                  size="xs"
-                  withIcon={false}
-                  className="mt-8 shrink-0 whitespace-nowrap"
-                >
+                <Description tone="error" size="xs" className="mt-8 shrink-0 whitespace-nowrap">
                   nie odczytano
                 </Description>
               )}
@@ -242,7 +236,7 @@ export function LineItemsField({
                 />
                 {receiptGrouping?.statusOf(item.id) === 'pending' &&
                   receiptGrouping.isAcceptBlocked?.(item.id) && (
-                    <Description tone="error" size="xs">
+                    <Description tone="error" withIcon size="xs">
                       Nie udało się pobrać zdjęcia paragonu — dodaj je w polu „FV”, żeby go przyjąć.
                     </Description>
                   )}
@@ -424,14 +418,10 @@ export function LineItemsField({
                       variant="ai"
                       size="sm"
                       onClick={() => scanInputRef.current?.click()}
-                      disabled={isGenerating || isIngesting}
+                      pending={isGenerating || isIngesting}
                       {...dropZoneProps(lineItemsField)}
                     >
-                      {isGenerating || isIngesting ? (
-                        <GradientSpinner />
-                      ) : (
-                        <WandSparkles className="text-neon-cyan" />
-                      )}
+                      <WandSparkles className="text-neon-cyan" />
                       <span className="text-neon-cyan font-semibold">Wygeneruj z paragonów</span>
                     </Button>
                     {lineItemsField.state.value.some(
@@ -459,7 +449,9 @@ export function LineItemsField({
                 )}
               </>
             )}
-            {total !== undefined && <Label>Suma: {formatPLN(total)}</Label>}
+            {total !== undefined && (
+              <p className="text-sm leading-none font-medium">Suma: {formatPLN(total)}</p>
+            )}
           </div>
         )
       }}

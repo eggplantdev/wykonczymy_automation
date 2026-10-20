@@ -19,7 +19,7 @@ export function SubmitPill({ label }: SubmitPillPropsT) {
       aria-live="polite"
       className="gradient-border neon-glow-duo fixed bottom-6 left-1/2 z-100000000 flex -translate-x-1/2 items-center gap-3 rounded-full px-5 py-3 text-sm font-medium"
     >
-      <GradientSpinner />
+      <GradientSpinner role="presentation" aria-hidden />
       {label}
     </div>,
     document.body,

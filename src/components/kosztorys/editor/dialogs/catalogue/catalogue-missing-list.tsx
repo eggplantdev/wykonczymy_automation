@@ -51,8 +51,8 @@ export function CatalogueMissingList({
             {!readOnly && (
               <Button
                 variant="link"
-                size="xs"
-                className="h-auto shrink-0 p-0"
+                size="inlineXs"
+                className="shrink-0"
                 onClick={() => onAddToCatalogue(row.itemId)}
               >
                 Dodaj do katalogu
@@ -74,8 +74,9 @@ export function CatalogueMissingList({
             {!readOnly && (
               <Button
                 variant="ghost"
-                size="xs"
-                className="text-muted-foreground h-auto w-full justify-start gap-2 px-1 py-1 font-normal"
+                size="row"
+                align="start"
+                className="text-muted-foreground"
                 onClick={() =>
                   setSearchingItemId((prev) => (prev === row.itemId ? null : row.itemId))
                 }

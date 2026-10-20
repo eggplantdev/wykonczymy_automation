@@ -1,5 +1,5 @@
 import { faceValue, type MoneyPairT } from '@/lib/kosztorys/summary-economics'
-import { roundToCents } from '@/lib/utils/round-to-cents'
+import { isNegativeMoney, roundToCents } from '@/lib/utils/round-to-cents'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { SettlementRowT } from '@/components/kosztorys/summary/tables/summary-totals-table'
 
@@ -51,7 +51,7 @@ export function buildSettlementGroups({
 function showsNegative(amountDue: MoneyPairT, axis: MoneyAxisT): boolean {
   const shows = axisShows(axis)
   return (
-    (shows.net && roundToCents(amountDue.net) < 0) ||
-    (shows.gross && roundToCents(amountDue.gross) < 0)
+    (shows.net && isNegativeMoney(amountDue.net)) ||
+    (shows.gross && isNegativeMoney(amountDue.gross))
   )
 }

@@ -4,6 +4,7 @@ import { Fragment } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { Description } from '@/components/ui/description'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { SelectItem } from '@/components/ui/select'
 import {
   SUMMARY_LABEL_COL,
@@ -162,9 +163,9 @@ function AcceptanceProtocolBody({
       </div>
 
       <section className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium">Zakres prac ({scope.length})</h3>
+        <h3 className={SUBSECTION_TITLE_CLASS}>Zakres prac ({scope.length})</h3>
         {scope.length === 0 ? (
-          <Description tone="error">
+          <Description tone="error" withIcon>
             Żadna pozycja nie ma jeszcze wykonanej pracy — uzupełnij etapy w kosztorysie.
           </Description>
         ) : (
@@ -184,7 +185,7 @@ function AcceptanceProtocolBody({
       </section>
 
       <section className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium">Rozliczenie (netto)</h3>
+        <h3 className={SUBSECTION_TITLE_CLASS}>Rozliczenie (netto)</h3>
         <SummaryTable cols={`${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`} className="w-fit">
           {protocolSettlementLines(settlement).map(({ label, amount, emphasis }) => {
             const weight = emphasis === 'total' ? 'bold' : emphasis ? 'medium' : undefined

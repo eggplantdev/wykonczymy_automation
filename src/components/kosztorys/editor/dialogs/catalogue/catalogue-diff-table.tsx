@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { CheckCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox, checkedState } from '@/components/ui/checkbox'
+import { ReportTable } from '@/components/kosztorys/editor/dialogs/report/sheet-report-parts'
 import { clientShareCeilingLabel, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
 import { formatRate, unitLabel } from '@/lib/kosztorys/format'
 import { formatPLN } from '@/lib/utils/format-currency'
@@ -81,41 +82,36 @@ export function CatalogueDiffTable({
   return (
     <div className="space-y-2">
       {!readOnly && (
-        <Button variant="link" size="xs" className="h-auto p-0" onClick={toggleAll}>
+        <Button variant="link" size="inlineXs" className="gap-1" onClick={toggleAll}>
           <CheckCheck />
           {allSelected ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
         </Button>
       )}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm max-sm:text-xs">
-          <thead>
-            <tr className="text-muted-foreground text-xs">
-              <th className="w-6 py-1 font-normal" />
-              <th className="py-1 text-left font-normal">Liczba</th>
-              <th className="py-1 pl-3 text-right font-normal">Kosztorys</th>
-              <th className="py-1 pl-3 text-right font-normal">Katalog</th>
-              <th className="py-1 pl-3 text-right font-normal">Różnica</th>
-              <th className="py-1 font-normal" />
-            </tr>
-          </thead>
-          <tbody>
-            {diffs.map((diff) => {
-              const fields = selection.get(diff.itemId)
-              return (
-                <DiffGroup
-                  key={diff.itemId}
-                  diff={diff}
-                  fields={fields}
-                  readOnly={readOnly}
-                  onToggleItem={() => toggleItem(diff)}
-                  onToggleFigure={(field) => toggleFigure(diff.itemId, field)}
-                  onEditInCatalogue={() => onEditInCatalogue(diff.itemId)}
-                />
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+      <ReportTable
+        headers={[
+          { content: null, className: 'w-6' },
+          { content: 'Liczba', className: 'pl-0 text-left' },
+          'Kosztorys',
+          'Katalog',
+          'Różnica',
+          '',
+        ]}
+      >
+        {diffs.map((diff) => {
+          const fields = selection.get(diff.itemId)
+          return (
+            <DiffGroup
+              key={diff.itemId}
+              diff={diff}
+              fields={fields}
+              readOnly={readOnly}
+              onToggleItem={() => toggleItem(diff)}
+              onToggleFigure={(field) => toggleFigure(diff.itemId, field)}
+              onEditInCatalogue={() => onEditInCatalogue(diff.itemId)}
+            />
+          )
+        })}
+      </ReportTable>
       {!readOnly && (
         <Button size="sm" disabled={selectedCount === 0 || saving} onClick={apply}>
           Aktualizuj kosztorys ({selectedCount})
@@ -162,7 +158,7 @@ function DiffGroup({
         </td>
         <td className="py-1 pl-3 text-right whitespace-nowrap">
           {!readOnly && (
-            <Button variant="link" size="xs" className="h-auto p-0" onClick={onEditInCatalogue}>
+            <Button variant="link" size="inlineXs" onClick={onEditInCatalogue}>
               Edytuj w katalogu
             </Button>
           )}
@@ -238,7 +234,7 @@ function FigureRow({
         className={`py-1 pl-3 text-right tabular-nums ${
           figure.kosztorysSource === 'auto' || figure.catalogueSource === 'auto'
             ? 'text-muted-foreground'
-            : 'text-amber-600'
+            : 'text-warning'
         }`}
       >
         {formatPLN(figure.delta)}

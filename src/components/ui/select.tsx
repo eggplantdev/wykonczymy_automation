@@ -19,6 +19,9 @@ function SelectValue({ ...props }: React.ComponentProps<typeof SelectPrimitive.V
   return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
 
+export const SELECT_TRIGGER_CLASS =
+  'border-input data-placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 aria-invalid:border-destructive bg-background text-foreground flex w-full items-center justify-between gap-2 rounded-md border px-3 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-2 data-[size=default]:h-9 data-[size=sm]:h-8 data-[size=xs]:h-6 data-[size=xs]:px-2 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2'
+
 function SelectTrigger({
   className,
   size = 'default',
@@ -31,10 +34,7 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
-      className={cn(
-        'border-input data-[placeholder]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 aria-invalid:border-destructive bg-background text-foreground flex w-full items-center justify-between gap-2 rounded-md border px-3 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-2 data-[size=default]:h-9 data-[size=sm]:h-8 data-[size=xs]:h-6 data-[size=xs]:px-2 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2',
-        className,
-      )}
+      className={cn(SELECT_TRIGGER_CLASS, className)}
       {...props}
     >
       {children}
@@ -47,16 +47,17 @@ function SelectTrigger({
 
 function SelectButtonTrigger({
   className,
+  size = 'sm',
   children,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
+}: React.ComponentProps<typeof SelectPrimitive.Trigger> & { size?: 'xs' | 'sm' }) {
   return (
     <SelectPrimitive.Trigger data-slot="select-trigger" asChild {...props}>
       {/* w-fit: this one is often dropped into a stacked flex column, where the default `stretch`
           would blow it to the column's width. */}
       <Button
         variant="outline"
-        size="sm"
+        size={size}
         className={cn(
           'w-fit *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2',
           className,

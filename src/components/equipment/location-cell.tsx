@@ -22,6 +22,7 @@ export function LocationCell({ location, locatedAt, live, axis }: LocationCellPr
 
   if (location.kind === 'unknown') {
     return (
+      // eslint-disable-next-line local/no-hand-rolled-ui -- table-cell status colour, not an error message
       <span className={cn('text-xs', live ? 'text-destructive' : 'text-muted-foreground')}>
         {live ? 'Nie wiadomo gdzie' : '—'}
       </span>

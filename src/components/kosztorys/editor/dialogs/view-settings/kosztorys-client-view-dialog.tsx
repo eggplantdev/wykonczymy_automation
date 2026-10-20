@@ -59,7 +59,7 @@ export function KosztorysClientViewDialog() {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-dialog-sm">
         <DialogHeader
           title="Ustawienia podglądu inwestora"
           description="Zaznacz, które kolumny i pozycje inwestor widzi w rozpisce. Ceny podwykonawców nie pojawiają się w niej nigdy."

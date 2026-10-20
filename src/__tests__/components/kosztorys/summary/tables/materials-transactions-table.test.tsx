@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
 import { MaterialsTransactionsTable } from '@/components/kosztorys/summary/tables/materials-transactions-table'
@@ -64,5 +65,19 @@ describe('MaterialsTransactionsTable — the manager keeps the dataset switch', 
     renderList(false)
     expect(screen.getByRole('group', { name: 'Zestaw wydatków' })).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: /Materiały rozliczane netto/ })).toBeInTheDocument()
+  })
+
+  it('the netto set totals Σ netto under the Netto column, Brutto left blank', async () => {
+    renderList(false)
+    await userEvent.click(screen.getByRole('radio', { name: /Materiały rozliczane netto/ }))
+
+    const headers = screen.getAllByRole('columnheader').map((cell) => cell.textContent)
+    const footerCells = [...screen.getByText('Razem').closest('tr')!.children]
+    const netIndex = headers.findIndex((text) => text?.includes('Netto'))
+    const totalIndex = footerCells.findIndex((cell) => cell.textContent === formatNet(1000))
+    const labelSpan = Number(footerCells[0].getAttribute('colspan') ?? 1)
+
+    expect(totalIndex - 1 + labelSpan).toBe(netIndex)
+    expect(footerCells[totalIndex + 1]?.textContent).toBe('')
   })
 })

@@ -1,4 +1,5 @@
 import { Fragment } from 'react'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { Paperclip } from 'lucide-react'
 import {
   SUMMARY_LABEL_COL,
@@ -101,7 +102,7 @@ export function InspectionHistory({
     <div className="flex flex-col gap-6">
       {INSPECTION_TYPES.map((type) => (
         <section key={type}>
-          <h2 className="mb-2 text-sm font-semibold">{INSPECTION_TYPE_LABELS[type].pl}</h2>
+          <h2 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>{INSPECTION_TYPE_LABELS[type].pl}</h2>
 
           {historyByType[type].length === 0 ? (
             <p className="text-muted-foreground text-xs">

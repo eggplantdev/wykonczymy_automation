@@ -1,5 +1,6 @@
 'use client'
 
+import { Description } from '@/components/ui/description'
 import { SheetColumnPicker } from '@/components/kosztorys/editor/dialogs/sheet/sheet-column-picker'
 import { requiredFields } from '@/components/kosztorys/editor/dialogs/sheet/sheet-column-picker-options'
 import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/report/sheet-report-block'
@@ -34,9 +35,9 @@ export function SheetProblemsBlock({
       }
     >
       {problems.map((problem) => (
-        <p key={problem} className="text-destructive">
+        <Description key={problem} tone="error">
           {problem}
-        </p>
+        </Description>
       ))}
       <SheetColumnPicker
         investmentId={investmentId}

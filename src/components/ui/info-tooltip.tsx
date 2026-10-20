@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react'
 import { Info } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { TextButton } from '@/components/ui/text-link'
 import { HintTooltip } from '@/components/ui/tooltip'
 
 type InfoTooltipPropsT = {
@@ -25,18 +26,16 @@ export function InfoTooltip({
       onOpenChange={setOpen}
       className={cn('align-middle', className)}
     >
-      <button
-        type="button"
+      <TextButton
         aria-label={label}
         // Radix's Trigger — the element HintTooltip wraps this button in — closes the tooltip on pointerdown, and its composeEventHandlers skips that once the event is `defaultPrevented`.
         onPointerDown={(event) => {
           event.preventDefault()
           setOpen((wasOpen) => !wasOpen)
         }}
-        className="text-muted-foreground hover:text-foreground inline-flex"
       >
         <Info className="size-3.5" />
-      </button>
+      </TextButton>
     </HintTooltip>
   )
 }

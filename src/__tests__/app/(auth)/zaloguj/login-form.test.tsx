@@ -22,3 +22,18 @@ describe('LoginForm — a request that never completed', () => {
     expect(screen.getByRole('button', { name: 'Zaloguj' })).toBeEnabled()
   })
 })
+
+describe('LoginForm — while signing in', () => {
+  it('shows a single loading indicator', async () => {
+    vi.mocked(loginAction).mockReturnValue(new Promise(() => {}))
+    const user = userEvent.setup()
+    render(<LoginForm />)
+
+    await user.type(screen.getByLabelText('Email'), 'jan@example.test')
+    await user.type(screen.getByLabelText('Hasło'), 'tajne-haslo')
+    await user.click(screen.getByRole('button', { name: 'Zaloguj' }))
+
+    expect(await screen.findByText('Logowanie...')).toBeInTheDocument()
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+  })
+})

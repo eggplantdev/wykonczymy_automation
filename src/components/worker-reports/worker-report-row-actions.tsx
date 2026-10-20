@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Eye, Loader2 } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { useTranslation } from '@/hooks/use-translation'
@@ -27,8 +27,8 @@ export function WorkerReportRowActions({
   return (
     <>
       <RowActionButton
-        icon={isLoading ? Loader2 : Eye}
-        className={isLoading ? '[&_svg]:animate-spin' : undefined}
+        icon={Eye}
+        pending={isLoading}
         label={t('preview')}
         disabled={isDisabled}
         onClick={() => onPreview(report.id)}

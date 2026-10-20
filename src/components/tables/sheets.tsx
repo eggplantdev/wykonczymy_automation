@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Link2, Plus } from 'lucide-react'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
@@ -83,9 +82,9 @@ export function getInvestmentWithoutSheetColumns() {
       cell: (info) => {
         const row = info.row.original
         return (
-          <Link href={`/inwestycje/${row.investmentId}`} className="font-medium hover:underline">
+          <OptionalLink href={`/inwestycje/${row.investmentId}`} className="font-medium">
             {info.getValue()}
-          </Link>
+          </OptionalLink>
         )
       },
     }),

@@ -3,7 +3,6 @@
 import { useTransition } from 'react'
 import { WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { fillCatalogueTranslationsAction } from '@/lib/actions/work-catalogue'
 import { NOTICE_MS, translationFillNotice } from '@/lib/utils/notice'
 import { settleAction } from '@/lib/utils/settle-action'
@@ -26,14 +25,8 @@ export function FillCatalogueTranslationsButton({ count }: { count: number }) {
   if (count === 0) return null
 
   return (
-    <Button
-      size="sm"
-      variant="ai"
-      onClick={fill}
-      disabled={pending}
-      className="max-sm:col-span-2"
-    >
-      {pending ? <GradientSpinner /> : <WandSparkles className="text-neon-cyan" />}
+    <Button size="sm" variant="ai" onClick={fill} pending={pending} className="max-sm:col-span-2">
+      <WandSparkles className="text-neon-cyan" />
       <span className="text-neon-cyan font-semibold">
         {pending ? 'Tłumaczę…' : `Uzupełnij tłumaczenia (AI) · ${count}`}
       </span>

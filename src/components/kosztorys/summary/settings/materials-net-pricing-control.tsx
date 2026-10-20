@@ -8,6 +8,7 @@ import {
 import { materialsNetRateForMode, pricingModeOf } from '@/lib/kosztorys/materials-pricing-mode'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { DecimalField } from '@/components/ui/decimal-field'
+import { Description } from '@/components/ui/description'
 import { ratePercent } from '@/lib/kosztorys/format'
 
 type PropsT = {
@@ -42,7 +43,9 @@ export function MaterialsNetPricingControl({
         variant="toolbarSm"
       />
       {lockedReason !== undefined && (
-        <p className="text-muted-foreground max-w-3xs text-xs">{lockedReason}</p>
+        <Description size="xs" withIcon={false} className="max-w-3xs">
+          {lockedReason}
+        </Description>
       )}
       {lockedReason === undefined && mode === 'net' && (
         <DecimalField

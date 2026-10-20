@@ -22,13 +22,13 @@ export function WarrantyCell({ warrantyUntil, daysLeft, bucket, muted }: Warrant
     <div className="flex flex-col leading-tight">
       <span
         className={cn(
-          urgent && 'text-chart-orange font-medium',
+          urgent && 'text-warning font-medium',
           (muted || expired) && 'text-muted-foreground',
         )}
       >
         {formatPLDate(warrantyUntil)}
       </span>
-      <span className={cn('text-xs', urgent ? 'text-chart-orange' : 'text-muted-foreground')}>
+      <span className={cn('text-xs', urgent ? 'text-warning' : 'text-muted-foreground')}>
         {expired ? 'gwarancja wygasła' : daysLabel(daysLeft)}
       </span>
     </div>

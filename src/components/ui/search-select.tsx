@@ -12,6 +12,7 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import Icon from '@/components/ui/icons/icon'
+import { SELECT_TRIGGER_CLASS } from '@/components/ui/select'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
 
@@ -31,6 +32,7 @@ type SearchSelectPropsT = {
   id?: string
   onBlur?: () => void
   isInvalid?: boolean
+  size?: 'xs' | 'sm' | 'default'
   className?: string
 }
 
@@ -45,6 +47,7 @@ export function SearchSelect({
   id,
   onBlur,
   isInvalid,
+  size = 'default',
   className,
 }: SearchSelectPropsT) {
   const { t } = useTranslation('filters')
@@ -63,11 +66,9 @@ export function SearchSelect({
           id={id}
           disabled={disabled}
           onBlur={onBlur}
-          className={cn(
-            'border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 aria-invalid:border-destructive bg-background text-foreground flex h-9 w-full items-center justify-between gap-2 rounded-md border px-3 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-2',
-            !selectedLabel && 'text-muted-foreground',
-            className,
-          )}
+          data-size={size}
+          data-placeholder={selectedLabel ? undefined : ''}
+          className={cn(SELECT_TRIGGER_CLASS, className)}
         >
           <span className="truncate">{selectedLabel ?? placeholder}</span>
           <Icon iconName="dropdownDown" size="sm" />

@@ -3,6 +3,7 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils/cn'
+import { DESCRIPTION_TONE_CLASS } from '@/components/ui/description'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 
@@ -23,8 +24,9 @@ function FieldSet({ className, ...props }: React.ComponentProps<'fieldset'>) {
 function FieldLegend({
   className,
   variant = 'legend',
+  tone = 'default',
   ...props
-}: React.ComponentProps<'legend'> & { variant?: 'legend' | 'label' }) {
+}: React.ComponentProps<'legend'> & { variant?: 'legend' | 'label'; tone?: 'default' | 'muted' }) {
   return (
     <legend
       data-slot="field-legend"
@@ -33,6 +35,7 @@ function FieldLegend({
         'mb-3 font-medium',
         'data-[variant=legend]:text-base',
         'data-[variant=label]:text-sm',
+        tone === 'muted' && 'text-muted-foreground',
         className,
       )}
       {...props}
@@ -53,33 +56,37 @@ function FieldGroup({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
-const fieldVariants = cva(
-  'group/field flex w-full min-w-0 gap-1 data-[invalid=true]:text-destructive',
-  {
-    variants: {
-      orientation: {
-        vertical: ['flex-col [&>*]:w-full [&>.sr-only]:w-auto'],
-        horizontal: [
-          'flex-row items-center',
-          '[&>[data-slot=field-label]]:flex-auto',
-          'has-[>[data-slot=field-content]]:items-start has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px',
-        ],
-        responsive: [
-          'flex-col [&>*]:w-full [&>.sr-only]:w-auto @md/field-group:flex-row @md/field-group:items-center @md/field-group:[&>*]:w-auto',
-          '@md/field-group:[&>[data-slot=field-label]]:flex-auto',
-          '@md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px',
-        ],
-      },
+const fieldVariants = cva('group/field flex w-full min-w-0 data-[invalid=true]:text-destructive', {
+  variants: {
+    gap: {
+      none: 'gap-0',
+      default: 'gap-1',
+      md: 'gap-2',
     },
-    defaultVariants: {
-      orientation: 'vertical',
+    orientation: {
+      vertical: ['flex-col [&>*]:w-full [&>.sr-only]:w-auto'],
+      horizontal: [
+        'flex-row items-center',
+        '[&>[data-slot=field-label]]:flex-auto',
+        'has-[>[data-slot=field-content]]:items-start has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px',
+      ],
+      responsive: [
+        'flex-col [&>*]:w-full [&>.sr-only]:w-auto @md/field-group:flex-row @md/field-group:items-center @md/field-group:[&>*]:w-auto',
+        '@md/field-group:[&>[data-slot=field-label]]:flex-auto',
+        '@md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px',
+      ],
     },
   },
-)
+  defaultVariants: {
+    gap: 'default',
+    orientation: 'vertical',
+  },
+})
 
 function Field({
   className,
   orientation = 'vertical',
+  gap = 'default',
   ...props
 }: React.ComponentProps<'div'> & VariantProps<typeof fieldVariants>) {
   return (
@@ -87,7 +94,7 @@ function Field({
       role="group"
       data-slot="field"
       data-orientation={orientation}
-      className={cn(fieldVariants({ orientation }), className)}
+      className={cn(fieldVariants({ orientation, gap }), className)}
       {...props}
     />
   )
@@ -136,7 +143,8 @@ function FieldDescription({ className, ...props }: React.ComponentProps<'p'>) {
     <p
       data-slot="field-description"
       className={cn(
-        'text-muted-foreground text-xs font-normal group-has-[[data-orientation=horizontal]]/field:text-balance',
+        DESCRIPTION_TONE_CLASS.muted,
+        'text-xs font-normal group-has-[[data-orientation=horizontal]]/field:text-balance',
         'last:mt-0 nth-last-2:-mt-1 [[data-variant=legend]+&]:-mt-1.5',
         '[&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4',
         className,
@@ -212,7 +220,7 @@ function FieldError({
     <div
       role="alert"
       data-slot="field-error"
-      className={cn('text-destructive text-xs font-normal', className)}
+      className={cn(DESCRIPTION_TONE_CLASS.error, 'text-xs font-normal', className)}
       {...props}
     >
       {content}

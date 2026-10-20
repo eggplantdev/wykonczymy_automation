@@ -55,7 +55,7 @@ export function LinkSheetToInvestmentDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-dialog-sm">
         <DialogHeader
           title="Dodaj kosztorys do inwestycji"
           description="Wybierz inwestycję bez kosztorysu. Po dodaniu, wydatki inwestycji zostaną zsynchronizowane do kosztorysu."
@@ -83,7 +83,8 @@ export function LinkSheetToInvestmentDialog({
         <DialogFooter>
           <Button
             onClick={onSubmit}
-            disabled={pending || !selectedId || availableInvestments.length === 0}
+            pending={pending}
+            disabled={!selectedId || availableInvestments.length === 0}
           >
             {pending ? 'Dodaję…' : 'Dodaj kosztorys'}
           </Button>

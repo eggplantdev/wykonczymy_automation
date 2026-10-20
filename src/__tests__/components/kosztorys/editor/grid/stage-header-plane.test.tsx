@@ -40,7 +40,7 @@ function renderHeader(plane: ToolPlaneT | null) {
 }
 
 const openMenu = async (user: ReturnType<typeof userEvent.setup>) =>
-  user.click(screen.getByTitle('Opcje etapu'))
+  user.click(screen.getByRole('button', { name: /Łazienka/ }))
 
 const UNCONFIRMED_BADGE = 'Rozliczenie etapu niepotwierdzone'
 

@@ -7,6 +7,10 @@ import { X } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
 import { RowActionLabels } from '@/components/ui/row-actions/row-action-labels'
+import { SECTION_TITLE_CLASS } from '@/components/ui/section-header'
+
+export const DIALOG_TITLE_CLASS = `${SECTION_TITLE_CLASS} leading-none wrap-anywhere`
+export const DIALOG_FOOTER_CLASS = 'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
@@ -90,7 +94,7 @@ function DialogHeader({
   ...props
 }: React.ComponentProps<'div'> & {
   title?: string
-  description?: string
+  description?: React.ReactNode
 }) {
   return (
     <div
@@ -101,7 +105,12 @@ function DialogHeader({
       {title ? (
         <>
           <DialogTitle>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
+          {description && (
+            // A div, not Radix's <p>: a description may carry a list.
+            <DialogDescription asChild>
+              <div>{description}</div>
+            </DialogDescription>
+          )}
         </>
       ) : (
         children
@@ -110,21 +119,19 @@ function DialogHeader({
   )
 }
 
+function DialogBody({ className, ...props }: React.ComponentProps<'div'>) {
+  return <div data-slot="dialog-body" className={cn('flex flex-col gap-4', className)} {...props} />
+}
+
 function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
-  return (
-    <div
-      data-slot="dialog-footer"
-      className={cn('flex flex-col-reverse gap-2 sm:flex-row sm:justify-end', className)}
-      {...props}
-    />
-  )
+  return <div data-slot="dialog-footer" className={cn(DIALOG_FOOTER_CLASS, className)} {...props} />
 }
 
 function DialogTitle({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Title>) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn('text-lg leading-none font-semibold wrap-anywhere', className)}
+      className={cn(DIALOG_TITLE_CLASS, className)}
       {...props}
     />
   )
@@ -146,6 +153,7 @@ function DialogDescription({
 export {
   Dialog,
   DialogClose,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,

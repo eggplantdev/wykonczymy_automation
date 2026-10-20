@@ -5,7 +5,6 @@ import { Description } from '@/components/ui/description'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 
 export const signedMoneyColor = (amount: number) => {
-  // Rounded before the sign test, or a balance that renders „0,00" gets painted red by a −1e-13 residue.
   const rounded = roundToCents(amount)
   return rounded > 0 ? 'text-chart-green' : rounded < 0 ? 'text-destructive' : 'text-foreground'
 }

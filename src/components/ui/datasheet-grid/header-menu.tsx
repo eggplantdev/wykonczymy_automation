@@ -16,12 +16,11 @@ type PropsT = {
   label: ReactNode
   icon: ReactNode
   triggerClassName?: string
-  triggerTitle?: string
   tip?: string
   children: ReactNode
 }
 
-export function HeaderMenu({ label, icon, triggerClassName, triggerTitle, tip, children }: PropsT) {
+export function HeaderMenu({ label, icon, triggerClassName, tip, children }: PropsT) {
   // Opening the menu also clears the stale hover flag: Radix never fires the tooltip's
   // close (it's already forced shut), so without this it would pop back the moment the menu closes.
   const [menuOpen, setMenuOpen] = useState(false)
@@ -33,7 +32,7 @@ export function HeaderMenu({ label, icon, triggerClassName, triggerTitle, tip, c
   }
 
   const trigger = (
-    <HeaderMenuTrigger title={tip ? undefined : triggerTitle} className={triggerClassName}>
+    <HeaderMenuTrigger className={triggerClassName}>
       {label}
       {icon}
     </HeaderMenuTrigger>

@@ -4,7 +4,11 @@ import { useState } from 'react'
 import * as Collapsible from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
+import { Description } from '@/components/ui/description'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Label } from '@/components/ui/label'
+import { EYEBROW_CLASS, SECTION_TITLE_MD_CLASS } from '@/components/ui/section-header'
+import { TextButton } from '@/components/ui/text-link'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { useSearchFilter } from '@/hooks/use-search-filter'
@@ -301,7 +305,7 @@ export function WorkerReportReview({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-semibold">{report.workerName}</h3>
+            <h3 className={SECTION_TITLE_MD_CLASS}>{report.workerName}</h3>
             <WorkerReportStatusBadge {...report} />
           </div>
           <p className="text-muted-foreground text-xs">
@@ -348,7 +352,7 @@ export function WorkerReportReview({
         )}
       </div>
       {targetProblem && tickedLines.length > 0 && (
-        <p className="text-destructive text-sm">{targetProblem}</p>
+        <Description tone="error">{targetProblem}</Description>
       )}
 
       <DataTableToolbar
@@ -378,11 +382,14 @@ export function WorkerReportReview({
 
       <div className="flex min-h-0 flex-col gap-6 overflow-y-auto pr-1">
         {reviewRows.length > 0 && visibleRows.length === 0 && (
-          <p className="text-muted-foreground py-8 text-center text-sm">
-            {unverifiedRows.length === 0
-              ? 'Wszystkie prace są już zweryfikowane.'
-              : 'Brak prac pasujących do wyszukiwania.'}
-          </p>
+          <EmptyState
+            size="inline"
+            title={
+              unverifiedRows.length === 0
+                ? 'Wszystkie prace są już zweryfikowane.'
+                : 'Brak prac pasujących do wyszukiwania.'
+            }
+          />
         )}
         {GROUPS.map(({ group, title, hint }) => {
           const isInGroup = (row: ReviewRowT) => lineGroup(row, drafts[row.id]) === group
@@ -395,12 +402,11 @@ export function WorkerReportReview({
                 group={group}
                 heading={
                   <>
-                    <h4 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-                      <button
-                        type="button"
+                    <h4 className={EYEBROW_CLASS}>
+                      <TextButton
                         aria-expanded={!collapsedGroups.has(group)}
                         onClick={() => toggleGroup(group)}
-                        className="flex cursor-pointer items-center gap-1 uppercase"
+                        className="flex uppercase"
                       >
                         {title} ({lines.length}
                         {lines.length < total && ` z ${total}`})
@@ -408,7 +414,7 @@ export function WorkerReportReview({
                           open={!collapsedGroups.has(group)}
                           className="size-3.5"
                         />
-                      </button>
+                      </TextButton>
                     </h4>
                     <p className="text-muted-foreground text-xs">{hint}</p>
                   </>

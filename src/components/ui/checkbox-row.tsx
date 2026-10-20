@@ -13,21 +13,22 @@ export function CheckboxRow({
   checked: boolean
   onCheckedChange: (checked: boolean) => void
   disabled?: boolean
-  variant?: CheckboxVariantT
+  variant?: CheckboxVariantT | 'plain'
   className?: string
   children: ReactNode
 }) {
   return (
     <label
       className={cn(
-        'hover:bg-accent flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm',
+        'flex cursor-pointer items-center gap-2 text-sm',
+        variant !== 'plain' && 'hover:bg-accent rounded-md px-2 py-1.5',
         className,
       )}
     >
       <Checkbox
         checked={checked}
         disabled={disabled}
-        variant={variant}
+        variant={variant === 'plain' ? undefined : variant}
         onCheckedChange={(state) => onCheckedChange(state === true)}
       />
       {children}

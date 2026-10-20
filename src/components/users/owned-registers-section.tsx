@@ -11,6 +11,7 @@ import {
 import { Description } from '@/components/ui/description'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { isNegativeMoney } from '@/lib/utils/round-to-cents'
 import type { RegisterBalanceMapT } from '@/lib/queries/balances'
 import type { CashRegisterRefT } from '@/types/reference-data'
 import { createTranslator } from '@/lib/i18n/translations'
@@ -56,13 +57,13 @@ export function OwnedRegistersSection({
                   {row.name}
                 </OptionalLink>
               </SummaryLabelCell>
-              <SummaryValueCell tone={row.balance < 0 ? 'error' : 'default'}>
+              <SummaryValueCell tone={isNegativeMoney(row.balance) ? 'error' : 'default'}>
                 {formatPLN(row.balance)}
               </SummaryValueCell>
             </Fragment>
           ))}
           <SummaryLabelCell weight="bold">{t('total')}</SummaryLabelCell>
-          <SummaryValueCell weight="bold" tone={total < 0 ? 'error' : 'default'}>
+          <SummaryValueCell weight="bold" tone={isNegativeMoney(total) ? 'error' : 'default'}>
             {formatPLN(total)}
           </SummaryValueCell>
         </SummaryTable>

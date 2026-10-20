@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import { Column, type CellProps } from 'react-datasheet-grid'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { HintTooltip } from '@/components/ui/tooltip'
-import { formatNet, formatQty } from '@/lib/kosztorys/format'
+import { formatQty } from '@/lib/kosztorys/format'
+import { formatSignedPLN } from '@/lib/utils/format-currency'
 import type { MeasureDiscrepancyT } from '@/lib/kosztorys/settlement-rows'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
@@ -25,7 +26,7 @@ function DivergenceCell({ rowData, columnData }: CellProps<KosztorysV2RowT, Dive
         {signed(divergence.qtyDiff, formatQty)}
         <span className="text-muted-foreground">
           {' · '}
-          {signed(divergence.net, formatNet)} zł
+          {formatSignedPLN(divergence.net)}
         </span>
       </ReadOnlyCellText>
     </HintTooltip>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
 import { copyToClipboard, copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
@@ -60,13 +61,17 @@ export function ShareLinkPanel({
       toastMessage('Link wyłączony.', 'success')
     })
 
-  if (!loaded) return <p className="text-muted-foreground text-sm">Sprawdzanie…</p>
+  if (!loaded) return <InlineLoading label="Sprawdzanie…" />
 
   const url = token ? urlFor(token) : ''
 
   return (
     <>
-      {blockReason !== undefined && <p className="text-destructive mb-3 text-sm">{blockReason}</p>}
+      {blockReason !== undefined && (
+        <Description tone="error" className="mb-3">
+          {blockReason}
+        </Description>
+      )}
       {token ? (
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">

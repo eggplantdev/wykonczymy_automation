@@ -1,32 +1,50 @@
 import { cn } from '@/lib/utils/cn'
-import { Button } from '@/components/ui/button'
+import { COLOR_TOKEN_CLASSES, type ColorTokenT } from '@/styles/color-tokens'
+import { Button, type ButtonPropsT } from '@/components/ui/button'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 
 type StatButtonPropsT = {
   label: string
   value: string
   className?: string
+  valueClassName?: string
   tooltip?: string
-  color?: string
+  color?: ColorTokenT
+  onClick?: ButtonPropsT['onClick']
+  align?: ButtonPropsT['align']
 }
 
-export function StatButton({ label, value, className, tooltip, color }: StatButtonPropsT) {
-  const colorVar = color ? `var(--color-${color})` : undefined
-  // (i) sits beside the button, not inside — the button is disabled (no hover events) and nesting buttons is invalid.
+export function StatButton({
+  label,
+  value,
+  className,
+  valueClassName,
+  tooltip,
+  color,
+  onClick,
+  align,
+}: StatButtonPropsT) {
+  const colorClasses = color ? COLOR_TOKEN_CLASSES[color] : undefined
+  const button = (
+    <Button
+      variant="outline"
+      disabled={!onClick}
+      onClick={onClick}
+      align={align}
+      className={cn('border-2', !onClick && 'w-fit', colorClasses?.border, className)}
+    >
+      <span className="text-muted-foreground">{label}</span>
+      <span className={cn('font-semibold', colorClasses?.text, valueClassName)}>{value}</span>
+    </Button>
+  )
+
+  if (!tooltip) return button
+
+  // (i) sits beside the button, not inside — a disabled button gets no hover events and nesting buttons is invalid.
   return (
     <span className="inline-flex items-center">
-      <Button
-        variant="outline"
-        disabled
-        className={cn('w-fit border-2', className)}
-        style={colorVar ? { borderColor: colorVar } : undefined}
-      >
-        <span className="text-muted-foreground">{label}</span>
-        <span className="font-semibold" style={colorVar ? { color: colorVar } : undefined}>
-          {value}
-        </span>
-      </Button>
-      {tooltip && <InfoTooltip content={tooltip} label={`Co to jest: ${label}`} className="ml-1" />}
+      {button}
+      <InfoTooltip content={tooltip} label={`Co to jest: ${label}`} className="ml-1" />
     </span>
   )
 }

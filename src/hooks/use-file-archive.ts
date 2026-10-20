@@ -1,7 +1,6 @@
 'use client'
 
 import { useRef, useTransition } from 'react'
-import { toast } from 'react-toastify'
 import { triggerDownload } from '@/lib/utils/trigger-download'
 import {
   buildArchiveMessage,
@@ -11,7 +10,11 @@ import {
   type ArchiveRowT,
 } from '@/lib/media/file-archive'
 import type { ArchiveCopyT } from '@/types/media'
-import { toastMessage } from '@/lib/utils/toast'
+import {
+  startProgressToast,
+  updateProgressToast,
+  type ProgressToastIdT,
+} from '@/lib/utils/progress-toast'
 import { warsawToday } from '@/lib/utils/days'
 import { useTranslation } from '@/hooks/use-translation'
 
@@ -20,7 +23,7 @@ const BATCH_SIZE = 6
 
 export function useFileArchive() {
   const [isPending, startTransition] = useTransition()
-  const toastIdRef = useRef<string | number | null>(null)
+  const toastIdRef = useRef<ProgressToastIdT | null>(null)
   const translator = useTranslation('media')
   const { t } = translator
 
@@ -31,13 +34,8 @@ export function useFileArchive() {
     rowTally: { rows: number; rowsWithFile: number },
   ) {
     startTransition(async () => {
-      toastIdRef.current = toast.info(
+      toastIdRef.current = startProgressToast(
         t(copy.kind === 'invoice' ? 'invoiceArchiveProgress' : 'fileArchiveProgress'),
-        {
-          autoClose: false,
-          position: 'bottom-center',
-          theme: 'dark',
-        },
       )
 
       try {
@@ -47,13 +45,13 @@ export function useFileArchive() {
             : await packAndDeliver(files, buildArchiveName(nameParts, warsawToday(), copy.prefix))
         const tally = { ...rowTally, expectedFiles: files.length, downloadedFiles }
 
-        updateToast(
+        updateProgressToast(
           toastIdRef.current,
           buildArchiveMessage(tally, copy, translator),
           toneFor(tally),
         )
       } catch {
-        updateToast(toastIdRef.current, t('unexpectedError'), 'error')
+        updateProgressToast(toastIdRef.current, t('unexpectedError'), 'error')
       }
     })
   }
@@ -70,7 +68,7 @@ export function useFileArchive() {
   }
 
   async function packAndDeliver(files: ArchiveFileT[], archiveName: string): Promise<number> {
-    updateToast(
+    updateProgressToast(
       toastIdRef.current,
       t('fetchingFiles', { done: 0, total: files.length }),
       'info',
@@ -92,7 +90,7 @@ export function useFileArchive() {
 
             zip.file(file.name, await response.blob())
             downloaded++
-            updateToast(
+            updateProgressToast(
               toastIdRef.current,
               t('fetchingFiles', { done: downloaded, total: files.length }),
               'info',
@@ -107,25 +105,12 @@ export function useFileArchive() {
 
     if (downloaded === 0) return 0
 
-    updateToast(toastIdRef.current, t('zipping'), 'info', false)
+    updateProgressToast(toastIdRef.current, t('zipping'), 'info', false)
     triggerDownload(await zip.generateAsync({ type: 'blob' }), archiveName)
     return downloaded
   }
 
   return { download, downloadFiles, isPending }
-}
-
-function updateToast(
-  id: string | number | null,
-  message: string,
-  type: 'info' | 'success' | 'error',
-  autoClose: number | false = 2000,
-) {
-  if (id === null) {
-    toastMessage(message, type)
-    return
-  }
-  toast.update(id, { render: message, type, autoClose, theme: 'dark' })
 }
 
 function toneFor({

@@ -6,7 +6,6 @@ import { DecisionProgressBadge } from '@/components/ui/decision-progress-badge'
 import { CardChip } from '@/components/transfers/cards/card-chip'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
 import { DotBadge } from '@/components/ui/dot-badge'
-import { CountBadge } from '@/components/ui/count-badge'
 import { BadgeSelect } from '@/components/ui/badge-select'
 import { COLOR_TOKENS } from '@/styles/color-tokens'
 import { SectionPill } from '@/components/worker-reports/section-pill'
@@ -57,6 +56,27 @@ export function BadgesSection() {
             {tone}
           </Badge>
         ))}
+      </ShowcaseRow>
+      <ShowcaseRow title="Badge — wszystkie tony, pełny" source='<Badge tone appearance="solid">'>
+        {TONES.map((tone) => (
+          <Badge key={tone} tone={tone} appearance="solid">
+            {tone}
+          </Badge>
+        ))}
+      </ShowcaseRow>
+      <ShowcaseRow title="Badge — pigułka z akcją" source='<Badge shape="pill" onRemove>'>
+        <Badge
+          tone="muted"
+          appearance="outline"
+          shape="pill"
+          onRemove={() => {}}
+          removeLabel="Usuń"
+        >
+          Filtr
+        </Badge>
+        <Badge tone="section" shape="pill">
+          Łazienka
+        </Badge>
       </ShowcaseRow>
       <ShowcaseRow title="DotBadge — cała paleta" source="ui/dot-badge.tsx">
         {COLOR_TOKENS.map((color) => (
@@ -191,11 +211,20 @@ export function BadgesSection() {
           options={TONES.map((tone) => ({ value: tone, badge: <Badge tone={tone}>{tone}</Badge> }))}
         />
       </ShowcaseRow>
-      <ShowcaseRow title="CountBadge (licznik, własna pigułka)" source="ui/count-badge.tsx">
+      <ShowcaseRow
+        title="Licznik (pełna pigułka)"
+        source='<Badge tone="primary" appearance="solid" shape="pill">'
+      >
         {[1, 12, 120].map((count) => (
-          <span key={count} className="flex w-16">
-            <CountBadge count={count} />
-          </span>
+          <Badge
+            key={count}
+            tone="primary"
+            appearance="solid"
+            shape="pill"
+            className="h-5 min-w-5 justify-center tabular-nums"
+          >
+            {count > 99 ? '99+' : count}
+          </Badge>
         ))}
       </ShowcaseRow>
     </ShowcaseSection>

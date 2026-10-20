@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { MediaPreviewButton } from '@/components/media/media-preview-button'
@@ -50,8 +50,7 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
   return (
     <>
       {isUploading ? (
-        <Button {...iconButtonProps} disabled aria-label={t('invoiceUploading')}>
-          <Loader2 className="animate-spin" />
+        <Button {...iconButtonProps} pending aria-label={t('invoiceUploading')}>
           {isLabelled && t('invoiceShort')}
         </Button>
       ) : visibleInvoices.length > 0 ? (

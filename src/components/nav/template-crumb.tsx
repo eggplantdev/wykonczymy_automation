@@ -1,6 +1,5 @@
-import Link from 'next/link'
-
 import { HistoryBackButton } from '@/components/ui/history-back-button'
+import { NavNameLink } from '@/components/nav/nav-name-link'
 import { isInvestmentId } from '@/lib/queries/investment-id'
 import { getTemplateName } from '@/lib/queries/presets'
 
@@ -18,12 +17,9 @@ export async function TemplateCrumb({ params }: TemplateCrumbPropsT) {
   return (
     <div className="flex min-w-0 flex-col justify-center gap-1.5">
       <HistoryBackButton fallbackHref="/szablony" />
-      <Link
-        href={`/szablony/${id}`}
-        className="text-foreground truncate text-sm leading-none font-medium hover:underline"
-      >
+      <NavNameLink href={`/szablony/${id}`} className="truncate leading-none">
         {name}
-      </Link>
+      </NavNameLink>
     </div>
   )
 }

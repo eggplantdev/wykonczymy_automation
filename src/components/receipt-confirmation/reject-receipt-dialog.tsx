@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { DialogActions } from '@/components/ui/dialog-actions'
+import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { ReasonField } from '@/components/ui/reason-field'
 import { rejectReceiptAction } from '@/lib/actions/receipt-confirmation'
 import { failureMessage } from '@/lib/i18n/failure-message'
@@ -43,36 +42,33 @@ export function RejectReceiptDialog({ transactionId, amount, onClose }: PropsT) 
   }
 
   return (
-    <Dialog open onOpenChange={(next) => !next && onClose()}>
-      <DialogContent showCloseButton={false} className="sm:h-fit sm:max-w-md">
-        <DialogHeader
-          title={t('receiptRejectTitle', { amount: formatPLN(amount) })}
-          description={t('receiptRejectDescription')}
-        />
-        <ReasonField
-          id={`receipt-reject-reason-${transactionId}`}
-          value={reason}
-          onChange={setReason}
-          min={CANCEL_REASON_MIN_LENGTH}
-          max={CANCEL_REASON_MAX_LENGTH}
-          label={t('receiptRejectReason')}
-          placeholder={t('receiptRejectPlaceholder')}
-          counterText={({ length, missing }) =>
-            missing === 0
-              ? t('receiptReasonCount', { length, max: CANCEL_REASON_MAX_LENGTH })
-              : t('receiptReasonMissing', { missing })
-          }
-          disabled={isPending}
-        />
-        <DialogActions
-          confirmLabel={t('receiptReject')}
-          confirmVariant="destructive"
-          pending={isPending}
-          confirmDisabled={!isReasonValid}
-          onConfirm={handleReject}
-          onCancel={onClose}
-        />
-      </DialogContent>
-    </Dialog>
+    <FormDialogShell
+      open
+      onOpenChange={(next) => !next && onClose()}
+      showCloseButton={false}
+      title={t('receiptRejectTitle', { amount: formatPLN(amount) })}
+      description={t('receiptRejectDescription')}
+      confirmLabel={t('receiptReject')}
+      confirmVariant="destructive"
+      pending={isPending}
+      confirmDisabled={!isReasonValid}
+      onConfirm={handleReject}
+    >
+      <ReasonField
+        id={`receipt-reject-reason-${transactionId}`}
+        value={reason}
+        onChange={setReason}
+        min={CANCEL_REASON_MIN_LENGTH}
+        max={CANCEL_REASON_MAX_LENGTH}
+        label={t('receiptRejectReason')}
+        placeholder={t('receiptRejectPlaceholder')}
+        counterText={({ length, missing }) =>
+          missing === 0
+            ? t('receiptReasonCount', { length, max: CANCEL_REASON_MAX_LENGTH })
+            : t('receiptReasonMissing', { missing })
+        }
+        disabled={isPending}
+      />
+    </FormDialogShell>
   )
 }

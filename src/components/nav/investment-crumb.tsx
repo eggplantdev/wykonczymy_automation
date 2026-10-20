@@ -1,6 +1,5 @@
-import Link from 'next/link'
-
 import { HistoryBackButton } from '@/components/ui/history-back-button'
+import { NavNameLink } from '@/components/nav/nav-name-link'
 import { getInvestmentName } from '@/lib/queries/investments'
 import { isInvestmentId } from '@/lib/queries/investment-id'
 
@@ -19,12 +18,12 @@ export async function InvestmentCrumb({ params }: InvestmentCrumbPropsT) {
   return (
     <div className="flex min-w-0 flex-col justify-center gap-1.5">
       <HistoryBackButton fallbackHref={`/inwestycje/${id}`} />
-      <Link
+      <NavNameLink
         href={`/inwestycje/${id}`}
-        className="text-foreground max-w-32 truncate text-sm leading-none font-medium hover:underline sm:max-w-none"
+        className="max-w-32 truncate leading-none sm:max-w-none"
       >
         {name}
-      </Link>
+      </NavNameLink>
     </div>
   )
 }

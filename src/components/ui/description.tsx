@@ -2,7 +2,7 @@ import { Info, TriangleAlert } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 type DescriptionSizeT = 'sm' | 'xs' | '2xs'
-type DescriptionToneT = 'muted' | 'error'
+export type DescriptionToneT = 'muted' | 'error' | 'warning'
 
 type DescriptionPropsT = {
   children: React.ReactNode
@@ -20,25 +20,37 @@ const SIZE: Record<DescriptionSizeT, { text: string; icon: string }> = {
   '2xs': { text: 'text-2xs', icon: 'size-3 mt-px' },
 }
 
-const TONE: Record<DescriptionToneT, { color: string; Icon: typeof Info }> = {
-  muted: { color: 'text-muted-foreground', Icon: Info },
-  error: { color: 'text-destructive', Icon: TriangleAlert },
+export const DESCRIPTION_TONE_CLASS: Record<DescriptionToneT, string> = {
+  muted: 'text-muted-foreground',
+  error: 'text-destructive',
+  warning: 'text-warning',
+}
+
+const TONE_ICON: Record<DescriptionToneT, typeof Info> = {
+  muted: Info,
+  error: TriangleAlert,
+  warning: TriangleAlert,
 }
 
 export function Description({
   children,
   className,
-  withIcon = true,
   size = 'sm',
   tone = 'muted',
+  withIcon = tone !== 'error',
   role,
 }: DescriptionPropsT) {
-  const { color, Icon } = TONE[tone]
+  const Icon = TONE_ICON[tone]
 
   return (
     <p
       role={role}
-      className={cn('flex items-start gap-1 font-normal', color, SIZE[size].text, className)}
+      className={cn(
+        'flex items-start gap-1 font-normal',
+        DESCRIPTION_TONE_CLASS[tone],
+        SIZE[size].text,
+        className,
+      )}
     >
       {withIcon && <Icon className={cn('shrink-0', SIZE[size].icon)} aria-hidden />}
       <span>{children}</span>

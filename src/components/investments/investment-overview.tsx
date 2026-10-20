@@ -2,6 +2,8 @@
 
 import { Lock } from 'lucide-react'
 import { InfoList } from '@/components/ui/info-list'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
+import { cn } from '@/lib/utils/cn'
 import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
 import { InvestmentAiNotes } from '@/components/investments/investment-ai-notes'
 import { InvestmentNotes } from '@/components/investments/investment-notes'
@@ -84,7 +86,9 @@ export function InvestmentOverview({ investment, trashed, assets, showKosztorysB
         <InvestmentAiNotes aiNotes={investment.aiNotes} />
         {assets && (
           <section className="flex flex-col gap-2">
-            <h2 className="flex min-h-7 items-center text-sm font-medium">Zdjęcia i pliki</h2>
+            <h2 className={cn('flex min-h-7 items-center', SUBSECTION_TITLE_CLASS)}>
+              Zdjęcia i pliki
+            </h2>
             <InvestmentAssetsControl investmentId={investment.id} assets={assets} />
           </section>
         )}

@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { createColumnHelper, type CellContext } from '@tanstack/react-table'
 import { pluralize } from '@/lib/utils/polish-plural'
 import { formatPLN } from '@/lib/utils/format-currency'
@@ -14,6 +13,7 @@ import type { InvestmentRowT } from '@/types/table-rows'
 import { INVESTMENT_HEADER_TIPS } from '@/components/tables/investments-header-tips'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { Button } from '@/components/ui/button'
+import { OptionalLink } from '@/components/ui/optional-link'
 import { InvestmentStatusInlineSelect } from '@/components/investments/investment-status-inline-select'
 import { ContactLink } from '@/components/ui/contact-link'
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
@@ -96,9 +96,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
       header: 'Nazwa',
       meta: { minWidth: 'min-w-56' },
       cell: (info) => (
-        <Link href={`/inwestycje/${info.row.original.id}`} className="hover:underline">
-          {info.getValue()}
-        </Link>
+        <OptionalLink href={`/inwestycje/${info.row.original.id}`}>{info.getValue()}</OptionalLink>
       ),
     }),
     col.accessor('createdAt', {
@@ -270,13 +268,11 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
         return (
           <Button
             variant="link"
-            className="h-auto flex-col items-end gap-0 p-0"
+            size="inline"
+            className="flex-col items-end gap-0"
             onClick={() => onSettle(info.row.original)}
           >
-            <BalanceCell
-              value={value}
-              className={roundToCents(value) === 0 ? 'text-chart-green' : undefined}
-            />
+            <BalanceCell value={value} settled />
             {owedWorkers > 1 && (
               <span className="text-muted-foreground text-xs font-normal">
                 {owedWorkers} {pluralize(owedWorkers, ['pracownika', 'pracowników', 'pracowników'])}

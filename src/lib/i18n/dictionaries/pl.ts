@@ -25,6 +25,9 @@ export const pl = {
     saving: 'Zapisywanie…',
     keepOpen: 'Nie zamykaj po zapisaniu',
     formHasErrors: 'Formularz zawiera błędy',
+    loading: 'Ładowanie',
+    loadingData: 'Wczytywanie…',
+    confirm: 'Potwierdź',
   },
   notices: {
     unknownToken: 'Ten link wygasł albo został cofnięty. Poproś kierownika o nowy.',

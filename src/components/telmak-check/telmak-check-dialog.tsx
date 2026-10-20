@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FileSearch, Loader2 } from 'lucide-react'
+import { FileSearch } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { FileInput } from '@/components/ui/file-input'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { DateRangePicker } from '@/components/filters/date-range-picker'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { getTransferColumns, transferRowClassName } from '@/components/tables/transfers'
@@ -142,7 +144,7 @@ export function TelmakCheckDialog({ registerId }: TelmakCheckDialogPropsT) {
         }}
       >
         <DialogContent
-          className="gap-8 overflow-auto sm:max-h-[94vh] sm:max-w-[96vw]"
+          className="sm:max-w-dialog-3xl gap-8 overflow-auto sm:max-h-[94vh]"
           aria-describedby={undefined}
         >
           <DialogHeader title="Sprawdź faktury Telmak" />
@@ -174,12 +176,7 @@ export function TelmakCheckDialog({ registerId }: TelmakCheckDialogPropsT) {
             onChange={(e) => void handlePicked([...(e.target.files ?? [])])}
           />
 
-          {busy && (
-            <span className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
-              <Loader2 className="size-4 animate-spin" />
-              {busy}
-            </span>
-          )}
+          {busy && <InlineLoading label={busy} className="justify-center" />}
 
           {parsed.length > 0 && !result && (
             <p className="text-sm">
@@ -191,7 +188,7 @@ export function TelmakCheckDialog({ registerId }: TelmakCheckDialogPropsT) {
           {result && (
             <>
               <section className="flex flex-col gap-3">
-                <h3 className="font-medium">Faktury do weryfikacji</h3>
+                <h3 className={SUBSECTION_TITLE_CLASS}>Faktury do weryfikacji</h3>
                 <div className="flex flex-wrap items-center gap-4 text-sm">
                   <span>
                     Faktur w paczce: <b>{result.counts.documents}</b>
@@ -215,7 +212,7 @@ export function TelmakCheckDialog({ registerId }: TelmakCheckDialogPropsT) {
 
               {problemTransfers.length > 0 && (
                 <section className="flex flex-col gap-3">
-                  <h3 className="font-medium">Transakcje do weryfikacji</h3>
+                  <h3 className={SUBSECTION_TITLE_CLASS}>Transakcje do weryfikacji</h3>
                   <DataTable
                     data={problemTransfers}
                     columns={columns}

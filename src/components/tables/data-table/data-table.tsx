@@ -13,6 +13,7 @@ import {
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { cn } from '@/lib/utils/cn'
+import { BORDERED_LIST_CLASS } from '@/components/ui/panel'
 import { DataTableRow } from './data-table-row'
 import { VirtualizedTableBody } from './virtualized-table-body'
 import { TableHeader } from './table-header'
@@ -207,7 +208,7 @@ export function DataTable<TData>({
       {renderRows ? (
         renderRows(rows)
       ) : (
-        <div className="border-border overflow-x-auto rounded-lg border">
+        <div className={cn(BORDERED_LIST_CLASS, 'overflow-x-auto rounded-lg')}>
           {enableVirtualization ? (
             <VirtualizedTableBody
               parentRef={parentRef}

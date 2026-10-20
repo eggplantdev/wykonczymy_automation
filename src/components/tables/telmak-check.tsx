@@ -1,7 +1,7 @@
 'use client'
 
 import { createColumnHelper } from '@tanstack/react-table'
-import { Loader2, Paperclip } from 'lucide-react'
+import { Paperclip } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { useInvoiceUpload } from '@/hooks/use-invoice-upload'
@@ -119,12 +119,12 @@ function AttachButton({ transactionId, file, onAttached }: AttachButtonPropsT) {
     <Button
       size="sm"
       variant="outline"
-      disabled={isUploading}
+      pending={isUploading}
       onClick={async () => {
         if (await uploadFiles([file])) onAttached()
       }}
     >
-      {isUploading ? <Loader2 className="animate-spin" /> : <Paperclip />}
+      <Paperclip />
       Dołącz do #{transactionId}
     </Button>
   )

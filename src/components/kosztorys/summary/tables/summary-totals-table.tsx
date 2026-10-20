@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { OptionalLink } from '@/components/ui/optional-link'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
 import type { MoneyPairT } from '@/lib/kosztorys/summary-economics'
@@ -52,16 +52,15 @@ export function SummaryTotalsTable({
         <SummaryRow
           key={row.label}
           label={
-            row.linkToDeposits && !preview ? (
-              <Link
-                href={investmentTransfersHref(investmentId, { types: DEPOSIT_TYPES })}
-                className="hover:underline"
-              >
-                {row.label}
-              </Link>
-            ) : (
-              row.label
-            )
+            <OptionalLink
+              href={
+                row.linkToDeposits && !preview
+                  ? investmentTransfersHref(investmentId, { types: DEPOSIT_TYPES })
+                  : null
+              }
+            >
+              {row.label}
+            </OptionalLink>
           }
           line={row.line}
           axis={axis}
