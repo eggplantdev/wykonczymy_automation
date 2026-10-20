@@ -1037,6 +1037,23 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       w aplikacji oraz parę `destructiveOutline` / `outlineDestructive`.
 - [ ] „Nawigacja": paginacja w URL zmienia `?page=` bez przeładowania i bez błędu.
 
+## 2026-10-20 — shared-collapsible — zwijana sekcja konta w pasku bocznym, jedno rozwijanie wszędzie
+
+- [ ] Pasek boczny (desktop): przy pierwszym wejściu sekcja konta pod linkami jest zwinięta — widać
+      tylko imię i strzałkę; klik w strzałkę rozwija ją z animacją (Ciemny motyw … Wyloguj), drugi
+      klik zwija. Stan zostaje po przeładowaniu strony.
+- [ ] Pasek boczny zwinięty do ikon: strzałka sekcji konta stoi na środku, ma tooltip „Pokaż opcje
+      konta" / „Ukryj opcje konta" i działa tak samo.
+- [ ] Rozwinięta sekcja konta: poświata przycisku „Saldo" i obwódki fokusu przycisków nie są ucięte
+      po bokach.
+- [ ] Sekcje zwijane na stronie pracownika, w formularzu inwestycji i na liście przelewów rozwijają
+      się i zwijają z animacją jak dotąd; tabele w nich nie wystają poza krawędź.
+- [ ] Formularz wydatku z kilkoma pozycjami: pozycja rozwija się z animacją, strzałka w dół przy
+      zwiniętej i w górę przy rozwiniętej.
+- [ ] Kosztorys → raport z arkusza: zwinięte fragmenty raportu rozwijają się z animacją.
+- [ ] Kosztorys → przegląd zgłoszenia prac: strzałka przy nagłówku grupy obraca się, a grupa ukrywa
+      i pokazuje wiersze jak dotąd.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

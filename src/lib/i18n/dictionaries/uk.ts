@@ -613,6 +613,8 @@ export const uk: typeof pl = {
     back: 'Назад',
     expandMenu: 'Розгорнути меню',
     collapseMenu: 'Згорнути меню',
+    showAccountMenu: 'Показати опції акаунта',
+    hideAccountMenu: 'Приховати опції акаунта',
     toggleTheme: 'Змінити тему',
     lightTheme: 'Світла тема',
     darkTheme: 'Темна тема',

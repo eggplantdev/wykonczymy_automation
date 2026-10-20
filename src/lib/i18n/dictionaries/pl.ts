@@ -621,6 +621,8 @@ export const pl = {
     back: 'Wstecz',
     expandMenu: 'Rozwiń menu',
     collapseMenu: 'Zwiń menu',
+    showAccountMenu: 'Pokaż opcje konta',
+    hideAccountMenu: 'Ukryj opcje konta',
     toggleTheme: 'Przełącz motyw',
     lightTheme: 'Jasny motyw',
     darkTheme: 'Ciemny motyw',
