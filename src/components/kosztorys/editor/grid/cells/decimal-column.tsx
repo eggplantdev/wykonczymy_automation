@@ -10,7 +10,7 @@ import { decimalText } from '@/lib/utils/decimal-text'
 // The policy travels via `columnData` so the component below keeps ONE identity across renders — an
 // inline `component: ({rowData}) => …` is a fresh function type on every assembleV2Columns call, and
 // react-datasheet-grid answers a changed component type with a remount, tearing down the <input>
-// mid-edit and dropping all but the last character typed.
+// mid-edit.
 type DecimalCellDataT = { policy: NumericFieldPolicyT<KosztorysV2RowT> }
 
 function DecimalCell({

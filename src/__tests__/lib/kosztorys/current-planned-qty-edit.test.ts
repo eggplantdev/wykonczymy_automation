@@ -23,8 +23,4 @@ describe('currentPlannedQtyPolicy', () => {
   it('a typed 0 is stored as 0 — out of scope, not „follows"', () => {
     expect(cellPaste('0', following, policy).currentPlannedQty).toBe(0)
   })
-
-  it('names the resolved quantity when it announces a refusal', () => {
-    expect(policy.restoredLabel(following)).toBe('10')
-  })
 })

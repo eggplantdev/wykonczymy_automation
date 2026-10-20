@@ -11,7 +11,7 @@ import { discountPolicy, type DiscountPairT } from '@/lib/kosztorys/discount-edi
 
 type QtyRowT = { id: number; plannedQty: number }
 
-const qty = numericFieldPolicy<'plannedQty', QtyRowT>('plannedQty', String)
+const qty = numericFieldPolicy<'plannedQty', QtyRowT>('plannedQty')
 const row = (plannedQty: number): QtyRowT => ({ id: 1, plannedQty })
 
 const capped: CellEditPolicyT<QtyRowT> = {
@@ -28,7 +28,11 @@ const warned: CellEditPolicyT<QtyRowT> = {
 
 describe('cellKeystroke', () => {
   it('przyjmuje przecinek jako separator dziesiętny', () => {
-    expect(cellKeystroke('12,5', row(0), qty)).toEqual({ kind: 'accept', row: row(12.5) })
+    expect(cellKeystroke('12,5', row(0), qty)).toEqual({
+      kind: 'value',
+      row: row(12.5),
+      verdict: null,
+    })
   })
 
   it('nie zapisuje nic po wyczyszczeniu pola', () => {
@@ -41,12 +45,23 @@ describe('cellKeystroke', () => {
   })
 
   it('guard odrzuca wartość, zanim wiersz ją przyjmie', () => {
-    expect(cellKeystroke('101', row(5), capped)).toMatchObject({ kind: 'blocked' })
-    expect(cellKeystroke('99', row(5), capped)).toMatchObject({ kind: 'accept' })
+    expect(cellKeystroke('101', row(5), capped)).toMatchObject({
+      kind: 'value',
+      verdict: { severity: 'refuse' },
+    })
+    expect(cellKeystroke('99', row(5), capped)).toEqual({
+      kind: 'value',
+      row: row(99),
+      verdict: null,
+    })
   })
 
-  it('ostrzeżenie milczy do czasu wyjścia z komórki', () => {
-    expect(cellKeystroke('101', row(5), warned)).toEqual({ kind: 'accept', row: row(101) })
+  it('ostrzeżenie widać już w trakcie pisania, a wartość i tak przechodzi', () => {
+    expect(cellKeystroke('101', row(5), warned)).toEqual({
+      kind: 'value',
+      row: row(101),
+      verdict: { severity: 'warn', message: 'dużo, ale niech będzie' },
+    })
   })
 })
 
@@ -82,9 +97,9 @@ describe('cellSettle', () => {
 
 describe('cellPaste', () => {
   it('wkleja to samo, co da się wpisać z klawiatury', () => {
-    const pasted = cellPaste('1 234,5', row(0), qty)
+    const pasted = cellPaste('1\u00a0234,5', row(0), qty)
     expect(pasted).toEqual(row(1234.5))
-    expect(cellSettle('1 234,5', row(0), qty)).toMatchObject({
+    expect(cellSettle('1\u00a0234,5', row(0), qty)).toMatchObject({
       kind: 'commit',
       row: pasted,
     })
@@ -157,10 +172,10 @@ describe('discountPolicy', () => {
   })
 
   it('ogłasza przywrócony rabat w jednostce, którą wiersz niósł', () => {
-    expect(policy.restoredLabel({ discountType: 'percent', discountValue: 10 })).toBe('10%')
-    expect(policy.restoredLabel({ discountType: 'amount', discountValue: 250 })).toBe(
+    expect(policy.restoredLabel!({ discountType: 'percent', discountValue: 10 })).toBe('10%')
+    expect(policy.restoredLabel!({ discountType: 'amount', discountValue: 250 })).toBe(
       formatPLN(250),
     )
-    expect(policy.restoredLabel(noDiscount)).toBe('brak rabatu')
+    expect(policy.restoredLabel!(noDiscount)).toBe('brak rabatu')
   })
 })

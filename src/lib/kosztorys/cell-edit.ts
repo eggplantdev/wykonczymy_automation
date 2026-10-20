@@ -4,15 +4,14 @@ export type CellEditPolicyT<RowT> = {
   applyValue: (row: RowT, value: number) => RowT
   clear: (row: RowT) => RowT
   guard?: (row: RowT) => CellVerdictT | null
-  restoredLabel: (row: RowT) => string
+  restoredLabel?: (row: RowT) => string
 }
 
 export type CellVerdictT = { severity: 'refuse' | 'warn'; message: string }
 
 export type CellKeystrokeT<RowT> =
   | { kind: 'hold' }
-  | { kind: 'blocked'; message: string }
-  | { kind: 'accept'; row: RowT }
+  | { kind: 'value'; row: RowT; verdict: CellVerdictT | null }
 
 export type CellSettleT<RowT> =
   | { kind: 'commit'; row: RowT; warning: string | null }
@@ -28,9 +27,7 @@ export function cellKeystroke<RowT>(
   if (parsed.kind !== 'value') return { kind: 'hold' }
 
   const row = policy.applyValue(rowData, parsed.value)
-  const verdict = policy.guard?.(row) ?? null
-  if (verdict?.severity === 'refuse') return { kind: 'blocked', message: verdict.message }
-  return { kind: 'accept', row }
+  return { kind: 'value', row, verdict: policy.guard?.(row) ?? null }
 }
 
 export function cellSettle<RowT>(
@@ -41,9 +38,9 @@ export function cellSettle<RowT>(
   if (parseCellDecimal(draft).kind === 'empty') return { kind: 'clear', row: policy.clear(rowData) }
 
   const result = cellKeystroke(draft, rowData, policy)
-  if (result.kind === 'accept')
-    return { kind: 'commit', row: result.row, warning: policy.guard?.(result.row)?.message ?? null }
-  return { kind: 'reject', reason: result.kind === 'blocked' ? 'blocked' : 'invalid' }
+  if (result.kind === 'hold') return { kind: 'reject', reason: 'invalid' }
+  if (result.verdict?.severity === 'refuse') return { kind: 'reject', reason: 'blocked' }
+  return { kind: 'commit', row: result.row, warning: result.verdict?.message ?? null }
 }
 
 export function cellPaste<RowT>(raw: string, rowData: RowT, policy: CellEditPolicyT<RowT>): RowT {
@@ -58,13 +55,11 @@ export type NumericFieldPolicyT<RowT> = CellEditPolicyT<RowT> & { read: (row: Ro
 
 export function numericFieldPolicy<K extends string, RowT extends Record<K, number>>(
   field: K,
-  format: (value: number) => string,
 ): NumericFieldPolicyT<RowT> {
   const write = (row: RowT, value: number) => ({ ...row, [field]: value }) as RowT
   return {
     read: (row) => row[field],
     applyValue: write,
     clear: (row) => write(row, 0),
-    restoredLabel: (row) => format(row[field]),
   }
 }

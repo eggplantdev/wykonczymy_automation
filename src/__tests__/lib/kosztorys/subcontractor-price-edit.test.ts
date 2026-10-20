@@ -37,8 +37,6 @@ const flat = (value: number): ViewPricingT => ({
 
 describe('cellKeystroke pod polityką podwykonawcy', () => {
   it('nie zapisuje nic po wyczyszczeniu pola', () => {
-    // The bug this guards: writing `type: null` here swapped the input for read-only text mid-edit,
-    // killing the caret and restoring the old price.
     expect(keystroke('', flat(60), 'w_tools')).toEqual({ kind: 'hold' })
   })
 
@@ -48,44 +46,48 @@ describe('cellKeystroke pod polityką podwykonawcy', () => {
 
   it('wpisana cena przestawia „auto" na kwotę stałą', () => {
     expect(keystroke('50', row, 'w_tools')).toMatchObject({
-      kind: 'accept',
+      kind: 'value',
       row: { wToolsOverrideValue: 50 },
     })
   })
 
   it('wpisana cena zastępuje poprzednią kwotę stałą', () => {
     expect(keystroke('62', flat(50), 'w_tools')).toMatchObject({
-      kind: 'accept',
+      kind: 'value',
       row: { wToolsOverrideValue: 62 },
     })
   })
 
   it('przyjmuje przecinek jako separator dziesiętny', () => {
     expect(keystroke('50,5', flat(60), 'w_tools')).toMatchObject({
-      kind: 'accept',
+      kind: 'value',
       row: { wToolsOverrideValue: 50.5 },
     })
   })
 
   it('zapisuje cenę powyżej stawki z mnożnika inwestycji — pod sufitem to zwykła cena', () => {
     const lowerCoeff = { ...flat(50), globalWToolsCoeff: 0.5 }
-    expect(keystroke('60', lowerCoeff, 'w_tools').kind).toBe('accept')
+    expect(keystroke('60', lowerCoeff, 'w_tools')).toMatchObject({ kind: 'value', verdict: null })
   })
 
-  it('zapisuje cenę powyżej sufitu bez słowa — ostrzeżenie czeka na wyjście z komórki', () => {
+  it('przyjmuje cenę powyżej sufitu i już w trakcie pisania niesie ostrzeżenie', () => {
     expect(keystroke('66', flat(60), 'w_tools')).toEqual({
-      kind: 'accept',
+      kind: 'value',
       row: { ...flat(60), wToolsOverrideValue: 66 },
+      verdict: { severity: 'warn', message: expect.stringContaining('65,00') },
     })
   })
 
   it('blokuje cenę ujemną — to jedyna twarda odmowa', () => {
-    expect(keystroke('-50', flat(60), 'w_tools').kind).toBe('blocked')
+    expect(keystroke('-50', flat(60), 'w_tools')).toMatchObject({
+      kind: 'value',
+      verdict: { severity: 'refuse' },
+    })
   })
 
   it('pisze do pól planu, w którym edytujemy', () => {
     expect(keystroke('30', flat(60), 'own_tools')).toMatchObject({
-      kind: 'accept',
+      kind: 'value',
       row: { ownToolsOverrideValue: 30, wToolsOverrideValue: 60 },
     })
   })
@@ -124,7 +126,9 @@ describe('cellSettle pod polityką podwykonawcy', () => {
   })
 
   it('ogłasza cenę, którą wiersz zachował', () => {
-    expect(subcontractorPolicy<ViewPricingT>('w_tools').restoredLabel(flat(60))).toBe(formatPLN(60))
+    expect(subcontractorPolicy<ViewPricingT>('w_tools').restoredLabel!(flat(60))).toBe(
+      formatPLN(60),
+    )
   })
 })
 
@@ -196,7 +200,26 @@ describe('polityka komórki mnożnika', () => {
     })
   })
 
+  it('wpisany mnożnik trafia do wiersza dopiero po wyjściu z komórki', () => {
+    expect(cellSettle('0,6', coeffRow, policy)).toMatchObject({
+      kind: 'commit',
+      row: { wToolsOverrideCoeff: 0.6, wToolsOverrideValue: null },
+      warning: null,
+    })
+  })
+
+  it('ujemny mnożnik jest odrzucony bez zapisu', () => {
+    expect(cellSettle('-0,5', coeffRow, policy)).toEqual({ kind: 'reject', reason: 'blocked' })
+  })
+
+  it('wyczyszczony mnożnik wraca do „auto" po wyjściu z komórki', () => {
+    expect(cellSettle('', coeffRow, policy)).toMatchObject({
+      kind: 'clear',
+      row: { wToolsOverrideCoeff: null, wToolsOverrideValue: null },
+    })
+  })
+
   it('ogłasza przywróconą KWOTĘ, nie mnożnik — zdanie jest o pieniądzach', () => {
-    expect(policy.restoredLabel(coeffRow)).toBe(formatPLN(50))
+    expect(policy.restoredLabel!(coeffRow)).toBe(formatPLN(50))
   })
 })

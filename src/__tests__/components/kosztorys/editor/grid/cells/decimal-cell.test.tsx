@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
@@ -11,10 +11,11 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 type QtyRowT = KosztorysV2RowT & { plannedQty: number }
 
-const POLICY = numericFieldPolicy<'plannedQty', QtyRowT>('plannedQty', decimalText)
+const POLICY = numericFieldPolicy<'plannedQty', QtyRowT>('plannedQty')
 const COLUMN = decimalColumn('plannedQty', 'Przedmiar', POLICY)
 const CAPPED_COLUMN = decimalColumn('plannedQty', 'Przedmiar', {
   ...POLICY,
+  restoredLabel: (row) => decimalText(row.plannedQty),
   guard: (row) => (row.plannedQty > 100 ? { severity: 'refuse', message: 'za dużo' } : null),
 })
 
@@ -161,6 +162,21 @@ describe('DecimalCell — the row is scrolled out from under the caret', () => {
     rerender(<CellHost mounted={false} onWrite={onWrite} />)
 
     expect(screen.getByRole('status').textContent).toBe('42')
+    expect(onWrite).toHaveBeenCalledTimes(1)
+  })
+
+  it('commits the draft when the phone sends the page to the background', async () => {
+    const { user, input, storedQty, onWrite } = renderCell()
+
+    await user.clear(input)
+    await user.type(input, '42')
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+
+    expect(storedQty()).toBe('42')
+    await user.tab()
     expect(onWrite).toHaveBeenCalledTimes(1)
   })
 

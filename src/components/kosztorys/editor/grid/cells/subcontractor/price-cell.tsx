@@ -3,7 +3,6 @@ import { CellTooltip } from '@/components/ui/datasheet-grid/cell-tooltip'
 import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-input'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { priceSourceOf, viewPrice } from '@/lib/kosztorys/calc'
-import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
 import { DERIVED_TONE, FLAGGED_TONE } from '@/components/kosztorys/tones'
 import { subcontractorPolicy } from '@/lib/kosztorys/subcontractor-price-edit'
 import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-draft'
@@ -27,9 +26,8 @@ export function SubcontractorPriceCell({
   )
 
   const source = priceSourceOf(rowData, view)
-  const message = isDocument
-    ? null
-    : (edit.blockReason ?? checkSubcontractorPrice(rowData, view)?.message ?? null)
+  const isDrafting = edit.draft !== null
+  const message = isDocument ? null : (edit.verdict?.message ?? null)
 
   const body =
     source === 'coeff' ? (
@@ -39,14 +37,16 @@ export function SubcontractorPriceCell({
     ) : (
       <EditableCellInput
         {...edit.inputProps}
-        className={message ? FLAGGED_TONE : source === 'auto' ? DERIVED_TONE : undefined}
+        className={
+          message ? FLAGGED_TONE : source === 'auto' && !isDrafting ? DERIVED_TONE : undefined
+        }
         value={edit.draft ?? moneyText(viewPrice(rowData, view))}
         focus={focus}
       />
     )
 
   return (
-    <CellTooltip message={message} forceOpen={edit.blockReason != null}>
+    <CellTooltip message={message} forceOpen={isDrafting && edit.verdict?.severity === 'refuse'}>
       {body}
     </CellTooltip>
   )

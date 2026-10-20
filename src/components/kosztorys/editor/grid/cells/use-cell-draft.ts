@@ -7,10 +7,7 @@ import type { StopEditingT } from '@/components/ui/datasheet-grid/types'
 
 type CellEditT = { draft: string; rowId: number }
 
-/**
- * The draft lives here until Enter/Tab/blur/unmount — writing the row per keystroke re-runs the whole
- * editor over every row.
- */
+// Writing the row per keystroke re-runs the whole editor over every row.
 export function useCellDraft<RowT extends { id: number }>(
   rowData: RowT,
   setRowData: (row: RowT) => void,
@@ -18,27 +15,24 @@ export function useCellDraft<RowT extends { id: number }>(
   stopEditing: StopEditingT,
 ) {
   const gridDictionary = useTranslation('grid')
-  const [blockReason, setBlockReason] = useState<string | null>(null)
-  const [edit, setEdit] = useState<CellEditT | null>(null)
+  const [draft, setDraft] = useState<string | null>(null)
   // The same draft, readable and clearable in one synchronous step, so a second close — a blur
   // landing in the same commit as the unmount below — finds nothing and writes nothing twice.
   const liveEdit = useRef<CellEditT | null>(null)
 
-  const change = (draft: string) => {
+  const change = (next: string) => {
     // rowId is captured once, on the first keystroke: refreshing it would let a row swapped under the
     // caret still match the settle guard, writing row A's draft onto row B.
-    liveEdit.current = { draft, rowId: liveEdit.current?.rowId ?? rowData.id }
-    setEdit(liveEdit.current)
-    const result = cellKeystroke(draft, rowData, policy)
-    setBlockReason(result.kind === 'blocked' ? result.message : null)
+    liveEdit.current = { draft: next, rowId: liveEdit.current?.rowId ?? rowData.id }
+    setDraft(next)
   }
 
   const closeDraft = () => {
     const closed = liveEdit.current
+    if (!closed) return null
     liveEdit.current = null
-    setBlockReason(null)
-    setEdit(null)
-    return closed && closed.rowId === rowData.id ? closed : null
+    setDraft(null)
+    return closed.rowId === rowData.id ? closed : null
   }
 
   const settle = () => {
@@ -48,7 +42,7 @@ export function useCellDraft<RowT extends { id: number }>(
     if (settled.kind === 'reject') {
       if (settled.reason === 'blocked')
         toastMessage(
-          rejectedEntryMessage(policy.restoredLabel(rowData), 'blocked', gridDictionary),
+          rejectedEntryMessage(policy.restoredLabel?.(rowData) ?? null, 'blocked', gridDictionary),
           'error',
           NOTICE_MS,
         )
@@ -67,9 +61,28 @@ export function useCellDraft<RowT extends { id: number }>(
   })
   useEffect(() => () => settleRef.current(), [])
 
+  const isDrafting = draft !== null
+  // A phone backgrounding the page fires no blur, and the OS may kill it there.
+  useEffect(() => {
+    if (!isDrafting) return
+    const settleWhenHidden = () => {
+      if (document.visibilityState === 'hidden') settleRef.current()
+    }
+    document.addEventListener('visibilitychange', settleWhenHidden)
+    return () => document.removeEventListener('visibilitychange', settleWhenHidden)
+  }, [isDrafting])
+
+  const keystroke = draft === null ? null : cellKeystroke(draft, rowData, policy)
+  const verdict =
+    keystroke === null
+      ? (policy.guard?.(rowData) ?? null)
+      : keystroke.kind === 'value'
+        ? keystroke.verdict
+        : null
+
   return {
-    draft: edit?.draft ?? null,
-    blockReason,
+    draft,
+    verdict,
     inputProps: {
       inputMode: 'decimal' as const,
       onChange: (event: ChangeEvent<HTMLInputElement>) => change(event.target.value),

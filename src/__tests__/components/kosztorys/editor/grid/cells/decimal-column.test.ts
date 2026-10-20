@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { decimalColumn } from '@/components/kosztorys/editor/grid/cells/decimal-column'
 import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
-import { formatQty } from '@/lib/kosztorys/format'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 const column = decimalColumn(
   'plannedQty',
   null,
-  numericFieldPolicy<'plannedQty', KosztorysV2RowT>('plannedQty', formatQty),
+  numericFieldPolicy<'plannedQty', KosztorysV2RowT>('plannedQty'),
 )
 
 const row = (plannedQty: number) => ({ id: 1, plannedQty }) as KosztorysV2RowT
