@@ -29,3 +29,15 @@ describe('useDebouncedSave — a request that never completed', () => {
     )
   })
 })
+
+describe('useDebouncedSave — leaving the editor', () => {
+  it('sends a save still waiting on its timer instead of dropping it', async () => {
+    const run = vi.fn(async () => ({ success: true }) as const)
+    const { result, unmount } = renderHook(() => useDebouncedSave(500))
+
+    act(() => result.current.save('item:1:plannedQty', run))
+    unmount()
+
+    await vi.waitFor(() => expect(run).toHaveBeenCalledOnce(), { timeout: 100 })
+  })
+})
