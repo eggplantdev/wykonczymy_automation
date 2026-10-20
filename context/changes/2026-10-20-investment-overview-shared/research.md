@@ -102,6 +102,42 @@ the two passes of each side. **Pass criteria:** warm SQL and depth identical; do
 than max(15 %, 20 ms) on any page — a page outside that is re-measured, and a repeat is a regression to fix
 before merge.
 
+### Load timings (after phase 1)
+
+Before = `ae2ab8208` on :3100, after = `0954a5ebf` (provider + client `TopNav`) on :3101, both `next build` +
+`start.mjs` on the preview DB, fetch cache cleared. One warm-up pass per side, then four interleaved passes
+(before → after → before → after, then after → before → after → before). Results `before-p2-r{1..4}.json` /
+`after-p2-r{1..4}.json` under each worktree's `dumps/perf/results/`. Warm TTFB / LCP are the median of each
+pass, listed per pass.
+
+| page | warm SQL b / a | depth b / a | TTFB ms before | TTFB ms after | LCP ms before | LCP ms after | doc KB b / a |
+| --- | ---: | ---: | --- | --- | --- | --- | ---: |
+| `/` | 5 / 5 | 2 / 2 | 21 · 31 | 25 · 16 | 404 · 408 | 408 · 404 | 996 / 990 |
+| `/inwestycje` | 2 / 2 | 2 / 2 | 129 · 144 · 145 · 151 | 127 · 204 · 110 · 135 | 364 · 524 · 600 · 588 | 464 · 640 · 372 · 508 | 1359 / 1353 |
+| `/inwestycje/26` | 4 / 4 | 2 / 2 | 131 · 27 | 38 · 31 | 172 · 124 | 144 · 76 | 756 / 751 |
+| `kosztorys_v2` | 4 / 4 | 2 / 2 | 85 · 27 | 36 · 32 | 480 · 372 | 388 · 380 | 727 / 722 |
+| `/pracownicy` | 2 / 2 | 2 / 2 | 72 · 47 | 48 · 38 | 120 · 96 | 164 · 100 | 337 / 333 |
+| `/pracownicy/77` (OWNER) | 7 / 7 | 2–3 / 2–3 | 40 · 30 · 34 · 22 | 37 · 53 · 44 · 62 | 520 · 372 · 368 · 360 | 380 · 400 · 388 · 404 | 259 / 253 |
+| `/kasy` | 2 / 2 | 2 / 2 | 91 · 37 | 34 · 40 | 152 · 76 | 60 · 88 | 279 / 274 |
+| `/sprzet` | 3 / 3 | 2 / 2 | 42 · 26 | 25 · 28 | 460 · 364 | 368 · 368 | 207 / 203 |
+| `/zgloszenia-wydatkow` | 7 / 7 | 2 / 2 | 47 · 26 · 20 · 49 | 26 · 30 · 33 · 19 | 700 · 396 · 388 · 728 | 416 · 688 · 400 · 404 | 706 / 701 |
+| `/zgloszenia` | 3 / 3 | 2 / 2 | 43 · 34 | 29 · 36 | 564 · 388 | 400 · 436 | 493 / 488 |
+| `/kosztorysy` | 2 / 2 | 2 / 2 | 62 · 90 | 80 · 69 | 120 · 160 | 232 · 148 | 648 / 643 |
+| EMPLOYEE own page | 7 / 7 | 2–3 / 2–3 | 27 · 21 | 17 · 18 | 372 · 352 | 356 · 368 | 136 / 134 |
+
+- **SQL and depth identical** on every page; cold depth unchanged too — the unawaited promise holds no page
+  fetch behind it.
+- **Timings:** every page within max(15 %, 20 ms) on the per-side median. `/inwestycje` (after pass 2: 204 ms)
+  and `/pracownicy/77` were re-measured in passes 3–4; both swing on either side by more than the gap between
+  sides (`/pracownicy/77` median 32 → 48 ms, inside the 20 ms band).
+- **Doc KB shrinks** 4–6 KB on management pages and 2 KB for the EMPLOYEE: `TopNav` is a client component now,
+  so its header markup and the three dialog triggers leave the Flight payload. Outside the ±2 KB band in the
+  good direction only.
+- **refData copies** (`baseline.mjs`, `canAddExpensesWithoutInvestment` in the RSC and HTML responses):
+  ×64 on every OWNER page on both sides, ×0 for the EMPLOYEE — the provider promise serializes once, exactly
+  like the old `TopNav` prop. Fetch-level TTFB from that script is noise on this machine (EMPLOYEE html warm
+  median 123 → 411 ms in one pass, 147 → 325 ms reversed in another).
+
 ### Production timings (before)
 
 Vercel Observability, `POST /v2/observability/query` via `vercel api` (team `team_BWfyTqJnjIqZBkHwBL0elgS4`,

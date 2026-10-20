@@ -419,15 +419,15 @@ by Critical Implementation Details and gated by Phases 2 and 5.
 
 #### Automated
 
-- [x] 1.1 Top-nav dialog specs pass on the hook
-- [ ] 1.2 `canAddExpensesWithoutInvestment` count unchanged (×64 OWNER, ×0 EMPLOYEE)
+- [x] 1.1 Top-nav dialog specs pass on the hook — 0954a5ebf
+- [x] 1.2 `canAddExpensesWithoutInvestment` count unchanged (×64 OWNER, ×0 EMPLOYEE) — p2
 
 ### Phase 2: Perf checkpoint (layout only)
 
 #### Automated
 
-- [ ] 2.1 Pass criteria from research.md § Load timings hold on every page
-- [ ] 2.2 refData copies stay 1 on OWNER pages and 0 for EMPLOYEE
+- [x] 2.1 Pass criteria from research.md § Load timings hold on every page — p2
+- [x] 2.2 refData copies stay 1 on OWNER pages and 0 for EMPLOYEE — p2
 
 ### Phase 3: Switch every consumer
 
