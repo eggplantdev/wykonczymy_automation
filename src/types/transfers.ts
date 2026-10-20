@@ -1,5 +1,5 @@
 import type { TransferTypeT, PaymentMethodT, VatPlaneT } from '@/lib/constants/transfers'
-import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+import type { PayoutStatusT } from '@/lib/constants/payout-status'
 import type { OrderStatusT } from '@/lib/constants/orders'
 import type { PreviewFileT } from '@/types/media'
 

@@ -1,4 +1,4 @@
-import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+import type { PayoutStatusT } from '@/lib/constants/payout-status'
 
 export const ROLES = ['ADMIN', 'OWNER', 'MANAGER', 'EMPLOYEE'] as const
 export type RoleT = (typeof ROLES)[number]

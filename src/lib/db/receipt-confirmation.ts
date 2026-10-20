@@ -1,10 +1,10 @@
 import { sql } from '@payloadcms/db-postgres'
-import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+import type { PayoutStatusT } from '@/lib/constants/payout-status'
 import type { DbExecutorT } from './get-db'
 import { lockMessageOf } from './investment-gate'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
 
-export type PayoutToConfirmT = {
+export type ReceiptToConfirmT = {
   id: number
   date: string
   amount: number
@@ -14,7 +14,7 @@ export type PayoutToConfirmT = {
   rejectionReason: string | null
 }
 
-export type RejectedPayoutT = {
+export type RejectedReceiptT = {
   id: number
   date: string
   amount: number
@@ -38,7 +38,7 @@ const DECIDABLE = (transactionId: number, workerId: number) => sql`
 `
 
 // A rejected wypłata stays acceptable — he may have found the missing cash — and keeps its reason.
-export async function acceptPayout(
+export async function acceptReceipt(
   db: DbExecutorT,
   decision: { transactionId: number; workerId: number },
 ): Promise<boolean> {
@@ -51,7 +51,7 @@ export async function acceptPayout(
   return res.rows.length > 0
 }
 
-export async function rejectPayout(
+export async function rejectReceipt(
   db: DbExecutorT,
   decision: { transactionId: number; workerId: number; reason: string },
 ): Promise<boolean> {
@@ -65,10 +65,10 @@ export async function rejectPayout(
   return res.rows.length > 0
 }
 
-export async function listPayoutsToConfirm(
+export async function listReceiptsToConfirm(
   db: DbExecutorT,
   workerId: number,
-): Promise<PayoutToConfirmT[]> {
+): Promise<ReceiptToConfirmT[]> {
   const res = await db.execute(sql`
     SELECT t.id, t.date, t.amount, t.description, i.name AS investment_name,
            t.payout_status, t.payout_rejection_reason
@@ -89,7 +89,7 @@ export async function listPayoutsToConfirm(
   }))
 }
 
-export async function countPendingPayouts(db: DbExecutorT, workerId: number): Promise<number> {
+export async function countPendingReceipts(db: DbExecutorT, workerId: number): Promise<number> {
   const res = await db.execute(sql`
     SELECT count(*)::int AS total FROM transactions
     WHERE worker_id = ${workerId} AND type = 'PAYOUT' AND cancelled IS NOT TRUE
@@ -100,11 +100,11 @@ export async function countPendingPayouts(db: DbExecutorT, workerId: number): Pr
 
 const AWAITING_MANAGEMENT = sql`t.payout_status = 'rejected' AND t.cancelled IS NOT TRUE`
 
-export const REJECTED_PAYOUTS_COUNT = sql`
+export const REJECTED_RECEIPTS_COUNT = sql`
   SELECT count(*)::int AS total FROM transactions t WHERE ${AWAITING_MANAGEMENT}
 `
 
-export async function listRejectedPayouts(db: DbExecutorT): Promise<RejectedPayoutT[]> {
+export async function listRejectedReceipts(db: DbExecutorT): Promise<RejectedReceiptT[]> {
   const res = await db.execute(sql`
     SELECT t.id, t.date, t.amount, t.description, t.worker_id, w.name AS worker_name,
            t.investment_id, i.name AS investment_name, i.status, i.trashed_at,

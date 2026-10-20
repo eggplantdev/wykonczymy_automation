@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { countRejectedPayouts } from '@/__tests__/helpers/stream-counts'
+import { countRejectedReceipts } from '@/__tests__/helpers/stream-counts'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
-  acceptPayout,
-  countPendingPayouts,
-  listPayoutsToConfirm,
-  listRejectedPayouts,
-  rejectPayout,
-} from '@/lib/db/payout-confirmation'
+  acceptReceipt,
+  countPendingReceipts,
+  listReceiptsToConfirm,
+  listRejectedReceipts,
+  rejectReceipt,
+} from '@/lib/db/receipt-confirmation'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { purgeFixtureUsers } from '@/__tests__/helpers/user'
 import { createRegisterOwner } from '@/__tests__/helpers/register'
@@ -89,7 +89,7 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
       },
       ctx,
     )
-    investmentId = await createTestInvestment(payload, 'payout-confirmation-investment')
+    investmentId = await createTestInvestment(payload, 'receipt-confirmation-investment')
   })
 
   afterAll(async () => {
@@ -105,16 +105,16 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
   it('changes nothing when another worker accepts the wypłata', async () => {
     const id = await bookPayout('foreign')
 
-    expect(await acceptPayout(db, { transactionId: id, workerId: stranger.ownerId })).toBe(false)
+    expect(await acceptReceipt(db, { transactionId: id, workerId: stranger.ownerId })).toBe(false)
     expect((await stored(id)).status).toBe('pending')
   })
 
   it('changes nothing on a second rejection', async () => {
     const id = await bookPayout('rejected twice')
-    await rejectPayout(db, { transactionId: id, workerId: worker.ownerId, reason: 'Brak 100 zł' })
+    await rejectReceipt(db, { transactionId: id, workerId: worker.ownerId, reason: 'Brak 100 zł' })
 
     expect(
-      await rejectPayout(db, { transactionId: id, workerId: worker.ownerId, reason: 'Inny powód' }),
+      await rejectReceipt(db, { transactionId: id, workerId: worker.ownerId, reason: 'Inny powód' }),
     ).toBe(false)
     expect((await stored(id)).reason).toBe('Brak 100 zł')
   })
@@ -123,22 +123,22 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
     const id = await bookPayout('cancelled')
     await cancel(id)
 
-    expect(await acceptPayout(db, { transactionId: id, workerId: worker.ownerId })).toBe(false)
+    expect(await acceptReceipt(db, { transactionId: id, workerId: worker.ownerId })).toBe(false)
     expect(
-      await rejectPayout(db, { transactionId: id, workerId: worker.ownerId, reason: 'Brak' }),
+      await rejectReceipt(db, { transactionId: id, workerId: worker.ownerId, reason: 'Brak' }),
     ).toBe(false)
     expect(await stored(id)).toEqual({ status: 'pending', decidedAt: null, reason: null })
   })
 
   it('accepts a rejected wypłata, keeping the reason and moving the date', async () => {
     const id = await bookPayout('changed mind')
-    await rejectPayout(db, { transactionId: id, workerId: worker.ownerId, reason: 'Brak 100 zł' })
+    await rejectReceipt(db, { transactionId: id, workerId: worker.ownerId, reason: 'Brak 100 zł' })
     await db.execute(sql`
       UPDATE transactions SET payout_decided_at = now() - interval '1 day' WHERE id = ${id}
     `)
     const rejectedAt = (await stored(id)).decidedAt
 
-    expect(await acceptPayout(db, { transactionId: id, workerId: worker.ownerId })).toBe(true)
+    expect(await acceptReceipt(db, { transactionId: id, workerId: worker.ownerId })).toBe(true)
     const after = await stored(id)
     expect(after.status).toBe('accepted')
     expect(after.reason).toBe('Brak 100 zł')
@@ -147,10 +147,10 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
 
   it('refuses to reject an accepted wypłata', async () => {
     const id = await bookPayout('accepted')
-    await acceptPayout(db, { transactionId: id, workerId: worker.ownerId })
+    await acceptReceipt(db, { transactionId: id, workerId: worker.ownerId })
 
     expect(
-      await rejectPayout(db, { transactionId: id, workerId: worker.ownerId, reason: 'Jednak nie' }),
+      await rejectReceipt(db, { transactionId: id, workerId: worker.ownerId, reason: 'Jednak nie' }),
     ).toBe(false)
     expect(await stored(id)).toMatchObject({ status: 'accepted', reason: null })
   })
@@ -158,7 +158,7 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
   it('lists what he still owes an answer, but no cancelled wypłata', async () => {
     const pending = await bookPayout('to confirm')
     const rejected = await bookPayout('rejected')
-    await rejectPayout(db, {
+    await rejectReceipt(db, {
       transactionId: rejected,
       workerId: worker.ownerId,
       reason: 'Brak 50 zł',
@@ -166,10 +166,10 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
     const cancelled = await bookPayout('cancelled')
     await cancel(cancelled)
     const accepted = await bookPayout('already accepted')
-    await acceptPayout(db, { transactionId: accepted, workerId: worker.ownerId })
+    await acceptReceipt(db, { transactionId: accepted, workerId: worker.ownerId })
     const strangers = await bookPayout('someone else', stranger.ownerId)
 
-    const listed = (await listPayoutsToConfirm(db, worker.ownerId)).map((row) => row.id)
+    const listed = (await listReceiptsToConfirm(db, worker.ownerId)).map((row) => row.id)
 
     expect(listed).toEqual(expect.arrayContaining([pending, rejected]))
     expect(listed).not.toContain(cancelled)
@@ -179,14 +179,14 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
 
   it('drops a rejected wypłata from management’s queue once it is cancelled', async () => {
     const id = await bookPayout('rejected then cancelled')
-    await rejectPayout(db, { transactionId: id, workerId: worker.ownerId, reason: 'Brak 50 zł' })
-    const before = await countRejectedPayouts(db)
-    expect((await listRejectedPayouts(db)).map((row) => row.id)).toContain(id)
+    await rejectReceipt(db, { transactionId: id, workerId: worker.ownerId, reason: 'Brak 50 zł' })
+    const before = await countRejectedReceipts(db)
+    expect((await listRejectedReceipts(db)).map((row) => row.id)).toContain(id)
 
     await cancel(id)
 
-    expect(await countRejectedPayouts(db)).toBe(before - 1)
-    expect((await listRejectedPayouts(db)).map((row) => row.id)).not.toContain(id)
+    expect(await countRejectedReceipts(db)).toBe(before - 1)
+    expect((await listRejectedReceipts(db)).map((row) => row.id)).not.toContain(id)
   })
 
   it('counts for the badge only the wypłaty still waiting on his answer', async () => {
@@ -194,17 +194,17 @@ describe.skipIf(!ENV_READY)('the worker’s decision on a wypłata (DB)', () => 
     await bookPayout('badge one')
     await bookPayout('badge two')
     await cancel(await bookPayout('badge cancelled'))
-    await acceptPayout(db, {
+    await acceptReceipt(db, {
       transactionId: await bookPayout('badge accepted'),
       workerId: worker.ownerId,
     })
-    await rejectPayout(db, {
+    await rejectReceipt(db, {
       transactionId: await bookPayout('badge rejected'),
       workerId: worker.ownerId,
       reason: 'Brak 100 zł',
     })
     await bookPayout('badge stranger', stranger.ownerId)
 
-    expect(await countPendingPayouts(db, worker.ownerId)).toBe(2)
+    expect(await countPendingReceipts(db, worker.ownerId)).toBe(2)
   })
 })

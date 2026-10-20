@@ -6,7 +6,7 @@ import {
   type MessageKeyT,
   type TranslatorT,
 } from '@/lib/i18n/translations'
-import type { PayoutStatusT } from '@/lib/constants/payout-confirmation'
+import type { PayoutStatusT } from '@/lib/constants/payout-status'
 import type { TransferRowT } from '@/types/transfers'
 
 type TransfersTranslatorT = TranslatorT<'transfers'>

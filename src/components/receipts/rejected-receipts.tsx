@@ -5,32 +5,32 @@ import { DataTable } from '@/components/tables/data-table/data-table'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { OptionalLink } from '@/components/ui/optional-link'
-import type { RejectedPayoutT } from '@/lib/db/payout-confirmation'
+import type { RejectedReceiptT } from '@/lib/db/receipt-confirmation'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
 import { transferHref } from '@/lib/utils/investment-transfers-href'
 
-const col = createColumnHelper<RejectedPayoutT>()
+const col = createColumnHelper<RejectedReceiptT>()
 
-export function RejectedPayouts({ payouts }: { payouts: RejectedPayoutT[] }) {
-  if (payouts.length === 0) return null
+export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptT[] }) {
+  if (receipts.length === 0) return null
 
   const columns = [
     col.display({
       id: 'actions',
       header: 'Anuluj',
-      cell: ({ row: { original: payout } }) => (
+      cell: ({ row: { original: receipt } }) => (
         <CancelTransferButton
-          transactionId={payout.id}
-          disabledReason={payout.investmentLockMessage}
+          transactionId={receipt.id}
+          disabledReason={receipt.investmentLockMessage}
         />
       ),
     }),
     col.accessor('id', {
       header: 'ID',
-      cell: ({ row: { original: payout } }) => (
-        <OptionalLink href={transferHref(payout.id, payout.investmentId)}>
-          #{payout.id}
+      cell: ({ row: { original: receipt } }) => (
+        <OptionalLink href={transferHref(receipt.id, receipt.investmentId)}>
+          #{receipt.id}
         </OptionalLink>
       ),
     }),
@@ -38,8 +38,8 @@ export function RejectedPayouts({ payouts }: { payouts: RejectedPayoutT[] }) {
     col.accessor('workerName', {
       header: 'Pracownik',
       meta: { minWidth: 'min-w-40' },
-      cell: ({ row: { original: payout } }) => (
-        <OptionalLink href={`/pracownicy/${payout.workerId}`}>{payout.workerName}</OptionalLink>
+      cell: ({ row: { original: receipt } }) => (
+        <OptionalLink href={`/pracownicy/${receipt.workerId}`}>{receipt.workerName}</OptionalLink>
       ),
     }),
     col.accessor('amount', {
@@ -49,26 +49,26 @@ export function RejectedPayouts({ payouts }: { payouts: RejectedPayoutT[] }) {
     col.accessor('investmentName', {
       header: 'Inwestycja',
       meta: { minWidth: 'min-w-40' },
-      cell: ({ row: { original: payout } }) => (
+      cell: ({ row: { original: receipt } }) => (
         <OptionalLink
-          href={payout.investmentId === null ? undefined : `/inwestycje/${payout.investmentId}`}
+          href={receipt.investmentId === null ? undefined : `/inwestycje/${receipt.investmentId}`}
         >
-          {payout.investmentName ?? '—'}
+          {receipt.investmentName ?? '—'}
         </OptionalLink>
       ),
     }),
     col.accessor('sourceRegisterName', {
       header: 'Kasa',
       meta: { minWidth: 'min-w-40' },
-      cell: ({ row: { original: payout } }) => (
+      cell: ({ row: { original: receipt } }) => (
         <OptionalLink
           href={
-            payout.sourceRegisterId === null || payout.sourceRegisterTrashed
+            receipt.sourceRegisterId === null || receipt.sourceRegisterTrashed
               ? undefined
-              : `/kasa/${payout.sourceRegisterId}`
+              : `/kasa/${receipt.sourceRegisterId}`
           }
         >
-          {payout.sourceRegisterName ?? '—'}
+          {receipt.sourceRegisterName ?? '—'}
         </OptionalLink>
       ),
     }),
@@ -96,9 +96,9 @@ export function RejectedPayouts({ payouts }: { payouts: RejectedPayoutT[] }) {
         hint="Takie wypłaty trzeba wyjaśnić z pracownikiem lub anulować."
         size="sm"
         withSeparator={false}
-        storageKey="rejected-payouts:open"
+        storageKey="rejected-receipts:open"
       >
-        <DataTable data={payouts} columns={columns} storageKey="rejected-payouts" />
+        <DataTable data={receipts} columns={columns} storageKey="rejected-receipts" />
       </CollapsibleSection>
     </section>
   )

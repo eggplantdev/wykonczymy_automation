@@ -11,7 +11,7 @@ vi.mock('payload', async (importOriginal) => ({
 const execute = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({ execute })) }))
 
-const { acceptPayoutAction, rejectPayoutAction } = await import('@/lib/actions/payout-confirmation')
+const { acceptReceiptAction, rejectReceiptAction } = await import('@/lib/actions/receipt-confirmation')
 
 const WORKER_ID = 7
 
@@ -26,9 +26,9 @@ describe('payout confirmation actions', () => {
   })
 
   it('refuses a reason under the minimum before any write', async () => {
-    const result = await rejectPayoutAction(1, { reason: '  ab ' })
+    const result = await rejectReceiptAction(1, { reason: '  ab ' })
 
-    expect(result).toMatchObject({ success: false, messageKey: 'payoutReasonTooShort' })
+    expect(result).toMatchObject({ success: false, messageKey: 'receiptReasonTooShort' })
     expect(execute).not.toHaveBeenCalled()
   })
 
@@ -36,15 +36,15 @@ describe('payout confirmation actions', () => {
     execute.mockResolvedValue({ rows: [] })
 
     const results = [
-      await acceptPayoutAction(1),
-      await rejectPayoutAction(1, { reason: 'Brak 100 zł' }),
+      await acceptReceiptAction(1),
+      await rejectReceiptAction(1, { reason: 'Brak 100 zł' }),
     ]
 
     for (const result of results) {
       expect(result).toEqual({
         success: false,
-        error: pl.notices.payoutAlreadyDecided,
-        messageKey: 'payoutAlreadyDecided',
+        error: pl.notices.receiptAlreadyDecided,
+        messageKey: 'receiptAlreadyDecided',
       })
     }
     expect(revalidateCollections).not.toHaveBeenCalled()
@@ -53,7 +53,7 @@ describe('payout confirmation actions', () => {
   it('expires the transfers once a decision lands', async () => {
     execute.mockResolvedValue({ rows: [{ id: 1 }] })
 
-    expect(await acceptPayoutAction(1)).toEqual({ success: true })
+    expect(await acceptReceiptAction(1)).toEqual({ success: true })
     expect(revalidateCollections).toHaveBeenCalledWith(['transfers'], undefined)
   })
 })
