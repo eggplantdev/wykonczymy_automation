@@ -1,3 +1,5 @@
+'use client'
+
 import { Suspense } from 'react'
 import { CompanyKnowledgeButton } from '@/components/company-knowledge/company-knowledge-button'
 import { DepositDialog } from '@/components/dialogs/deposit-dialog'
@@ -5,14 +7,14 @@ import { InternalTransferDialog } from '@/components/dialogs/internal-transfer-d
 import { ExpenseDialog } from '@/components/dialogs/expense-dialog'
 import { MobileNav } from '@/components/nav/mobile-nav'
 import { StandaloneBackButton } from '@/components/nav/standalone-back-button'
-import type { ReferenceDataT } from '@/types/reference-data'
+import { useReferenceData } from '@/hooks/use-reference-data'
 
 type TopNavPropsT = {
-  referenceData?: ReferenceDataT
   investmentCrumb: React.ReactNode
 }
 
-export function TopNav({ referenceData, investmentCrumb }: TopNavPropsT) {
+export function TopNav({ investmentCrumb }: TopNavPropsT) {
+  const referenceData = useReferenceData()
   // `sticky top-0` had nothing to stick to — while the `z-40` it needed made the header a stacking
   // context that trapped everything inside it, MobileNav's drawer included, under the body-level toasts.
   return (

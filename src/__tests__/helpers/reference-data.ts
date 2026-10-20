@@ -1,4 +1,5 @@
 import type { RoleT } from '@/lib/auth/roles'
+import type { OrderSettingsT } from '@/types/order-settings'
 import type { ReferenceDataT } from '@/types/reference-data'
 
 export const referenceDataFor = (currentUserRole: RoleT) =>
@@ -14,3 +15,10 @@ export const referenceDataFor = (currentUserRole: RoleT) =>
     currentUserId: 1,
     currentUserRole,
   }) satisfies ReferenceDataT
+
+export const orderSettingsFixture: OrderSettingsT = {
+  suppliers: [],
+  bigBagPrice: 800,
+  containerPrice: 1500,
+  defaultSupplierId: undefined,
+}
