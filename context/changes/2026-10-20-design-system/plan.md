@@ -339,4 +339,4 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 2.1 Every non-excluded `ui/` module is imported by the page
+- [x] 2.1 Every non-excluded `ui/` module is imported by the page — 105ac298b

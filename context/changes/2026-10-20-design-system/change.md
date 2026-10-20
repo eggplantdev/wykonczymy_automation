@@ -1,7 +1,7 @@
 ---
 change_id: design-system
 title: In-app design system page — inventory, consolidate and document UI primitives
-status: implementing
+status: implemented
 created: 2026-10-20
 updated: 2026-10-20
 archived_at: null
