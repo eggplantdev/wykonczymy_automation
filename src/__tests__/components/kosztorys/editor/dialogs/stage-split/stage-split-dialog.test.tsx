@@ -107,7 +107,7 @@ describe('„Pracownicy etapu…"', () => {
     await user.click(screen.getByRole('button', { name: 'Usuń Anna' }))
     expect(saveButton()).toBeDisabled()
 
-    await user.click(screen.getByRole('checkbox', { name: 'Główny — Bob' }))
+    await user.click(screen.getByRole('radio', { name: 'Główny — Bob' }))
     expect(saveButton()).toBeEnabled()
   })
 
@@ -122,7 +122,7 @@ describe('„Pracownicy etapu…"', () => {
     await user.click(screen.getByRole('button', { name: 'Usuń Anna' }))
 
     expect(screen.queryByRole('radio', { name: 'Kwotowo' })).toBeNull()
-    expect(screen.queryByRole('checkbox')).toBeNull()
+    expect(screen.queryByRole('radio')).toBeNull()
     expect(shares()).toEqual([formatPLN(1000)])
     expect(saveButton()).toBeEnabled()
   })

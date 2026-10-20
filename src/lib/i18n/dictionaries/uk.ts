@@ -20,6 +20,7 @@ export const uk: typeof pl = {
     formHasErrors: 'Форма містить помилки',
     loading: 'Завантаження',
     loadingData: 'Завантаження…',
+    confirm: 'Підтвердити',
   },
   notices: {
     unknownToken: 'Це посилання застаріло або було скасоване. Попросіть у керівника нове.',

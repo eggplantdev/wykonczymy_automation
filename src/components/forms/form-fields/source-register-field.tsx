@@ -1,6 +1,7 @@
 import type { FormWithFieldT } from '@/components/forms/hooks/form-hooks'
 import { CashRegisterField } from './cash-register-field'
 import { SaveDefaultRegisterButton } from './save-default-register-button'
+import { InlineLoading } from '@/components/ui/inline-loading'
 import { SignedMoneyDisplay } from '@/components/ui/signed-money-display'
 import type { ReferenceItemT } from '@/types/reference-data'
 
@@ -39,9 +40,7 @@ export function SourceRegisterField({
           <SaveDefaultRegisterButton form={form} defaultCashRegisterId={defaultCashRegisterId} />
         )}
       </div>
-      {isRegisterBalanceLoading && (
-        <p className="text-muted-foreground text-sm">Ładowanie salda...</p>
-      )}
+      {isRegisterBalanceLoading && <InlineLoading label="Ładowanie salda..." />}
       {registerBalance !== null && !isRegisterBalanceLoading && (
         <SignedMoneyDisplay amount={registerBalance} label="Aktualne saldo" />
       )}

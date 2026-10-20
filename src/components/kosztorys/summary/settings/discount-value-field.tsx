@@ -4,6 +4,7 @@ import { type ReactNode, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DecimalInput } from '@/components/ui/decimal-input'
+import { Label } from '@/components/ui/label'
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 
 type PropsT = {
@@ -48,7 +49,7 @@ export function DiscountValueField({
   }
 
   return (
-    <label className="text-muted-foreground flex items-center gap-1 text-xs">
+    <Label size="xs" tone="muted">
       <DecimalInput
         value={raw}
         placeholder={placeholder}
@@ -63,8 +64,7 @@ export function DiscountValueField({
       <Button
         type="button"
         variant="outline"
-        size="sm"
-        className="h-7 px-2"
+        size="xs"
         disabled={disabled || !canApply || pending}
         onClick={requestApply}
       >
@@ -78,6 +78,6 @@ export function DiscountValueField({
           onCancel={() => setConfirming(null)}
         />
       )}
-    </label>
+    </Label>
   )
 }

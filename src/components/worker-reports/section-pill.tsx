@@ -1,8 +1,10 @@
+import { Badge } from '@/components/ui/badge'
+
 // Reads `--section-rail` from the row, so the pill takes the same colour as the rail beside it.
 export function SectionPill({ name }: { name: string }) {
   return (
-    <span className="bg-section-pill text-section-pill-ink inline-block max-w-40 truncate rounded px-1.5 py-0.5 text-xs font-medium max-sm:max-w-24">
+    <Badge tone="section" className="inline-block max-w-40 truncate rounded max-sm:max-w-24">
       {name}
-    </span>
+    </Badge>
   )
 }

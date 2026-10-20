@@ -1,5 +1,4 @@
 import { notFound, redirect } from 'next/navigation'
-import { AlertTriangle } from 'lucide-react'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
@@ -11,6 +10,7 @@ import { EditVehicleDialog } from '@/components/dialogs/edit-vehicle-dialog'
 import { VehicleFlags } from '@/components/fleet/vehicle-flags'
 import { VehicleStatusBadge } from '@/components/fleet/vehicle-status-badge'
 import { VehicleDetailTabs } from '@/components/fleet/vehicle-detail-tabs'
+import { AlertIcon } from '@/components/ui/alert-icon'
 import { InfoList } from '@/components/ui/info-list'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { currentPolicyLabel } from '@/lib/fleet/policy-label'
@@ -65,7 +65,7 @@ export default async function VehicleDetailPage({ params }: DynamicPagePropsT) {
                     )}
                   >
                     {isOilChangeOverdue(vehicle.kmSinceOilChange) && (
-                      <AlertTriangle className="size-4" />
+                      <AlertIcon className="size-4" />
                     )}
                     {formatKmOrDash(vehicle.kmSinceOilChange)}
                   </span>

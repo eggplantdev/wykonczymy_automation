@@ -113,7 +113,7 @@ export function ComparisonRow({
     { content: app },
     {
       content: delta ?? 'zgadza się',
-      className: delta === null ? 'text-muted-foreground' : 'text-amber-600',
+      className: delta === null ? 'text-muted-foreground' : 'text-warning',
     },
     ...(action !== undefined ? [{ content: action, className: 'whitespace-nowrap' }] : []),
   ]
@@ -139,7 +139,7 @@ export function ItemList({
           }
           labelClassName={hasNote ? 'w-1/2' : undefined}
           cells={[
-            ...(hasNote ? [{ content: item.note, className: 'text-left text-amber-600' }] : []),
+            ...(hasNote ? [{ content: item.note, className: 'text-left text-warning' }] : []),
             ...(hasAction ? [{ content: item.action, className: 'whitespace-nowrap' }] : []),
           ]}
         />
@@ -150,7 +150,7 @@ export function ItemList({
 
 export function ReportFold({
   summary,
-  tone = 'text-amber-600',
+  tone = 'text-warning',
   children,
 }: {
   summary: ReactNode

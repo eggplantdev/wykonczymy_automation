@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/tables/data-table/data-table'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import {
   getExpenseDuplicateColumns,
   type ExpenseDuplicateRowT,
@@ -110,7 +111,7 @@ export function ExpenseDraftDuplicateHints({
       {renderRow(
         hasHints && (
           <section className="flex flex-col gap-1.5 pb-3">
-            <h3 className={cn('text-sm font-medium', isAlarm && 'text-destructive')}>
+            <h3 className={cn(SUBSECTION_TITLE_CLASS, isAlarm && 'text-destructive')}>
               Możliwe duplikaty
             </h3>
             {groups.map((group) => (

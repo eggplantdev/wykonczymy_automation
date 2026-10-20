@@ -23,7 +23,7 @@ import { useKosztorysActions } from '@/components/kosztorys/editor/actions/koszt
 import { assignedWorkers } from '@/lib/kosztorys/worker-view/assigned-workers'
 import { REPORT_SCOPE_REFUSAL_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 import { reportScopeRefusal } from '@/lib/kosztorys/worker-view/scope'
-import { cn } from '@/lib/utils/cn'
+import { Description } from '@/components/ui/description'
 
 export function KosztorysWorkersMenu() {
   const { stages, workers } = useKosztorysEditorContext()
@@ -78,14 +78,14 @@ export function KosztorysWorkersMenu() {
                 </Link>
               </DropdownMenuItem>
               {refusal && (
-                <p
-                  className={cn(
-                    'px-2 pb-1 text-xs',
-                    blockReason ? 'text-destructive' : 'text-muted-foreground',
-                  )}
+                <Description
+                  size="xs"
+                  withIcon={false}
+                  tone={blockReason ? 'error' : 'muted'}
+                  className="px-2 pb-1"
                 >
                   {REPORT_SCOPE_REFUSAL_MESSAGES[refusal]}
-                </p>
+                </Description>
               )}
               <WorkerPreviewMenuItem target={{ id, name }} />
               <WorkerShareMenuItem target={{ id, name, blockReason }} />

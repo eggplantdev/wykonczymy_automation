@@ -19,9 +19,10 @@ import { buildSettlementGroups } from '@/components/kosztorys/summary/model/sett
 import { SettlementPlaneWarning } from '@/components/kosztorys/summary/blocks/settlement-plane-warning'
 import { offPlaneDeposits } from '@/lib/kosztorys/off-plane-deposits'
 import { SummaryDepositsTab } from '@/components/kosztorys/summary/tabs/summary-deposits-tab'
-import Link from 'next/link'
+import { OptionalLink } from '@/components/ui/optional-link'
 import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { Separator } from '@/components/ui/separator'
 import { SlicePie } from '@/components/ui/slice-pie'
 import type { DepositTransactionRowT } from '@/types/transfers'
@@ -125,17 +126,14 @@ export function SummaryOverviewTab({
         <div>
           <div className="w-fit">
             <div className="flex items-center gap-2 py-2 text-left">
-              <h2 className="text-foreground text-sm font-medium">
-                {preview ? (
-                  'Lista wpłat'
-                ) : (
-                  <Link
-                    href={investmentTransfersHref(investmentId, { types: DEPOSIT_TYPES })}
-                    className="hover:underline"
-                  >
-                    Lista wpłat
-                  </Link>
-                )}
+              <h2 className={`text-foreground ${SUBSECTION_TITLE_CLASS}`}>
+                <OptionalLink
+                  href={
+                    preview ? null : investmentTransfersHref(investmentId, { types: DEPOSIT_TYPES })
+                  }
+                >
+                  Lista wpłat
+                </OptionalLink>
               </h2>
             </div>
             <Separator orientation="horizontal" />

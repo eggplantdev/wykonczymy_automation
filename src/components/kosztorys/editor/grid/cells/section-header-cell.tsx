@@ -10,7 +10,7 @@ import {
   type SectionBandActionsT,
 } from '@/components/kosztorys/editor/grid/menus/kosztorys-section-actions-menu'
 import { useTranslation } from '@/hooks/use-translation'
-import { formatNet } from '@/lib/kosztorys/format'
+import { formatPLN } from '@/lib/utils/format-currency'
 import { cn } from '@/lib/utils/cn'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
@@ -134,7 +134,7 @@ export function SectionHeaderCell({
         )}
         {!context.isBare && net !== 0 && (
           <span className="grid-cell-text shrink-0 whitespace-nowrap">
-            <span className="font-medium tabular-nums">{formatNet(net)} zł</span>
+            <span className="font-medium tabular-nums">{formatPLN(net)}</span>
             <span className="text-muted-foreground font-normal"> {t('netSuffix')}</span>
           </span>
         )}
@@ -157,6 +157,7 @@ export function SectionHeaderCell({
   return (
     <div
       aria-hidden
+      // eslint-disable-next-line local/no-hand-rolled-ui -- one per virtualized section row; a tooltip per cell costs a Radix tree each
       title={title}
       onClick={foldable ? toggle : undefined}
       className={cn('size-full', foldable && 'cursor-pointer')}

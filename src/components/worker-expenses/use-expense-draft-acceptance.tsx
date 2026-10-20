@@ -6,6 +6,7 @@ import { useReferenceData } from '@/hooks/use-reference-data'
 import { useTranslation } from '@/hooks/use-translation'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Description } from '@/components/ui/description'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { buildDraftPrefill, withDraftTarget } from '@/components/worker-expenses/draft-prefill'
 import { OpenExpenseDraftButton } from '@/components/worker-expenses/open-expense-draft-button'
@@ -242,7 +243,9 @@ export function useExpenseDraftAcceptance() {
               aboveLineItems={
                 <>
                   {!accepting.hasPages && accepting.prefill.aiReadRows.length === 0 && (
-                    <p className="text-destructive text-sm">{t('pagesDownloadFailed')}</p>
+                    <Description tone="error" withIcon={false}>
+                      {t('pagesDownloadFailed')}
+                    </Description>
                   )}
                   <ExpenseDraftDuplicateStatus state={accepting.duplicates} />
                 </>

@@ -1,6 +1,7 @@
 'use client'
 
 import { Description } from '@/components/ui/description'
+import { InlineLoading } from '@/components/ui/inline-loading'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { ViewSettingsFields } from '@/components/kosztorys/editor/dialogs/view-settings/view-settings-fields'
 import { DocumentColumnOrderButton } from '@/components/kosztorys/editor/dialogs/view-settings/document-column-order-button'
@@ -20,7 +21,7 @@ type PropsT = {
 export function ClientViewSettingsForm({ value, onChange, defaultColumnRanks, disabled }: PropsT) {
   const { conditionCounts } = useKosztorysEditorContext()
   const emptyCount = conditionCounts.get(CLIENT_EMPTY_CONDITION_ID) ?? 0
-  if (!value) return <p className="text-muted-foreground text-sm">Wczytywanie…</p>
+  if (!value) return <InlineLoading label="Wczytywanie…" />
 
   return (
     <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">

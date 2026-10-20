@@ -5,6 +5,8 @@ import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
@@ -39,13 +41,13 @@ export function CatalogueCollisionConfirm({
 
   return (
     <AlertDialog open onOpenChange={(next) => !next && back()}>
-      <AlertDialogContent onOverlayClick={back} className="max-w-md">
-        <div className="flex flex-col gap-2">
+      <AlertDialogContent onOverlayClick={back}>
+        <AlertDialogHeader>
           <AlertDialogTitle>{`„${existing.description}" jest już w katalogu`}</AlertDialogTitle>
           <AlertDialogDescription>
             {overwriteSentence(existing, candidate, categoryDiffers && !keepCategory)}
           </AlertDialogDescription>
-        </div>
+        </AlertDialogHeader>
 
         <div className="mt-4 space-y-3">
           <PriceList
@@ -67,7 +69,7 @@ export function CatalogueCollisionConfirm({
           )}
         </div>
 
-        <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <AlertDialogFooter className="sm:flex-wrap">
           <Button variant="outline" onClick={back}>
             Wróć
           </Button>
@@ -82,7 +84,7 @@ export function CatalogueCollisionConfirm({
           >
             Nadpisz w katalogu
           </Button>
-        </div>
+        </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   )

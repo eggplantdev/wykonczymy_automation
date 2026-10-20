@@ -33,16 +33,18 @@ export function DeadlineCell({ deadline, muted }: DeadlineCellPropsT) {
 
   return (
     <div className="flex flex-col leading-tight">
+      {/* eslint-disable-next-line local/no-hand-rolled-ui -- table-cell status colour, not an error message */}
       <span
         className={cn(
           'text-sm',
           urgent && 'text-destructive font-medium',
-          warning && 'text-chart-orange font-medium',
+          warning && 'text-warning font-medium',
           muted && 'text-muted-foreground',
         )}
       >
         {formatPLDate(deadline.nextDueAt)}
       </span>
+      {/* eslint-disable-next-line local/no-hand-rolled-ui -- table-cell status colour, not an error message */}
       <span className={cn('text-xs', urgent ? 'text-destructive' : 'text-muted-foreground')}>
         {daysLabel(deadline.daysLeft)}
       </span>

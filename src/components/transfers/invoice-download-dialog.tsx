@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { FileArchive, Loader2 } from 'lucide-react'
+import { FileArchive } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { InlineLoading } from '@/components/ui/inline-loading'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { DateRangePicker } from '@/components/filters/date-range-picker'
 import { useFileArchive } from '@/hooks/use-file-archive'
@@ -88,10 +89,10 @@ export function InvoiceDownloadDialog({ fetchRows }: InvoiceDownloadDialogPropsT
         variant="outline"
         size="sm"
         onClick={() => handleOpenChange(true)}
-        disabled={isZipping}
+        pending={isZipping}
         aria-label={t('invoicesAria')}
       >
-        {isZipping ? <Loader2 className="animate-spin" /> : <FileArchive />}
+        <FileArchive />
         {t('invoices')}
       </Button>
       <FormDialogShell
@@ -106,17 +107,12 @@ export function InvoiceDownloadDialog({ fetchRows }: InvoiceDownloadDialogPropsT
       >
         <DateRangePicker value={range} onChange={changeRange} stacked />
 
-        <p className="text-sm" aria-live="polite">
+        <div className="text-sm" aria-live="polite">
           {!isComplete && <span className="text-muted-foreground">{t('invoicesPickRange')}</span>}
           {isInverted && <span className="text-destructive">{t('invoicesInvalidRange')}</span>}
-          {isCounting && (
-            <span className="text-muted-foreground flex items-center gap-2">
-              <Loader2 className="size-4 animate-spin" />
-              {t('invoicesCounting')}
-            </span>
-          )}
+          {isCounting && <InlineLoading label={t('invoicesCounting')} />}
           {rows && t('invoicesCount', { count: fileCount })}
-        </p>
+        </div>
       </FormDialogShell>
     </>
   )

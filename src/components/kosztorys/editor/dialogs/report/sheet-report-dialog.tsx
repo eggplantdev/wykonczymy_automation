@@ -1,7 +1,9 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { InlineLoading } from '@/components/ui/inline-loading'
 
 /**
  * `data` renders through a callback because the blocks below read it unconditionally — passed as
@@ -36,11 +38,11 @@ export function SheetReportDialog<DataT>({
         <DialogHeader title={title} description={description} />
 
         {!loaded ? (
-          <p className="text-muted-foreground text-sm">{loadingText}</p>
+          <InlineLoading label={loadingText} />
         ) : !data ? (
-          <p className="text-destructive text-sm">
+          <Description tone="error" withIcon={false}>
             {error ?? 'Nie udało się odczytać arkusza Google.'}
-          </p>
+          </Description>
         ) : (
           <div className="space-y-5 text-sm">{children(data)}</div>
         )}

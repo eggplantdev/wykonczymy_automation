@@ -1,8 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import Link from 'next/link'
 import { createColumnHelper } from '@tanstack/react-table'
+import { ExternalLink } from '@/components/ui/external-link'
 import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { documentHref } from '@/lib/expense-duplicates/document-href'
 import { dayOf, isWeakMatch, type MatchReasonT } from '@/lib/expense-duplicates/match'
@@ -71,13 +71,9 @@ export function getExpenseDuplicateColumns<R extends DuplicateMatchT>({
           labelMatch?.(row.original) ??
           `${row.original.source === 'transaction' ? 'Transakcja' : 'Zgłoszenie'} #${row.original.id}`
         return linkMatch ? (
-          <Link
-            href={documentHref(row.original)}
-            target="_blank"
-            className="whitespace-nowrap underline underline-offset-4"
-          >
+          <ExternalLink href={documentHref(row.original)} className="whitespace-nowrap">
             {label}
-          </Link>
+          </ExternalLink>
         ) : (
           <span className="whitespace-nowrap">{label}</span>
         )

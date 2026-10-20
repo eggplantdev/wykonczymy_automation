@@ -7,6 +7,8 @@ import type { UserRowT } from '@/types/table-rows'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { RoleBadge } from '@/components/users/role-badge'
 import { Badge, BadgeButton } from '@/components/ui/badge'
+import { BalanceCell } from '@/components/ui/balance-cell'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
 import { HintedValue } from '@/components/tables/hinted-value'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
@@ -53,9 +55,9 @@ function PayoutRemainingCell({
   return (
     <span className="inline-flex flex-col items-end">
       {/* The withheld hint stays outside: its tooltip trigger is a button of its own. */}
-      <Button variant="link" className="h-auto flex-col items-end gap-0 p-0" onClick={onSettle}>
+      <Button variant="link" size="inline" className="flex-col items-end gap-0" onClick={onSettle}>
         {lines.length === 0 ? (
-          <span className="text-chart-green">{formatPLN(0)}</span>
+          <BalanceCell value={0} settled />
         ) : (
           lines.map((line) => (
             <span key={line.label} className={cn('font-normal', line.className)}>
@@ -152,7 +154,9 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
         info.getValue() === 0 ? (
           '—'
         ) : (
-          <span title={info.row.original.registerNames.join(', ')}>{info.getValue()}</span>
+          <SimpleTooltip content={info.row.original.registerNames.join(', ')}>
+            <span>{info.getValue()}</span>
+          </SimpleTooltip>
         ),
     }),
     col.display({

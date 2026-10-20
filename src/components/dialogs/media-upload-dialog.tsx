@@ -43,7 +43,7 @@ export function MediaUploadDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
+      <DialogContent className="sm:max-w-dialog-sm" aria-describedby={undefined}>
         <DialogHeader title={title ?? t('addInvoice')} />
         {allowPlanMarker && (
           <div>

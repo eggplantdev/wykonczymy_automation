@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
-import { FileArchive, Loader2 } from 'lucide-react'
+import { FileArchive } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { ColumnTotalRow } from '@/components/tables/data-table/column-total-row'
@@ -91,6 +91,7 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
       // so reading the note doesn't navigate away.
       return (
         <SimpleTooltip content={note}>
+          {/* eslint-disable-next-line local/no-hand-rolled-ui -- a truncated tooltip trigger that keeps the table's configurable text size */}
           <button
             type="button"
             className="text-muted-foreground focus-visible:ring-ring/50 block max-w-32 cursor-help truncate text-left focus-visible:ring-3"
@@ -201,10 +202,10 @@ export function MaterialsTransactionsTable({
             variant="outline"
             size="sm"
             onClick={handleDownload}
-            disabled={isPending}
+            pending={isPending}
             className="ml-auto"
           >
-            {isPending ? <Loader2 className="animate-spin" /> : <FileArchive />}
+            <FileArchive />
             Pobierz faktury
           </Button>
         )}

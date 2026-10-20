@@ -6,6 +6,7 @@ import { fetchAllSheets } from '@/lib/queries/sheets'
 import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
 import { ExternalLink } from '@/components/ui/external-link'
 import { PageWrapper } from '@/components/ui/page-wrapper'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { PAGE_TITLES } from '@/lib/constants/sections'
 import { KosztorysDataTable } from '@/components/sheets/kosztorys-data-table'
 import { InvestmentsWithoutSheetTable } from '@/components/sheets/investments-without-sheet-table'
@@ -59,7 +60,7 @@ export default async function SheetsListPage() {
       <KosztorysDataTable data={kosztorysRows} />
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium">Inwestycje bez kosztorysu</h2>
+        <h2 className={SUBSECTION_TITLE_CLASS}>Inwestycje bez kosztorysu</h2>
         <InvestmentsWithoutSheetTable data={investmentRows} />
       </section>
     </PageWrapper>

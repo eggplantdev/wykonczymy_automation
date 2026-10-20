@@ -1,8 +1,8 @@
 'use client'
 
 import { useTransition } from 'react'
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { DialogActions } from '@/components/ui/dialog-actions'
+import { Description } from '@/components/ui/description'
+import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
@@ -35,32 +35,27 @@ export function ClearKosztorysDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader
-          title={`Wyczyść ${noun.nominative}`}
-          description={
-            !isTemplate
-              ? 'Cała rozpiska zniknie — razem z etapami i wpisanym wykonaniem. Stawka VAT i współczynniki zostają, rabat globalny zostanie wyzerowany (przywrócenie stanu go nie cofa). Stan sprzed wyczyszczenia zapisze się automatycznie — wrócisz do niego przez „Wczytaj”.'
-              : 'Cała rozpiska zniknie. Stan sprzed wyczyszczenia zapisze się automatycznie — wrócisz do niego przez „Wczytaj”.'
-          }
-        />
-
-        <p className="text-muted-foreground text-sm">
-          Do usunięcia: {sections} {sectionNoun(sections)} · {items} {itemNoun(items)}
-        </p>
-
-        <DialogActions
-          confirmLabel="Wyczyść"
-          confirmVariant="destructive"
-          pending={pending}
-          pendingLabel="Czyszczę…"
-          onConfirm={handleConfirm}
-          onCancel={() => onOpenChange(false)}
-          // Clearing an already-empty rozpiska would only push an empty restore point into „Wersje".
-          confirmDisabled={sections === 0 && items === 0}
-        />
-      </DialogContent>
-    </Dialog>
+    <FormDialogShell
+      open={open}
+      onOpenChange={onOpenChange}
+      contentClassName="sm:max-w-dialog"
+      title={`Wyczyść ${noun.nominative}`}
+      description={
+        !isTemplate
+          ? 'Cała rozpiska zniknie — razem z etapami i wpisanym wykonaniem. Stawka VAT i współczynniki zostają, rabat globalny zostanie wyzerowany (przywrócenie stanu go nie cofa). Stan sprzed wyczyszczenia zapisze się automatycznie — wrócisz do niego przez „Wczytaj”.'
+          : 'Cała rozpiska zniknie. Stan sprzed wyczyszczenia zapisze się automatycznie — wrócisz do niego przez „Wczytaj”.'
+      }
+      confirmLabel="Wyczyść"
+      confirmVariant="destructive"
+      pending={pending}
+      pendingLabel="Czyszczę…"
+      onConfirm={handleConfirm}
+      // Clearing an already-empty rozpiska would only push an empty restore point into „Wersje".
+      confirmDisabled={sections === 0 && items === 0}
+    >
+      <Description withIcon={false}>
+        Do usunięcia: {sections} {sectionNoun(sections)} · {items} {itemNoun(items)}
+      </Description>
+    </FormDialogShell>
   )
 }

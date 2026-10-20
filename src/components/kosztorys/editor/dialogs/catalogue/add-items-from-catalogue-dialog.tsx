@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Checkbox } from '@/components/ui/checkbox'
+import { CheckboxRow } from '@/components/ui/checkbox-row'
+import { Description } from '@/components/ui/description'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { Button } from '@/components/ui/button'
@@ -27,7 +29,6 @@ import type {
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 import { toastMessage } from '@/lib/utils/toast'
-import { cn } from '@/lib/utils/cn'
 
 type PropsT = {
   investmentId: number
@@ -154,10 +155,9 @@ export function AddItemsFromCatalogueDialog({
             placeholder="Wybierz lub wpisz sekcję…"
             allowCustom
             modal
-            className={cn(
-              'border-input bg-background h-9 w-56 rounded-md border px-3',
-              sectionHint && 'border-destructive',
-            )}
+            variant="field"
+            invalid={sectionHint !== undefined}
+            className="w-56"
             contentClassName="w-(--radix-popover-trigger-width)"
           />
         </div>
@@ -168,13 +168,14 @@ export function AddItemsFromCatalogueDialog({
             placeholder="Szukaj pracy…"
             className="min-w-0 flex-1"
           />
-          <label className="text-muted-foreground flex shrink-0 items-center gap-2 text-sm">
-            <Checkbox
-              checked={hideAlreadyAdded}
-              onCheckedChange={(checked) => setHideAlreadyAdded(checked === true)}
-            />
+          <CheckboxRow
+            variant="plain"
+            checked={hideAlreadyAdded}
+            onCheckedChange={setHideAlreadyAdded}
+            className="text-muted-foreground shrink-0"
+          >
             Ukryj już dodane ({hiddenCount})
-          </label>
+          </CheckboxRow>
         </div>
         <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
           <FilterMultiSelect
@@ -209,7 +210,7 @@ export function AddItemsFromCatalogueDialog({
           )}
         </div>
         {catalogue.length === 0 ? (
-          <p className="text-muted-foreground px-4 py-6 text-sm">Katalog prac jest pusty.</p>
+          <EmptyState size="inline" title="Katalog prac jest pusty." className="px-4 py-6" />
         ) : (
           <div className="min-h-0 px-4 pb-3">
             <CataloguePickerTable items={visible} selectedIds={selectedIds} onToggle={toggle} />
@@ -218,7 +219,11 @@ export function AddItemsFromCatalogueDialog({
         <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-4">
           <div className="flex items-center gap-2">
             <Button onClick={handleNewItem}>Dodaj nową pracę…</Button>
-            {sectionHint && <span className="text-destructive text-sm">{sectionHint}</span>}
+            {sectionHint && (
+              <Description tone="error" withIcon={false}>
+                {sectionHint}
+              </Description>
+            )}
           </div>
           <DialogActions
             className="p-0"

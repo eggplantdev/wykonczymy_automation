@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
@@ -33,8 +32,7 @@ export function RestoreExpenseDraftButton({ restore, successMessage }: PropsT) {
   }
 
   return (
-    <Button size="xs" variant="outline" disabled={isRestoring} onClick={handleRestore}>
-      {isRestoring && <Loader2 className="animate-spin" />}
+    <Button size="xs" variant="outline" pending={isRestoring} onClick={handleRestore}>
       Przywróć
     </Button>
   )

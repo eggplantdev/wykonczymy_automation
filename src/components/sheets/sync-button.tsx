@@ -3,8 +3,8 @@
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { DialogActions } from '@/components/ui/dialog-actions'
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { EmptyState } from '@/components/ui/empty-state'
+import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { applyMaterialSync } from '@/lib/actions/sheets-sync'
@@ -89,6 +89,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         onClick={() => setSetupOpen(true)}
         disabled={pending}
         className="min-w-0 shrink"
+        // eslint-disable-next-line local/no-hand-rolled-ui -- truncation reveal for the clipped label
         title="Zresetuj wydatki inwestycyjne"
       >
         <span className="truncate">Zresetuj wydatki inwestycyjne</span>
@@ -99,6 +100,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         onClick={onCheck}
         disabled={pending}
         className="min-w-0 shrink"
+        // eslint-disable-next-line local/no-hand-rolled-ui -- truncation reveal for the clipped label
         title="Synchronizuj wydatki inwestycyjne"
       >
         <span className="truncate">
@@ -125,46 +127,43 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
         onConfirm={onSetupConfirm}
         onCancel={() => setSetupOpen(false)}
       />
-      <Dialog open={preview !== null} onOpenChange={(open) => !open && setPreview(null)}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader
-            title="Synchronizacja wydatków inwestycyjnych"
-            description="Do arkusza zostaną dodane nowe wydatki inwestycyjne, a istniejące wiersze zostaną odświeżone, aby pasowały do danych z aplikacji. Wiersze dodane ręcznie (spoza aplikacji) pozostają bez zmian."
-          />
-          {preview && (
-            <div className="space-y-4 text-sm">
-              {pendingChanges(preview) === 0 ? (
-                <p className="text-muted-foreground">Wszystko jest już zsynchronizowane.</p>
-              ) : (
-                <>
-                  {preview.tabs.map((t) => (
-                    <p key={t.label} className="text-muted-foreground text-xs">
-                      {t.label} — do dodania: <strong>{t.toAppend.length}</strong> · do odświeżenia:{' '}
-                      <strong>{t.toUpdateCount}</strong> · do usunięcia:{' '}
-                      <strong>{t.toRemoveCount}</strong>
-                    </p>
+      <FormDialogShell
+        open={preview !== null}
+        onOpenChange={(open) => !open && setPreview(null)}
+        contentClassName="sm:max-w-dialog"
+        title="Synchronizacja wydatków inwestycyjnych"
+        description="Do arkusza zostaną dodane nowe wydatki inwestycyjne, a istniejące wiersze zostaną odświeżone, aby pasowały do danych z aplikacji. Wiersze dodane ręcznie (spoza aplikacji) pozostają bez zmian."
+        confirmLabel="Zsynchronizuj arkusz"
+        onConfirm={onConfirm}
+        confirmDisabled={pending || !preview || pendingChanges(preview) === 0}
+      >
+        {preview && (
+          <div className="space-y-4 text-sm">
+            {pendingChanges(preview) === 0 ? (
+              <EmptyState size="inline" title="Wszystko jest już zsynchronizowane." />
+            ) : (
+              <>
+                {preview.tabs.map((t) => (
+                  <p key={t.label} className="text-muted-foreground text-xs">
+                    {t.label} — do dodania: <strong>{t.toAppend.length}</strong> · do odświeżenia:{' '}
+                    <strong>{t.toUpdateCount}</strong> · do usunięcia:{' '}
+                    <strong>{t.toRemoveCount}</strong>
+                  </p>
+                ))}
+                {preview.tabs
+                  .filter((t) => t.toAppend.length > 0)
+                  .map((t) => (
+                    <Section
+                      key={t.label}
+                      title={`${t.label} do dodania (${t.toAppend.length})`}
+                      items={t.toAppend.map(appendItem)}
+                    />
                   ))}
-                  {preview.tabs
-                    .filter((t) => t.toAppend.length > 0)
-                    .map((t) => (
-                      <Section
-                        key={t.label}
-                        title={`${t.label} do dodania (${t.toAppend.length})`}
-                        items={t.toAppend.map(appendItem)}
-                      />
-                    ))}
-                </>
-              )}
-            </div>
-          )}
-          <DialogActions
-            confirmLabel="Zsynchronizuj arkusz"
-            onConfirm={onConfirm}
-            onCancel={() => setPreview(null)}
-            confirmDisabled={pending || !preview || pendingChanges(preview) === 0}
-          />
-        </DialogContent>
-      </Dialog>
+              </>
+            )}
+          </div>
+        )}
+      </FormDialogShell>
     </>
   )
 }
@@ -189,7 +188,7 @@ function Section({ title, items }: SectionPropsT) {
   return (
     <div>
       <div className="mb-1 flex items-center gap-2 font-medium">
-        <span className="h-2 w-2 rounded-full bg-emerald-500" />
+        <span className="bg-chart-green h-2 w-2 rounded-full" />
         {title}
       </div>
       <ul className="text-muted-foreground space-y-0.5 pl-4 text-xs">

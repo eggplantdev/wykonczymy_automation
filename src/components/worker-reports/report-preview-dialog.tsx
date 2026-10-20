@@ -2,6 +2,7 @@
 
 import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { EYEBROW_CLASS } from '@/components/ui/section-header'
 import { ReportPreviewTable } from '@/components/worker-reports/report-preview-table'
 import { WorkerReportStatusBadge } from '@/components/worker-reports/worker-report-status-badge'
 import { useTranslation } from '@/hooks/use-translation'
@@ -75,7 +76,7 @@ function ReportPreviewBody({ preview }: { preview: ReportPreviewT }) {
           if (lines.length === 0) return null
           return (
             <section key={kind}>
-              <h4 className="text-muted-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
+              <h4 className={`${EYEBROW_CLASS} mb-2`}>
                 {t(titleKey)} ({lines.length})
               </h4>
               <ReportPreviewTable group={kind} lines={lines} />

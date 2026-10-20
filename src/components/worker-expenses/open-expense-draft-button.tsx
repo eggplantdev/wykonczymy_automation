@@ -1,6 +1,6 @@
 'use client'
 
-import { Eye, Loader2 } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 type PropsT = {
@@ -11,8 +11,8 @@ type PropsT = {
 
 export function OpenExpenseDraftButton({ isLoading, disabled, onClick }: PropsT) {
   return (
-    <Button size="xs" disabled={disabled} onClick={onClick}>
-      {isLoading ? <Loader2 className="animate-spin" /> : <Eye />}
+    <Button size="xs" disabled={disabled} pending={isLoading} onClick={onClick}>
+      <Eye />
       Zweryfikuj
     </Button>
   )

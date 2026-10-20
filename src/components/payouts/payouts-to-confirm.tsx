@@ -83,7 +83,7 @@ export function PayoutsToConfirm({ payouts }: { payouts: PayoutToConfirmT[] }) {
           <div className="mt-1 grid auto-cols-fr grid-flow-col gap-2">
             <Button
               variant="greenOutline"
-              className="h-11"
+              size="touch"
               disabled={pendingId === payout.id}
               onClick={() => setOpenDialog({ kind: 'accept', payout })}
             >
@@ -93,7 +93,7 @@ export function PayoutsToConfirm({ payouts }: { payouts: PayoutToConfirmT[] }) {
             {payout.status === 'pending' && (
               <Button
                 variant="destructiveOutline"
-                className="h-11"
+                size="touch"
                 disabled={pendingId === payout.id}
                 onClick={() => setOpenDialog({ kind: 'reject', payout })}
               >

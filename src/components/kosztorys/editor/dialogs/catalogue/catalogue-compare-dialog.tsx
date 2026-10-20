@@ -141,7 +141,7 @@ export function CatalogueCompareDialog() {
 
 function ShowInRozpiskaButton({ onClick }: { onClick: () => void }) {
   return (
-    <Button variant="link" size="xs" className="h-auto p-0" onClick={onClick}>
+    <Button variant="link" size="inline" className="text-xs" onClick={onClick}>
       Pokaż w rozpisce
     </Button>
   )

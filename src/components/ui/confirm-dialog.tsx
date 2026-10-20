@@ -31,7 +31,7 @@ export function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = 'Potwierdź',
+  confirmLabel,
   cancelLabel,
   variant = 'alert',
   onConfirm,
@@ -56,7 +56,7 @@ export function ConfirmDialog({
             className={variant === 'alert' ? buttonVariants({ variant: 'destructive' }) : undefined}
             onClick={onConfirm}
           >
-            {confirmLabel}
+            {confirmLabel ?? t('confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

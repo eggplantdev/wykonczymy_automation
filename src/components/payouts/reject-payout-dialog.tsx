@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { DialogActions } from '@/components/ui/dialog-actions'
+import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { ReasonField } from '@/components/ui/reason-field'
 import { rejectPayoutAction } from '@/lib/actions/payout-confirmation'
 import { failureMessage } from '@/lib/i18n/failure-message'
@@ -43,36 +42,33 @@ export function RejectPayoutDialog({ transactionId, amount, onClose }: PropsT) {
   }
 
   return (
-    <Dialog open onOpenChange={(next) => !next && onClose()}>
-      <DialogContent showCloseButton={false} className="sm:h-fit sm:max-w-md">
-        <DialogHeader
-          title={t('payoutRejectTitle', { amount: formatPLN(amount) })}
-          description={t('payoutRejectDescription')}
-        />
-        <ReasonField
-          id={`payout-reject-reason-${transactionId}`}
-          value={reason}
-          onChange={setReason}
-          min={CANCEL_REASON_MIN_LENGTH}
-          max={CANCEL_REASON_MAX_LENGTH}
-          label={t('payoutRejectReason')}
-          placeholder={t('payoutRejectPlaceholder')}
-          counterText={({ length, missing }) =>
-            missing === 0
-              ? t('payoutReasonCount', { length, max: CANCEL_REASON_MAX_LENGTH })
-              : t('payoutReasonMissing', { missing })
-          }
-          disabled={isPending}
-        />
-        <DialogActions
-          confirmLabel={t('payoutReject')}
-          confirmVariant="destructive"
-          pending={isPending}
-          confirmDisabled={!isReasonValid}
-          onConfirm={handleReject}
-          onCancel={onClose}
-        />
-      </DialogContent>
-    </Dialog>
+    <FormDialogShell
+      open
+      onOpenChange={(next) => !next && onClose()}
+      showCloseButton={false}
+      title={t('payoutRejectTitle', { amount: formatPLN(amount) })}
+      description={t('payoutRejectDescription')}
+      confirmLabel={t('payoutReject')}
+      confirmVariant="destructive"
+      pending={isPending}
+      confirmDisabled={!isReasonValid}
+      onConfirm={handleReject}
+    >
+      <ReasonField
+        id={`payout-reject-reason-${transactionId}`}
+        value={reason}
+        onChange={setReason}
+        min={CANCEL_REASON_MIN_LENGTH}
+        max={CANCEL_REASON_MAX_LENGTH}
+        label={t('payoutRejectReason')}
+        placeholder={t('payoutRejectPlaceholder')}
+        counterText={({ length, missing }) =>
+          missing === 0
+            ? t('payoutReasonCount', { length, max: CANCEL_REASON_MAX_LENGTH })
+            : t('payoutReasonMissing', { missing })
+        }
+        disabled={isPending}
+      />
+    </FormDialogShell>
   )
 }

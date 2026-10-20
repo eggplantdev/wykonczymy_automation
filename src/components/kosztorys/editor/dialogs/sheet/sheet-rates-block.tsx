@@ -241,9 +241,9 @@ function TabHeader({ tab, plane }: { tab: string; plane: string }) {
 }
 
 const TONE_CLASS: Record<RateToneT, string> = {
-  taken: 'text-green-600',
-  match: 'text-green-600',
-  differs: 'text-red-600',
+  taken: 'text-chart-green',
+  match: 'text-chart-green',
+  differs: 'text-destructive',
 }
 
 function RateCell({ rate, note, tone }: { rate?: number; note?: string; tone?: RateToneT }) {
@@ -262,7 +262,7 @@ function RateCell({ rate, note, tone }: { rate?: number; note?: string; tone?: R
 function RatePair({ sheet, app }: { sheet: number; app: number }) {
   return (
     <>
-      <span className={Math.abs(sheet - app) < MONEY_TOLERANCE ? undefined : 'text-amber-600'}>
+      <span className={Math.abs(sheet - app) < MONEY_TOLERANCE ? undefined : 'text-warning'}>
         {formatPLN(sheet)}
       </span>
       <span className="text-muted-foreground block text-xs">{formatPLN(app)} w kosztorysie</span>

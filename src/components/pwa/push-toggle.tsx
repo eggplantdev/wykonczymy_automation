@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Bell, BellOff, Loader2 } from 'lucide-react'
+import { Bell, BellOff } from 'lucide-react'
 import { useClientSnapshot } from '@/components/pwa/use-client-snapshot'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/hooks/use-translation'
@@ -59,17 +59,17 @@ export function PushToggle({ className }: PushTogglePropsT) {
       }
     })
 
-  const Icon = isPending ? Loader2 : subscribed ? BellOff : Bell
+  const Icon = subscribed ? BellOff : Bell
 
   return (
     <Button
       size="sm"
       variant="outline"
       className={className}
-      disabled={isPending}
+      pending={isPending}
       onClick={handleClick}
     >
-      <Icon className={isPending ? 'animate-spin' : undefined} />
+      <Icon />
       {subscribed ? t('pushDisable') : t('pushEnable')}
     </Button>
   )

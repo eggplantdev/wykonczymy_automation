@@ -1,15 +1,24 @@
 'use client'
 
+import { useState } from 'react'
 import { History } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { HistoryChangesTable } from '@/components/kosztorys/editor/history/history-changes-table'
+import {
+  Collapsible,
+  CollapsibleChevron,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { TextLink } from '@/components/ui/text-link'
 import { differenceSummary, versionChangeRows } from '@/lib/kosztorys/history/change-rows'
 import type { PastVersionT } from '@/lib/kosztorys/history/types'
 import { formatPLDate } from '@/lib/utils/format-date'
 
 export function HistoryBanner({ version }: { version: PastVersionT | null }) {
   const pathname = usePathname()
+  const [changesOpen, setChangesOpen] = useState(true)
   if (!version) return null
 
   const day = formatPLDate(version.day)
@@ -25,9 +34,9 @@ export function HistoryBanner({ version }: { version: PastVersionT | null }) {
           {version.label ? `Wersja „${version.label}" z ${day}` : `Wersja z ${day}`}
         </span>
         <span className="text-muted-foreground">— porównanie z bieżącą ·</span>
-        <Link href={pathname} className="text-primary font-medium underline underline-offset-2">
-          Wróć do bieżącej
-        </Link>
+        <TextLink asChild className="font-medium">
+          <Link href={pathname}>Wróć do bieżącej</Link>
+        </TextLink>
       </p>
       {version.diff.discount.state === 'unknown' && (
         <p className="text-muted-foreground">Rabat nieznany — ta wersja nie zapisała rabatu</p>
@@ -35,12 +44,15 @@ export function HistoryBanner({ version }: { version: PastVersionT | null }) {
       {rows.length === 0 ? (
         <p className="text-muted-foreground">{differenceSummary(0)}</p>
       ) : (
-        <details open>
-          <summary className="cursor-pointer font-medium">{differenceSummary(rows.length)}</summary>
-          <div className="mt-1 max-h-64 overflow-auto">
+        <Collapsible open={changesOpen} onOpenChange={setChangesOpen}>
+          <CollapsibleTrigger className="flex cursor-pointer items-center gap-1 font-medium">
+            <CollapsibleChevron open={changesOpen} className="size-4" />
+            {differenceSummary(rows.length)}
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-1 max-h-64 overflow-auto">
             <HistoryChangesTable rows={rows} />
-          </div>
-        </details>
+          </CollapsibleContent>
+        </Collapsible>
       )}
     </div>
   )

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, WandSparkles } from 'lucide-react'
+import { WandSparkles } from 'lucide-react'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { BUTTON_ANIMATION_CLASSES, Button } from '@/components/ui/button'
+import { CollapsibleChevron } from '@/components/ui/collapsible'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { KosztorysActiveFiltersBar } from '@/components/kosztorys/editor/toolbar/kosztorys-active-filters-bar'
 import { KosztorysAddMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-add-menu'
@@ -64,15 +65,16 @@ export function KosztorysEditorToolbar({
               aria-label="Widok cen"
             />
           )}
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="iconSm"
             onClick={() => setToolsOpen(!toolsOpen)}
             aria-expanded={toolsOpen}
             aria-label={toolsOpen ? 'Schowaj narzędzia' : 'Pokaż narzędzia'}
-            className="text-muted-foreground ml-auto cursor-pointer p-1 sm:hidden"
+            className="text-muted-foreground ml-auto sm:hidden"
           >
-            <ChevronDown className={cn('size-5 transition-transform', toolsOpen && 'rotate-180')} />
-          </button>
+            <CollapsibleChevron open={toolsOpen} className="size-5" />
+          </Button>
         </div>
 
         {/* Floats over the rozpiska: in flow it shortened the grid's flex track on every open/close,

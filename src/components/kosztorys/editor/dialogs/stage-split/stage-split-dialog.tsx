@@ -4,6 +4,7 @@ import { Fragment, useState } from 'react'
 import { CheckIcon, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Description } from '@/components/ui/description'
 import { STAGE_HEADER_COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { Input } from '@/components/ui/input'
@@ -89,7 +90,7 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
         onSave(draftToSave(draft))
         onClose()
       }}
-      contentClassName="sm:max-w-xl"
+      contentClassName="sm:max-w-dialog"
     >
       <div className="flex flex-col gap-y-4">
         {splitting && (
@@ -102,9 +103,9 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
         )}
 
         {draft.members.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
+          <Description withIcon={false}>
             {STAGE_HEADER_COPY.workerUnassigned} — dodaj pracownika poniżej.
-          </p>
+          </Description>
         ) : !splitting ? (
           <div className="flex items-center gap-x-3 text-sm">
             <span className="flex-1 break-words">{nameOf(draft.members[0].workerId)}</span>
@@ -135,12 +136,13 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
               )
               return (
                 <Fragment key={member.workerId}>
-                  <button
-                    type="button"
-                    role="checkbox"
+                  <Button
+                    variant="ghost"
+                    size="iconSm"
+                    role="radio"
                     aria-checked={member.takesRest}
                     aria-label={`Główny — ${nameOf(member.workerId)}`}
-                    className="group hover:bg-accent focus-visible:ring-ring/50 flex size-7 items-center justify-center justify-self-center rounded-sm outline-none focus-visible:ring-3"
+                    className="group justify-self-center rounded-sm"
                     onClick={() => setDraft(setRestHolder(draft, member.workerId))}
                   >
                     <CheckIcon
@@ -149,7 +151,7 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
                         !member.takesRest && 'opacity-0 group-hover:opacity-40',
                       )}
                     />
-                  </button>
+                  </Button>
                   <span className="break-words">{nameOf(member.workerId)}</span>
                   {member.takesRest ? (
                     <>
@@ -206,7 +208,11 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
           }}
         />
 
-        {error && <p className="text-destructive text-xs">{error}</p>}
+        {error && (
+          <Description tone="error" size="xs" withIcon={false}>
+            {error}
+          </Description>
+        )}
       </div>
     </FormDialogShell>
   )

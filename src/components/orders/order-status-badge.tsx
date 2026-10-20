@@ -2,6 +2,7 @@
 
 import { useOptimistic, useTransition } from 'react'
 import { Badge, BadgeButton, type BadgeToneT } from '@/components/ui/badge'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import { setOrderStatusAction } from '@/lib/actions/order-status'
 import type { OrderStatusT } from '@/lib/constants/orders'
 import type { TranslatorT } from '@/lib/i18n/translations'
@@ -44,13 +45,10 @@ export function OrderStatusBadge({ transferId, status, cancelled, canFlip, trans
   }
 
   return (
-    <BadgeButton
-      tone={tone}
-      title={translator.t('orderStatusToggle')}
-      disabled={isPending}
-      onClick={flip}
-    >
-      {label}
-    </BadgeButton>
+    <SimpleTooltip content={translator.t('orderStatusToggle')}>
+      <BadgeButton tone={tone} disabled={isPending} onClick={flip}>
+        {label}
+      </BadgeButton>
+    </SimpleTooltip>
   )
 }

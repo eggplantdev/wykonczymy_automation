@@ -11,7 +11,6 @@ import {
   DecisionProgressBadge,
   type DecisionStatusT,
 } from '@/components/ui/decision-progress-badge'
-import { Label } from '@/components/ui/label'
 import type { DraftProgressT } from '@/lib/db/worker-expense-drafts'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
@@ -45,9 +44,9 @@ export function ParagonFooter({
       </div>
       <div className="ml-auto flex flex-col items-end gap-2">
         {selected.length > 0 && (
-          <Label>
+          <p className="text-sm leading-none font-medium">
             Suma zaznaczonych ({selected.length}): {formatPLN(selectedTotal)}
-          </Label>
+          </p>
         )}
         <ReceiptSelectionActions grouping={grouping} />
       </div>

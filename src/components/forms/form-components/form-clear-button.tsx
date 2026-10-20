@@ -15,7 +15,7 @@ export function FormClearButton({ onReset }: FormClearButtonPropsT) {
       // the title.
       className="absolute top-4 right-14 z-10 max-sm:size-9 max-sm:p-0"
       onClick={onReset}
-      title="Wyczyść formularz"
+      aria-label="Wyczyść formularz"
     >
       <RotateCcw className="size-3.5" />
       <span className="max-sm:hidden">Wyczyść formularz</span>

@@ -3,6 +3,7 @@
 import { createContext, use } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
+import { Description } from '@/components/ui/description'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -20,7 +21,6 @@ import {
   type SettleRowT,
 } from '@/lib/kosztorys/worker-payout-pairs'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { amountOf, isValidAmount, type RowValueT } from './row-value'
@@ -114,9 +114,9 @@ function AmountCell({ row, index }: { row: SettleRowT; index: number }) {
         onChange={(e) => onAmount(index, e.target.value)}
       />
       {ahead > 0 && (
-        <p className="text-destructive mt-1 text-xs">
+        <Description tone="error" size="xs" withIcon={false} className="mt-1">
           {formatPLN(ahead)} ponad wykonaną pracę — zapisze się jako zaliczka
-        </p>
+        </Description>
       )}
     </>
   )
@@ -146,17 +146,7 @@ function AfterPayoutCell({ row, index }: { row: SettleRowT; index: number }) {
 }
 
 function RemainderAmount({ value }: { value: number }) {
-  return (
-    <span
-      className={cn(
-        'whitespace-nowrap',
-        value === 0 && 'text-chart-green',
-        value < 0 && 'text-destructive',
-      )}
-    >
-      {formatPLN(value)}
-    </span>
-  )
+  return <BalanceCell value={value} settled className="font-normal whitespace-nowrap" />
 }
 
 const col = createColumnHelper<SettleRowT>()

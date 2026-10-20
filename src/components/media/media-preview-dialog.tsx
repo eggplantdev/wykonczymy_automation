@@ -254,6 +254,7 @@ export function MediaPreviewDialog({
             <iframe
               key={pdf.url}
               src={pdf.url}
+              // eslint-disable-next-line local/no-hand-rolled-ui -- an iframe's `title` names the frame; it is not a hover tooltip
               title={displayName}
               className="h-full w-full rounded border-0"
             />

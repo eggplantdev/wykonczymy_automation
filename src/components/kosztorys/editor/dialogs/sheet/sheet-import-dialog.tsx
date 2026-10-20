@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { Description } from '@/components/ui/description'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { SheetAccessBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-access-block'
 import { SheetColumnPicker } from '@/components/kosztorys/editor/dialogs/sheet/sheet-column-picker'
@@ -246,9 +247,9 @@ function ScopeBlock({ report }: { report: ImportReportT }) {
         <p>{`Mnożnik ceny z cennika: ${adopted.join(' · ')} — zastąpi ustawienie inwestycji.`}</p>
       )}
       {warnings.map((warning, index) => (
-        <p key={`${index}-${warning}`} className="text-amber-600">
+        <Description key={`${index}-${warning}`} tone="warning" withIcon={false}>
           {warning}
-        </p>
+        </Description>
       ))}
     </SheetReportBlock>
   )
@@ -292,7 +293,7 @@ function ColumnsBlock({
                 content: MISSING_COLUMN_REASONS[column.reason],
                 className: 'text-muted-foreground',
               },
-              { content: column.consequence, className: 'text-amber-600' },
+              { content: column.consequence, className: 'text-warning' },
             ]}
           />
         ))}

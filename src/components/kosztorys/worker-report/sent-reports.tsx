@@ -3,6 +3,7 @@
 import type { WorkerReportRowT } from '@/lib/db/worker-reports'
 import { useTranslation } from '@/hooks/use-translation'
 import { formatPLDateTime } from '@/lib/utils/format-date'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 
 export function SentReports({ reports }: { reports: WorkerReportRowT[] }) {
   const { locale, t, tp } = useTranslation('report')
@@ -10,7 +11,7 @@ export function SentReports({ reports }: { reports: WorkerReportRowT[] }) {
 
   return (
     <section className="flex flex-col gap-2 px-4 py-6">
-      <h2 className="text-sm font-semibold">{t('sentReports')}</h2>
+      <h2 className={SUBSECTION_TITLE_CLASS}>{t('sentReports')}</h2>
       <ul className="divide-border flex flex-col divide-y text-sm">
         {reports.map((report) => (
           <li key={report.id} className="py-2">

@@ -100,7 +100,7 @@ export function Badge({
           type="button"
           onClick={onRemove}
           aria-label={removeLabel}
-          className="hover:bg-destructive/10 hover:text-destructive focus-visible:ring-ring/50 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors focus-visible:ring-3 focus-visible:outline-none"
+          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:ring-ring/50 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors focus-visible:ring-3 focus-visible:outline-none"
         >
           <X className="size-3.5" />
         </button>

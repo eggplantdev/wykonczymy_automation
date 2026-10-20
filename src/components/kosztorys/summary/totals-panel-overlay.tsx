@@ -1,11 +1,13 @@
 'use client'
 
+// eslint-disable-next-line local/no-hand-rolled-ui -- needs forceMount, no animation and a className on Content itself; ui/collapsible forces all three
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { useRef, useState, type PointerEvent, type ReactNode, type TransitionEvent } from 'react'
 import { useTotalsPanelOpen } from '@/components/kosztorys/summary/hooks/use-totals-panel-open'
 import { useTotalsPanelHeight } from '@/components/kosztorys/summary/hooks/use-totals-panel-height'
 import { ChevronDown } from 'lucide-react'
 import { EdgeHandlePill } from '@/components/ui/edge-handle-pill'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import {
   FULL_PANEL_FRACTION,
   clampFraction,
@@ -33,6 +35,7 @@ export function TotalsPanelOverlay({
   // re-virtualize up to 1000 rows per pointermove.
   const [dragFraction, setDragFraction] = useState<number | null>(null)
   const drag = useRef<{ y: number; fraction: number } | null>(null)
+  const [hintOpen, setHintOpen] = useState(false)
   // `top` animates only while folding or unfolding: a stored split arriving after hydration, or the
   // grid's measured height replacing its fallback, would otherwise slide the panel on every load.
   const [settledOpen, setSettledOpen] = useState(open)
@@ -92,24 +95,30 @@ export function TotalsPanelOverlay({
       {open && (
         // Only the pill's own width overhangs the grid — a full-width strip would steal clicks from
         // its last row and its horizontal scrollbar.
-        <span
-          role="separator"
-          aria-orientation="horizontal"
-          title="Przeciągnij, aby zmienić wysokość — kliknij, aby zwinąć"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={endDrag}
-          onLostPointerCapture={endDrag}
-          className={cn(
-            'group absolute left-1/2 z-10 flex h-6 w-28 -translate-x-1/2 cursor-row-resize touch-none items-center justify-center',
-            isFull ? 'top-0' : '-top-3',
-          )}
+        <SimpleTooltip
+          content="Przeciągnij, aby zmienić wysokość — kliknij, aby zwinąć"
+          // The handle preventDefaults its pointerdown, which skips the tooltip's own close-on-press.
+          open={hintOpen && dragFraction === null}
+          onOpenChange={setHintOpen}
         >
-          <EdgeHandlePill orientation="horizontal">
-            <ChevronDown className="size-3" />
-          </EdgeHandlePill>
-        </span>
+          <span
+            role="separator"
+            aria-orientation="horizontal"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={endDrag}
+            onLostPointerCapture={endDrag}
+            className={cn(
+              'group absolute left-1/2 z-10 flex h-6 w-28 -translate-x-1/2 cursor-row-resize touch-none items-center justify-center',
+              isFull ? 'top-0' : '-top-3',
+            )}
+          >
+            <EdgeHandlePill orientation="horizontal">
+              <ChevronDown className="size-3" />
+            </EdgeHandlePill>
+          </span>
+        </SimpleTooltip>
       )}
       <Collapsible.Content
         forceMount

@@ -49,6 +49,7 @@ export function MediaStrip({
 
           return (
             <li key={file.id} className="relative">
+              {/* eslint-disable-next-line local/no-hand-rolled-ui -- the thumbnail tile itself, an image surface rather than a Button look */}
               <button
                 type="button"
                 onClick={() => (pick ? pick.onToggle(file) : setOpenIndex(index))}
@@ -101,6 +102,7 @@ export function MediaStrip({
                 <div className="absolute top-1 right-1 flex gap-1">
                   {pick && (
                     <SimpleTooltip content={labels.preview}>
+                      {/* eslint-disable-next-line local/no-hand-rolled-ui -- a translucent round overlay on the thumbnail, no Button variant carries it */}
                       <button
                         type="button"
                         onClick={() => setOpenIndex(index)}
@@ -114,6 +116,7 @@ export function MediaStrip({
 
                   {onRemove && (
                     <SimpleTooltip content={labels.removeOneOfMany}>
+                      {/* eslint-disable-next-line local/no-hand-rolled-ui -- a translucent round overlay on the thumbnail, no Button variant carries it */}
                       <button
                         type="button"
                         onClick={() => onRemove(file, closePreview)}

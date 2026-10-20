@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Description } from '@/components/ui/description'
 import { extraState } from '@/components/kosztorys/worker-report/extra-state'
 import type { useReportDraft } from '@/components/kosztorys/worker-report/use-report-draft'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
@@ -75,7 +76,9 @@ export function SendBar({ token, data, draft, onSent }: PropsT) {
     <>
       <div className="flex items-center gap-3">
         {hasInvalid && (
-          <p className="text-destructive text-sm whitespace-nowrap">{t('fixErrors')}</p>
+          <Description tone="error" withIcon={false} className="whitespace-nowrap">
+            {t('fixErrors')}
+          </Description>
         )}
         <Button
           disabled={lineCount === 0 || hasInvalid || isSending}

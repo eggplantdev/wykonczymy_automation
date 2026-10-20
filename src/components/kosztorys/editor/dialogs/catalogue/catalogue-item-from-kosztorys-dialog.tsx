@@ -2,6 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Description } from '@/components/ui/description'
+import { InlineLoading } from '@/components/ui/inline-loading'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
 import { createCatalogueItemAction, updateCatalogueItemAction } from '@/lib/actions/work-catalogue'
 import { translationTexts } from '@/lib/i18n/description-translations'
@@ -73,7 +74,7 @@ export function CatalogueItemFromKosztorysDialog({
         )}
         <div className="mt-2">
           {!preview ? (
-            <Description size="xs">Wczytywanie…</Description>
+            <InlineLoading label="Wczytywanie…" className="text-xs" />
           ) : (
             <WorkCatalogueItemForm
               formId={`catalogue-item-from-kosztorys-${itemId}`}

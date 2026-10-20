@@ -47,16 +47,17 @@ function SelectTrigger({
 
 function SelectButtonTrigger({
   className,
+  size = 'sm',
   children,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
+}: React.ComponentProps<typeof SelectPrimitive.Trigger> & { size?: 'xs' | 'sm' }) {
   return (
     <SelectPrimitive.Trigger data-slot="select-trigger" asChild {...props}>
       {/* w-fit: this one is often dropped into a stacked flex column, where the default `stretch`
           would blow it to the column's width. */}
       <Button
         variant="outline"
-        size="sm"
+        size={size}
         className={cn(
           'w-fit *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2',
           className,

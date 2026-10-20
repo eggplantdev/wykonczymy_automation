@@ -1,6 +1,6 @@
 'use client'
 
-import { Menu, X } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -8,10 +8,12 @@ import { useEffect, useState } from 'react'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { RoleBadge } from '@/components/users/role-badge'
 import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { ThemeToggle } from '@/components/nav/theme-toggle'
 import { UiScaleSwitch } from '@/components/nav/ui-scale-switch'
 import { LogoutButton } from '@/components/nav/logout-button'
 import { NavLinkItem } from '@/components/nav/nav-link-item'
+import { NavNameLink } from '@/components/nav/nav-name-link'
 import { RefreshDataButton } from '@/components/nav/refresh-data-button'
 import { AdminButton } from '@/components/nav/admin-button'
 import { CompanyKnowledgeButton } from '@/components/company-knowledge/company-knowledge-button'
@@ -22,7 +24,6 @@ import { useNavLinks } from '@/hooks/use-nav-links'
 import { useTranslation } from '@/hooks/use-translation'
 import { ROLE_KEYS } from '@/lib/i18n/role-keys'
 import { TRASH_HREF } from '@/lib/constants/sections'
-import { cn } from '@/lib/utils/cn'
 
 // `h-screen` is `100vh`, which Safari resolves to the LARGE viewport, so the whole document slides
 // under the open drawer.
@@ -36,7 +37,6 @@ export function MobileNav() {
   const user = useCurrentUser()
   const { links, isActive } = useNavLinks()
   const { t } = useTranslation('shell')
-  const { t: tCommon } = useTranslation('common')
   const { t: tPage } = useTranslation('workerPage')
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -66,75 +66,60 @@ export function MobileNav() {
     <>
       <Button
         variant="ghost"
-        size="icon"
-        className="size-11 sm:hidden"
+        size="iconTouch"
+        className="sm:hidden"
         aria-label={t('menu')}
         aria-expanded={open}
         aria-controls="mobile-nav"
         onClick={openDrawer}
       >
-        <Menu className="size-7" />
+        <Menu />
       </Button>
 
-      {/* Tailwind v4 compiles `-translate-x-full` to the `translate` property, so the transition has
-          to name it. `dvh`, not `lvh`: a fixed element can be painted `lvh` tall but iOS still only
-          SHOWS the small viewport, so the bottom band lands under the floating toolbar — unreachable. */}
-      <nav
-        id="mobile-nav"
-        className={cn(
-          'bg-background fixed inset-x-0 top-0 z-10002 flex h-dvh flex-col overflow-y-auto overscroll-contain transition-[translate,visibility] duration-300 ease-out sm:hidden',
-          open ? 'translate-x-0' : 'pointer-events-none invisible -translate-x-full',
-        )}
-      >
-        <div className="flex shrink-0 items-start gap-3 px-3">
-          <div className="flex h-14 items-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-11"
-              aria-label={tCommon('close')}
-              onClick={() => setOpen(false)}
-            >
-              <X className="size-7" />
-            </Button>
-          </div>
-          <Link href="/" className="ml-auto py-2" onClick={() => closeIfSameRoute('/')}>
-            <BrandLogo height={48} priority />
-          </Link>
-        </div>
-
-        <div className="flex flex-col gap-1 px-3 pt-2">
-          {links.map((link) => (
-            <NavLinkItem
-              key={link.href}
-              link={link}
-              active={isActive(link.href)}
-              onNavigate={() => closeIfSameRoute(link.href)}
-            />
-          ))}
-        </div>
-
-        <div className="mt-auto flex flex-col gap-2 px-3 pt-12 pb-4">
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/pracownicy/${user.id}`}
-              className="text-foreground text-sm font-medium hover:underline"
-              onClick={() => closeIfSameRoute(`/pracownicy/${user.id}`)}
-            >
-              {user.name}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent id="mobile-nav" className="sm:hidden" aria-describedby={undefined}>
+          <SheetTitle className="sr-only">{t('menu')}</SheetTitle>
+          <div className="flex shrink-0 items-start gap-3 px-3">
+            <Link href="/" className="py-2" onClick={() => closeIfSameRoute('/')}>
+              <BrandLogo height={48} priority />
             </Link>
-            <RoleBadge role={user.role}>{tPage(ROLE_KEYS[user.role])}</RoleBadge>
           </div>
-          <UiScaleSwitch />
-          <ThemeToggle collapsed={false} />
-          <RefreshDataButton />
-          <AdminButton />
-          <CompanyKnowledgeButton onOpen={() => setOpen(false)} />
-          <TrashButton active={isActive(TRASH_HREF)} onClick={() => closeIfSameRoute(TRASH_HREF)} />
-          <PushToggle />
-          <LogoutButton beforeLogout={() => setScrollLocked(false)} />
-        </div>
-      </nav>
+
+          <div className="flex flex-col gap-1 px-3 pt-2">
+            {links.map((link) => (
+              <NavLinkItem
+                key={link.href}
+                link={link}
+                active={isActive(link.href)}
+                onNavigate={() => closeIfSameRoute(link.href)}
+              />
+            ))}
+          </div>
+
+          <div className="mt-auto flex flex-col gap-2 px-3 pt-12 pb-4">
+            <div className="flex items-center gap-2">
+              <NavNameLink
+                href={`/pracownicy/${user.id}`}
+                onClick={() => closeIfSameRoute(`/pracownicy/${user.id}`)}
+              >
+                {user.name}
+              </NavNameLink>
+              <RoleBadge role={user.role}>{tPage(ROLE_KEYS[user.role])}</RoleBadge>
+            </div>
+            <UiScaleSwitch />
+            <ThemeToggle collapsed={false} />
+            <RefreshDataButton />
+            <AdminButton />
+            <CompanyKnowledgeButton onOpen={() => setOpen(false)} />
+            <TrashButton
+              active={isActive(TRASH_HREF)}
+              onClick={() => closeIfSameRoute(TRASH_HREF)}
+            />
+            <PushToggle />
+            <LogoutButton beforeLogout={() => setScrollLocked(false)} />
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   )
 }

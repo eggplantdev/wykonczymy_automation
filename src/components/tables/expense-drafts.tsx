@@ -172,6 +172,7 @@ export function useExpenseDraftColumns({
                   <DraftStatusBadge status={draft.status} />
                 )}
                 {isManagerView && draft.duplicateOf && (
+                  // eslint-disable-next-line local/no-hand-rolled-ui -- inline status text inside a table cell, not a form error line
                   <span className="text-destructive text-xs whitespace-nowrap">
                     {duplicateOfLabel(draft.duplicateOf)}
                   </span>

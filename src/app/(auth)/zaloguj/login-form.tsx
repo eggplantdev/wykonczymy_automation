@@ -7,6 +7,7 @@ import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { loginAction } from '@/lib/actions/auth'
 import { settleAction } from '@/lib/utils/settle-action'
 import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
+import { Description } from '@/components/ui/description'
 
 type ButtonStateT = 'idle' | 'pending' | 'success'
 
@@ -70,7 +71,11 @@ export function LoginForm() {
         )}
       </form.AppField>
 
-      {error && <p className="text-destructive text-sm">{error}</p>}
+      {error && (
+        <Description tone="error" withIcon={false}>
+          {error}
+        </Description>
+      )}
 
       <AuthSubmitButton
         isPending={buttonState === 'pending'}

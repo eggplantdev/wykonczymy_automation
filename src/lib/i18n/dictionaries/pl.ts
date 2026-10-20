@@ -27,6 +27,7 @@ export const pl = {
     formHasErrors: 'Formularz zawiera błędy',
     loading: 'Ładowanie',
     loadingData: 'Wczytywanie…',
+    confirm: 'Potwierdź',
   },
   notices: {
     unknownToken: 'Ten link wygasł albo został cofnięty. Poproś kierownika o nowy.',

@@ -7,9 +7,11 @@ import { KnowledgeEntryRow } from '@/components/company-knowledge/knowledge-entr
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Description } from '@/components/ui/description'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
+import { Panel } from '@/components/ui/panel'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { Textarea } from '@/components/ui/textarea'
 import { useSearchFilter } from '@/hooks/use-search-filter'
@@ -186,11 +188,11 @@ export function CompanyKnowledgeBook({
           Dodaj wpis
         </Button>
       </div>
-      {draft?.id === null && <div className="border-border rounded-md border p-3">{form}</div>}
+      {draft?.id === null && <Panel className="p-3">{form}</Panel>}
       {!canReorder && (
-        <p className="text-muted-foreground text-xs">
+        <Description size="xs" withIcon={false}>
           Przeciąganie działa w „Własnej kolejności”, bez wyszukiwania.
-        </p>
+        </Description>
       )}
       <motion.div layoutScroll className="min-h-0 overflow-y-auto">
         {sorted.length === 0 ? (

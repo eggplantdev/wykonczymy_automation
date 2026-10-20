@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { EmptyState } from '@/components/ui/empty-state'
+import { Description } from '@/components/ui/description'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { DateField, DescriptionField, SourceRegisterField } from '@/components/forms/form-fields'
@@ -23,6 +24,7 @@ import { toastMessage } from '@/lib/utils/toast'
 import type { CashRegisterRefT } from '@/types/reference-data'
 import { amountOf, isValidAmount, type RowValueT } from './row-value'
 import { SettlePayoutsTable } from './settle-payouts-table'
+import FormFooter from '../form-components/form-footer'
 import { FormShell } from '../form-components/form-shell'
 
 type FormValuesT = {
@@ -178,7 +180,6 @@ export function SettlePayoutsForm({
   }
 
   const rowValues = useStore(form.store, (state) => state.values.rows)
-  const isSubmitting = useStore(form.store, (state) => state.isSubmitting)
   const tickedValues = rowValues.filter((value) => value.ticked)
   const total = roundToCents(
     tickedValues.reduce((sum, value) => sum + (isValidAmount(value) ? amountOf(value) : 0), 0),
@@ -221,7 +222,7 @@ export function SettlePayoutsForm({
       </FieldGroup>
 
       {rows.length === 0 ? (
-        <p className="text-muted-foreground mt-6 text-sm">Brak wypłat do rozliczenia.</p>
+        <EmptyState size="inline" title="Brak wypłat do rozliczenia." />
       ) : (
         <SettlePayoutsTable
           className="mt-6"
@@ -252,16 +253,19 @@ export function SettlePayoutsForm({
         onCancel={() => setBonusRow(undefined)}
       />
 
-      <footer className="mt-6 flex items-center gap-4">
-        <Button type="submit" disabled={!canSubmit || isSubmitting || isBooking}>
-          {isSubmitting ? 'Zapisuję…' : 'Wypłać'}
-        </Button>
-        {overPool && (
-          <p className="text-destructive text-sm">
-            Przekroczono kwotę do rozdysponowania o {formatPLN(-poolLeft)}
-          </p>
-        )}
-      </footer>
+      <FormFooter
+        className="mt-6"
+        label="Wypłać"
+        submittingLabel="Zapisuję…"
+        disabled={!canSubmit || isBooking}
+        secondaryAction={
+          overPool && (
+            <Description tone="error" withIcon={false}>
+              Przekroczono kwotę do rozdysponowania o {formatPLN(-poolLeft)}
+            </Description>
+          )
+        }
+      />
     </FormShell>
   )
 }

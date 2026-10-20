@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { Description } from '@/components/ui/description'
 import type { ParagonDuplicatesT } from '@/lib/queries/expense-draft-duplicates'
 
 export type DuplicateHintsStateT =
@@ -23,7 +24,9 @@ export function ExpenseDraftDuplicateStatus({ state }: { state: DuplicateHintsSt
   if (state.status === 'error') {
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-destructive text-sm">Nie udało się sprawdzić duplikatów.</p>
+        <Description tone="error" withIcon={false}>
+          Nie udało się sprawdzić duplikatów.
+        </Description>
         <Button type="button" variant="outline" size="sm" onClick={state.retry}>
           Sprawdź ponownie
         </Button>

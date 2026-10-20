@@ -4,13 +4,15 @@ import type { ReactNode } from 'react'
 // a plain string from it receives a client reference instead of the string.
 export const SECTION_TITLE_CLASS = 'text-lg font-semibold'
 
+export const SECTION_TITLE_MD_CLASS = 'text-base font-semibold'
+
 export const SUBSECTION_TITLE_CLASS = 'text-sm font-semibold'
 
 export const EYEBROW_CLASS = 'text-muted-foreground text-xs font-semibold tracking-wide uppercase'
 
 const HEADER_SIZES = {
   lg: SECTION_TITLE_CLASS,
-  md: 'text-base font-semibold',
+  md: SECTION_TITLE_MD_CLASS,
   sm: SUBSECTION_TITLE_CLASS,
 } as const
 

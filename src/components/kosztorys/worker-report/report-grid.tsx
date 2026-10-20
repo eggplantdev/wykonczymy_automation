@@ -15,6 +15,7 @@ import {
 import { SendBar, type SentT } from '@/components/kosztorys/worker-report/send-bar'
 import { SentReports } from '@/components/kosztorys/worker-report/sent-reports'
 import type { useReportDraft } from '@/components/kosztorys/worker-report/use-report-draft'
+import { Description } from '@/components/ui/description'
 import { DropdownMenuCheckboxRow, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { TextSizeMenuSection } from '@/components/tables/data-table/text-size-menu-section'
 import {
@@ -115,9 +116,13 @@ export function ReportGrid({
             <div className={cn('sticky left-0', scrollsSideways && 'w-screen')}>
               <BrandedHeader data={data} />
               {draft.droppedCount > 0 && (
-                <p className="border-border border-b px-4 py-2 text-sm text-amber-700 dark:text-amber-400">
+                <Description
+                  tone="warning"
+                  withIcon={false}
+                  className="border-border border-b px-4 py-2"
+                >
                   {tp('draftDropped', draft.droppedCount)}
-                </p>
+                </Description>
               )}
               <ReportBar
                 search={controls.search}

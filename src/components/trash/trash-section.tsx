@@ -1,3 +1,6 @@
+import { BORDERED_LIST_CLASS } from '@/components/ui/panel'
+import { SECTION_TITLE_MD_CLASS } from '@/components/ui/section-header'
+import { cn } from '@/lib/utils/cn'
 import { TrashedInvestmentLinks } from '@/components/trash/trashed-investment-links'
 import { TrashedRowActions } from '@/components/trash/trashed-row-actions'
 import { daysLabel } from '@/lib/utils/deadline-label'
@@ -13,8 +16,8 @@ function fateOf(row: TrashRowT): string {
 export function TrashSection({ title, rows }: { title: string; rows: TrashRowT[] }) {
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-foreground text-base font-semibold">{title}</h2>
-      <ul className="divide-border border-border divide-y rounded-md border">
+      <h2 className={cn('text-foreground', SECTION_TITLE_MD_CLASS)}>{title}</h2>
+      <ul className={BORDERED_LIST_CLASS}>
         {rows.map((row) => (
           <li
             key={row.id}

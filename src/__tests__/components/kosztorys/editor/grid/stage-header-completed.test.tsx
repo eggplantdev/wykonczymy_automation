@@ -65,12 +65,12 @@ describe('Nagłówek etapu — etap zakończony', () => {
   ])('%s oznacza etap zakończony znacznikiem ✓', (_mount, mount) => {
     mount()
 
-    expect(screen.getByTitle('Etap zakończony')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Etap zakończony' })).toBeInTheDocument()
   })
 
   it('otwarty etap nie ma znacznika', () => {
     render(<StageHeader stage={stage(false)} />)
 
-    expect(screen.queryByTitle('Etap zakończony')).toBeNull()
+    expect(screen.queryByRole('img', { name: 'Etap zakończony' })).toBeNull()
   })
 })

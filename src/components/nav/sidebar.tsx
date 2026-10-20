@@ -26,6 +26,7 @@ import { OPEN_STATES } from '@/components/ui/collapsible-section'
 import { Button } from '@/components/ui/button'
 import { EdgeHandlePill } from '@/components/ui/edge-handle-pill'
 import Link from 'next/link'
+import { NavNameLink } from '@/components/nav/nav-name-link'
 
 const ACCOUNT_STORAGE_KEY = 'nav:sidebar-account'
 
@@ -52,6 +53,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
       )}
     >
       <SimpleTooltip content={toggleLabel}>
+        {/* eslint-disable-next-line local/no-hand-rolled-ui -- the rail handle is an invisible full-height hit strip around the pill, not a button look */}
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
@@ -89,21 +91,13 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           )}
         >
           {!collapsed && (
-            <Link
-              href={`/pracownicy/${user.id}`}
-              className="text-foreground truncate text-sm font-medium hover:underline"
-            >
+            <NavNameLink href={`/pracownicy/${user.id}`} className="truncate">
               {user.name}
-            </Link>
+            </NavNameLink>
           )}
           <SimpleTooltip content={accountToggleLabel}>
             <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-7"
-                aria-label={accountToggleLabel}
-              >
+              <Button variant="ghost" size="iconSm" aria-label={accountToggleLabel}>
                 <CollapsibleChevron open={accountOpen} />
               </Button>
             </CollapsibleTrigger>

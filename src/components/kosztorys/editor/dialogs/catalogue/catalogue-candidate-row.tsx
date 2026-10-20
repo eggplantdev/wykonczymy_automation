@@ -44,13 +44,8 @@ export function CandidateRow({
     )
 
   return (
-    <Button
-      variant="ghost"
-      size="xs"
-      className="h-auto w-full items-baseline gap-2 px-1 py-1 font-normal whitespace-normal"
-      onClick={onClick}
-    >
-      <ArrowRight className="shrink-0 self-start text-amber-600" />
+    <Button variant="ghost" size="row" className="items-baseline" onClick={onClick}>
+      <ArrowRight className="text-warning shrink-0 self-start" />
       {body}
     </Button>
   )

@@ -1,10 +1,9 @@
 'use client'
 
-import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CollapsibleChevron } from '@/components/ui/collapsible'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { useTotalsPanelOpen } from '@/components/kosztorys/summary/hooks/use-totals-panel-open'
-import { cn } from '@/lib/utils/cn'
 
 export function KosztorysTotalsPanelToggle({
   size = 'sm',
@@ -26,9 +25,7 @@ export function KosztorysTotalsPanelToggle({
       animations={['comet', 'breathe']}
       onClick={() => setTotalsOpen(!totalsOpen)}
     >
-      <ChevronDown
-        className={cn('transition-transform duration-200', totalsOpen && 'rotate-180')}
-      />
+      <CollapsibleChevron open={totalsOpen} />
       Podsumowanie
     </Button>
   )

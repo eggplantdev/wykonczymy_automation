@@ -3,7 +3,7 @@
 import { Suspense, useState } from 'react'
 import { FileText } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
-import { Spinner } from '@/components/ui/loader/spinner'
+import { BlockLoading } from '@/components/ui/inline-loading'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { ContractForm } from '@/components/forms/contract-form/contract-form'
 import { contractPrefillKey } from '@/lib/investments/contract/form-defaults'
@@ -36,13 +36,7 @@ export function ContractDialog({ investment }: PropsT) {
           description="Sprawdź dane i wygeneruj umowę do druku lub zapisu jako PDF. Puste pola zostają do wypełnienia długopisem."
         />
         {plannedNet && (
-          <Suspense
-            fallback={
-              <div className="flex justify-center py-8">
-                <Spinner />
-              </div>
-            }
-          >
+          <Suspense fallback={<BlockLoading />}>
             {/* Remounted when the investment's prefill changes, so a save in „Edytuj dane inwestycji”
                 lands in the contract fields. */}
             <ContractForm

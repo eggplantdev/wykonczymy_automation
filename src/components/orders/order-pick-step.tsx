@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SELECT_NONE, SimpleSelect } from '@/components/ui/simple-select'
@@ -108,24 +109,24 @@ export function OrderPickStep({
         isEqualWidth
       />
       <div className="grid grid-cols-2 gap-3">
-        <div className="grid gap-2">
-          <Label htmlFor="order-quantity">Ilość</Label>
+        <Field gap="md">
+          <FieldLabel htmlFor="order-quantity">Ilość</FieldLabel>
           <Input
             id="order-quantity"
             inputMode="numeric"
             value={quantityText}
             onChange={(event) => setQuantityText(event.target.value.replace(/\D/g, ''))}
           />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="order-unit-price">Cena za sztukę (zł)</Label>
+        </Field>
+        <Field gap="md">
+          <FieldLabel htmlFor="order-unit-price">Cena za sztukę (zł)</FieldLabel>
           <Input
             id="order-unit-price"
             inputMode="decimal"
             value={priceText}
             onChange={(event) => setPriceText(sanitizeNumericInput(event.target.value))}
           />
-        </div>
+        </Field>
       </div>
       <div className="grid gap-2">
         <Label htmlFor="order-supplier">Dostawca</Label>

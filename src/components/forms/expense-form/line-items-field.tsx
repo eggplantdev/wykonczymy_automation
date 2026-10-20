@@ -10,7 +10,6 @@ import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { LineItemInvoiceField } from '@/components/forms/expense-form/line-item-invoice-field'
-import { Label } from '@/components/ui/label'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { billsNetAmount } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
@@ -459,7 +458,9 @@ export function LineItemsField({
                 )}
               </>
             )}
-            {total !== undefined && <Label>Suma: {formatPLN(total)}</Label>}
+            {total !== undefined && (
+              <p className="text-sm leading-none font-medium">Suma: {formatPLN(total)}</p>
+            )}
           </div>
         )
       }}
