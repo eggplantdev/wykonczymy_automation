@@ -1,10 +1,10 @@
 ---
 change_id: ds-primitive-sweep
 title: Sweep hand-rolled UI onto shared ui/ primitives and guard against new copies
-status: implemented
+status: archived
 created: 2026-10-20
 updated: 2026-10-20
-archived_at: null
+archived_at: 2026-10-20T15:45:48Z
 branch: ds-primitive-sweep
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/ds-primitive-sweep
 ---
@@ -14,7 +14,20 @@ worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/ds-primitive-
 Repo-wide sweep of hand-rolled UI primitives onto shared `ui/` components, plus guards (ESLint +
 census) so new copies can't land. Parent: EX-1099 (EX-1110's swap list is folded into the census).
 
-Full census: `census.md` (2026-10-20, five parallel read-only passes, one per UI family).
+The census (2026-10-20, five parallel read-only passes, one per UI family) was the swap worklist;
+every line is now swapped or carries an `eslint-disable … --` reason.
+
+### Owner visual defaults (2026-10-20)
+
+Applied to every look-changing swap; don't re-ask:
+
+- Warning colour: one amber `--color-warning` token (replaces amber-600 / chart-orange / Badge pending).
+- OK green: `chart-green` (replaces green-600 / emerald / teal).
+- Spinner: `GradientSpinner` everywhere, via Button `pending`.
+- Dialog widths: md 448 → `dialog-sm` 420; lg 512 → `dialog` 600; others → nearest token.
+- Segmented switches: `ToggleGroup variant="muted"` keeps the old look.
+- Native `title=` → `SimpleTooltip` / `HintTooltip` (`title` never shows on disabled buttons or
+  touch); truncation-reveal `title`s stay.
 
 ### Why app-audit-refactor (2026-10-19) missed this
 
@@ -40,3 +53,8 @@ baseline pruned phase by phase. Signals:
 3. Legit exceptions carry a one-line `eslint-disable-next-line … --` reason.
 4. `primitive-reuse-scan` at every slice gate stays the semantic check for copies with no import or
    class signature.
+
+### Verification
+
+Merged into staging untested (`3f237f4c2`, user's call): typecheck, lint, specs and `pnpm build` run
+there. Class swaps have no specs by design — the EX-1110 section of `manual-checks.md` covers them.
