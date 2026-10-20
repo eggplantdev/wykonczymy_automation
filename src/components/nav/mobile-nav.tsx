@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { RoleBadge } from '@/components/users/role-badge'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { ThemeToggle } from '@/components/nav/theme-toggle'
 import { UiScaleSwitch } from '@/components/nav/ui-scale-switch'
 import { LogoutButton } from '@/components/nav/logout-button'
@@ -16,9 +16,11 @@ import { NavLinkItem } from '@/components/nav/nav-link-item'
 import { NavNameLink } from '@/components/nav/nav-name-link'
 import { RefreshDataButton } from '@/components/nav/refresh-data-button'
 import { AdminButton } from '@/components/nav/admin-button'
-import { CompanyKnowledgeButton } from '@/components/company-knowledge/company-knowledge-button'
+import { CompanyKnowledgeTrigger } from '@/components/company-knowledge/company-knowledge-button'
+import { CompanyKnowledgeDialog } from '@/components/company-knowledge/company-knowledge-dialog'
 import { TrashButton } from '@/components/nav/trash-button'
 import { PushToggle } from '@/components/pwa/push-toggle'
+import { useCompanyKnowledgeBook } from '@/hooks/use-company-knowledge-book'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
 import { useTranslation } from '@/hooks/use-translation'
@@ -41,6 +43,7 @@ export function MobileNav() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [openedOn, setOpenedOn] = useState<string | null>(null)
+  const book = useCompanyKnowledgeBook(() => setOpen(false))
 
   // Clearing `openedOn` keeps Back from reopening.
   if (open && openedOn !== pathname) {
@@ -64,20 +67,22 @@ export function MobileNav() {
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="iconTouch"
-        className="sm:hidden"
-        aria-label={t('menu')}
-        aria-expanded={open}
-        aria-controls="mobile-nav"
-        onClick={openDrawer}
-      >
-        <Menu />
-      </Button>
-
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent id="mobile-nav" className="sm:hidden" aria-describedby={undefined}>
+      <Sheet open={open} onOpenChange={(next) => (next ? openDrawer() : setOpen(false))}>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="iconTouch"
+            className="sm:hidden"
+            aria-label={t('menu')}
+          >
+            <Menu />
+          </Button>
+        </SheetTrigger>
+        <SheetContent
+          className="sm:hidden"
+          overlayClassName="sm:hidden"
+          aria-describedby={undefined}
+        >
           <SheetTitle className="sr-only">{t('menu')}</SheetTitle>
           <div className="flex shrink-0 items-start gap-3 px-3">
             <Link href="/" className="py-2" onClick={() => closeIfSameRoute('/')}>
@@ -110,7 +115,7 @@ export function MobileNav() {
             <ThemeToggle collapsed={false} />
             <RefreshDataButton />
             <AdminButton />
-            <CompanyKnowledgeButton onOpen={() => setOpen(false)} />
+            <CompanyKnowledgeTrigger onClick={book.openBook} />
             <TrashButton
               active={isActive(TRASH_HREF)}
               onClick={() => closeIfSameRoute(TRASH_HREF)}
@@ -120,6 +125,7 @@ export function MobileNav() {
           </div>
         </SheetContent>
       </Sheet>
+      <CompanyKnowledgeDialog {...book.dialog} />
     </>
   )
 }
