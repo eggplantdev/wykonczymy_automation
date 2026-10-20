@@ -407,9 +407,10 @@
 
 ## Undo coalescing must cancel a rollback across the window boundary
 
-- A blocked keystroke emits no `onChange`, so the 700 ms window can close between the accepted prefix
-  and its rollback. Amend the command already pushed — by identity, never by position — and cancel
-  only an exact there-and-back.
+- A cell that writes per keystroke (long text) and writes its starting value back on Escape can
+  let the 700 ms window close between the last typed write and that rollback. Amend the command
+  already pushed — by identity, never by position — and cancel only an exact there-and-back.
+  Numeric cells write once on settle, so they never push a rollback.
 
 ## Modelling editor state
 
