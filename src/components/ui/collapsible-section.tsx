@@ -4,12 +4,7 @@ import { useState } from 'react'
 import { type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { Separator } from '@/components/ui/separator'
-import {
-  Collapsible,
-  CollapsibleChevron,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+import * as Collapsible from '@/components/ui/collapsible'
 import { Description } from '@/components/ui/description'
 import { SECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { usePersistedFlag } from '@/hooks/use-persisted-value'
@@ -65,10 +60,10 @@ export function CollapsibleSection({
   const [isOpen, setIsOpen] = useSectionOpen(storageKey, defaultOpen)
 
   return (
-    <Collapsible id={id} open={isOpen} onOpenChange={setIsOpen} className={cn(className)}>
+    <Collapsible.Root id={id} open={isOpen} onOpenChange={setIsOpen} className={cn(className)}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2">
         <div className="min-w-0 flex-1">
-          <CollapsibleTrigger
+          <Collapsible.Trigger
             className={cn(
               'flex w-full cursor-pointer items-center gap-2 text-left',
               SIZE[size].trigger,
@@ -78,11 +73,11 @@ export function CollapsibleSection({
               <Icon className={cn('text-foreground shrink-0', SIZE[size].chevron)} aria-hidden />
             )}
             <h2 className={cn('text-foreground', SIZE[size].title)}>{title}</h2>
-            <CollapsibleChevron
+            <Collapsible.Chevron
               open={isOpen}
               className={cn('text-muted-foreground', SIZE[size].chevron)}
             />
-          </CollapsibleTrigger>
+          </Collapsible.Trigger>
           {hint && (
             <Description size="xs" className="-mt-2 pb-2">
               {hint}
@@ -92,7 +87,7 @@ export function CollapsibleSection({
         {action && <div className="shrink-0 pb-2 sm:pb-0">{action}</div>}
       </div>
       {isOpen && withSeparator && <Separator orientation="horizontal" />}
-      <CollapsibleContent className={cn(!withSeparator && 'pt-2')}>{children}</CollapsibleContent>
-    </Collapsible>
+      <Collapsible.Content className={cn(!withSeparator && 'pt-2')}>{children}</Collapsible.Content>
+    </Collapsible.Root>
   )
 }

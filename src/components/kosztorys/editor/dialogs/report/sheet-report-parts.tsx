@@ -1,12 +1,7 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
-import {
-  Collapsible,
-  CollapsibleChevron,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+import * as Collapsible from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils/cn'
 
 export function ReportTable({
@@ -147,12 +142,12 @@ export function ReportFold({
 }) {
   const [open, setOpen] = useState(false)
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="space-y-0.5">
-      <CollapsibleTrigger className="flex w-full cursor-pointer items-start gap-1 text-left">
-        <CollapsibleChevron open={open} className={cn('mt-1 size-3.5', tone)} />
+    <Collapsible.Root open={open} onOpenChange={setOpen} className="space-y-0.5">
+      <Collapsible.Trigger className="flex w-full cursor-pointer items-start gap-1 text-left">
+        <Collapsible.Chevron open={open} className={cn('mt-1 size-3.5', tone)} />
         <span className={tone}>{summary}</span>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-0.5 pl-4.5">{children}</CollapsibleContent>
-    </Collapsible>
+      </Collapsible.Trigger>
+      <Collapsible.Content className="space-y-0.5 pl-4.5">{children}</Collapsible.Content>
+    </Collapsible.Root>
   )
 }

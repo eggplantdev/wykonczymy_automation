@@ -1,29 +1,19 @@
 'use client'
 
-import * as React from 'react'
 import { Collapsible as CollapsiblePrimitive } from 'radix-ui'
 import { ChevronDown } from 'lucide-react'
-
 import { cn } from '@/lib/utils/cn'
 
-function Collapsible({ ...props }: React.ComponentProps<typeof CollapsiblePrimitive.Root>) {
-  return <CollapsiblePrimitive.Root data-slot="collapsible" {...props} />
-}
+export const Root = CollapsiblePrimitive.Root
+export const Trigger = CollapsiblePrimitive.Trigger
 
-function CollapsibleTrigger({
-  ...props
-}: React.ComponentProps<typeof CollapsiblePrimitive.Trigger>) {
-  return <CollapsiblePrimitive.Trigger data-slot="collapsible-trigger" {...props} />
-}
-
-function CollapsibleContent({
+export function Content({
   className,
   children,
   ...props
 }: React.ComponentProps<typeof CollapsiblePrimitive.Content>) {
   return (
     <CollapsiblePrimitive.Content
-      data-slot="collapsible-content"
       // Clip only the y axis the animation runs on — clipping x too cuts the focus rings and glows
       // of full-width children.
       className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down overflow-y-clip"
@@ -35,7 +25,7 @@ function CollapsibleContent({
   )
 }
 
-function CollapsibleChevron({ open, className }: { open: boolean; className?: string }) {
+export function Chevron({ open, className }: { open: boolean; className?: string }) {
   return (
     <ChevronDown
       aria-hidden
@@ -43,5 +33,3 @@ function CollapsibleChevron({ open, className }: { open: boolean; className?: st
     />
   )
 }
-
-export { Collapsible, CollapsibleTrigger, CollapsibleContent, CollapsibleChevron }

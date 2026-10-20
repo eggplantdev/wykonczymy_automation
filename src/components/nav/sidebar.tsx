@@ -17,12 +17,7 @@ import { useTranslation } from '@/hooks/use-translation'
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed'
 import { usePersistedFlag } from '@/hooks/use-persisted-value'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import {
-  Collapsible,
-  CollapsibleChevron,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+import * as Collapsible from '@/components/ui/collapsible'
 import { OPEN_STATES } from '@/components/ui/collapsible-section'
 import { Button } from '@/components/ui/button'
 import { EdgeHandlePill } from '@/components/ui/edge-handle-pill'
@@ -90,7 +85,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
               ))}
             </nav>
           </div>
-          <Collapsible
+          <Collapsible.Root
             open={accountOpen}
             onOpenChange={setAccountOpen}
             className="mt-auto flex flex-col gap-2 pt-4"
@@ -110,19 +105,19 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
                 </Link>
               )}
               <SimpleTooltip content={accountToggleLabel}>
-                <CollapsibleTrigger asChild>
+                <Collapsible.Trigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="size-7"
                     aria-label={accountToggleLabel}
                   >
-                    <CollapsibleChevron open={accountOpen} />
+                    <Collapsible.Chevron open={accountOpen} />
                   </Button>
-                </CollapsibleTrigger>
+                </Collapsible.Trigger>
               </SimpleTooltip>
             </div>
-            <CollapsibleContent className="flex flex-col gap-2">
+            <Collapsible.Content className="flex flex-col gap-2">
               <CollapsibleTooltip collapsed={collapsed} label={t('toggleTheme')}>
                 <ThemeToggle collapsed={collapsed} />
               </CollapsibleTooltip>
@@ -139,8 +134,8 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
               <CollapsibleTooltip collapsed={collapsed} label={t('logout')}>
                 <LogoutButton collapsed={collapsed} />
               </CollapsibleTooltip>
-            </CollapsibleContent>
-          </Collapsible>
+            </Collapsible.Content>
+          </Collapsible.Root>
         </div>
       </div>
     </aside>

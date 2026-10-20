@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CollapsibleChevron } from '@/components/ui/collapsible'
+import * as Collapsible from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
@@ -404,7 +404,7 @@ export function WorkerReportReview({
                       >
                         {title} ({lines.length}
                         {lines.length < total && ` z ${total}`})
-                        <CollapsibleChevron
+                        <Collapsible.Chevron
                           open={!collapsedGroups.has(group)}
                           className="size-3.5"
                         />
