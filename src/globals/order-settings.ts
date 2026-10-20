@@ -25,11 +25,15 @@ export const OrderSettings: GlobalConfig = {
       min: 0,
       label: { en: 'Container price', pl: 'Cena kontenera' },
     },
-    // A `suppliers` row id — a save that drops row ids leaves it pointing at nothing.
     {
-      name: 'defaultSupplierId',
+      name: 'defaultBigBagSupplierId',
       type: 'text',
-      label: { en: 'Default supplier', pl: 'Domyślny dostawca' },
+      label: { en: 'Default big bag supplier', pl: 'Domyślny dostawca big bagów' },
+    },
+    {
+      name: 'defaultContainerSupplierId',
+      type: 'text',
+      label: { en: 'Default container supplier', pl: 'Domyślny dostawca kontenerów' },
     },
     {
       name: 'suppliers',

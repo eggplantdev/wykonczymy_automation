@@ -47,10 +47,12 @@ const SETTINGS: OrderSettingsT = {
   suppliers: [
     { id: 'supplier-alfa', name: 'Alfa Kontenery', phone: '601 000 001' },
     { id: 'supplier-beta', name: 'Beta Wywóz', phone: '601 000 002' },
+    { id: 'supplier-delta', name: 'Delta Kontenery', phone: '601 000 004' },
   ],
   bigBagPrice: 800,
   containerPrice: 1500,
-  defaultSupplierId: 'supplier-beta',
+  defaultBigBagSupplierId: 'supplier-beta',
+  defaultContainerSupplierId: 'supplier-delta',
 }
 
 const INVESTMENT = {
@@ -190,16 +192,61 @@ describe('OrderDialog', () => {
     expect(href.startsWith('sms:601000001?&body=')).toBe(true)
   })
 
-  it('saves the picked supplier as the default', async () => {
-    vi.mocked(setDefaultSupplierAction).mockResolvedValue({ success: true })
+  it('sends a container order to the container default supplier', async () => {
+    const user = renderDialog()
+
+    await user.click(screen.getByRole('radio', { name: 'kontener' }))
+    expect(screen.getByRole('combobox', { name: 'Dostawca' })).toHaveTextContent('Delta Kontenery')
+    const href = await bookAndOpenSms(user)
+
+    expect(href.startsWith('sms:601000004?&body=')).toBe(true)
+  })
+
+  it('returns to the kind default when the kind changes after a manual pick', async () => {
     const user = renderDialog()
 
     await user.click(screen.getByRole('combobox', { name: 'Dostawca' }))
     await user.click(await screen.findByRole('option', { name: 'Alfa Kontenery · 601 000 001' }))
+    await user.click(screen.getByRole('radio', { name: 'kontener' }))
+    await user.click(screen.getByRole('radio', { name: 'big bag' }))
+
+    expect(screen.getByRole('combobox', { name: 'Dostawca' })).toHaveTextContent('Beta Wywóz')
+    expect(screen.getByRole('button', { name: 'Dostawca domyślny' })).toBeDisabled()
+  })
+
+  it('saves the picked supplier as the default for the picked kind only', async () => {
+    vi.mocked(setDefaultSupplierAction).mockResolvedValue({ success: true })
+    const user = renderDialog()
+
+    await user.click(screen.getByRole('radio', { name: 'kontener' }))
+    await user.click(screen.getByRole('combobox', { name: 'Dostawca' }))
+    await user.click(await screen.findByRole('option', { name: 'Alfa Kontenery · 601 000 001' }))
     await user.click(screen.getByRole('button', { name: 'Zapisz jako domyślnego dostawcę' }))
 
-    expect(setDefaultSupplierAction).toHaveBeenCalledWith('supplier-alfa')
+    expect(setDefaultSupplierAction).toHaveBeenCalledWith('container', 'supplier-alfa')
     expect(await screen.findByRole('button', { name: 'Dostawca domyślny' })).toBeDisabled()
+  })
+
+  it('takes a default supplier saved from the gear', () => {
+    const view = render(dialogFor())
+
+    view.rerender(
+      dialogFor({ settings: { ...SETTINGS, defaultBigBagSupplierId: 'supplier-alfa' } }),
+    )
+
+    expect(screen.getByRole('combobox', { name: 'Dostawca' })).toHaveTextContent('Alfa Kontenery')
+    expect(screen.getByRole('button', { name: 'Dostawca domyślny' })).toBeDisabled()
+  })
+
+  it('falls back to the first supplier when the kind has no default', async () => {
+    const user = renderDialog({ settings: { ...SETTINGS, defaultContainerSupplierId: undefined } })
+
+    await user.click(screen.getByRole('radio', { name: 'kontener' }))
+
+    expect(screen.getByRole('combobox', { name: 'Dostawca' })).toHaveTextContent('Alfa Kontenery')
+    expect(
+      screen.getByRole('button', { name: 'Zapisz jako domyślnego dostawcę' }),
+    ).toBeInTheDocument()
   })
 
   it('keeps only digits and a plus of a free-text supplier number', async () => {
@@ -207,7 +254,7 @@ describe('OrderDialog', () => {
       settings: {
         ...SETTINGS,
         suppliers: [{ id: 'supplier-gamma', name: 'Gamma', phone: '+48 601-000-003 (Marek)' }],
-        defaultSupplierId: 'supplier-gamma',
+        defaultBigBagSupplierId: 'supplier-gamma',
       },
       siteManagerId: SITE_MANAGER_ID,
     })
@@ -217,7 +264,12 @@ describe('OrderDialog', () => {
 
   it('leaves the recipient empty when there are no suppliers', async () => {
     const user = renderDialog({
-      settings: { ...SETTINGS, suppliers: [], defaultSupplierId: undefined },
+      settings: {
+        ...SETTINGS,
+        suppliers: [],
+        defaultBigBagSupplierId: undefined,
+        defaultContainerSupplierId: undefined,
+      },
       siteManagerId: SITE_MANAGER_ID,
     })
 

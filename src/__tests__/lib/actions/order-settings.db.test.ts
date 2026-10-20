@@ -14,7 +14,8 @@ const BASELINE = {
   suppliers: [ALFA, BETA],
   bigBagPrice: 800,
   containerPrice: 1500,
-  defaultSupplierId: ALFA.id,
+  defaultBigBagSupplierId: ALFA.id,
+  defaultContainerSupplierId: BETA.id,
 }
 
 describe.skipIf(!ENV_READY)('order settings actions (DB)', () => {
@@ -38,15 +39,21 @@ describe.skipIf(!ENV_READY)('order settings actions (DB)', () => {
     authState.role = 'OWNER'
     await payload.updateGlobal({
       slug: 'order-settings',
-      data: { ...original, defaultSupplierId: original.defaultSupplierId ?? null },
+      data: {
+        ...original,
+        defaultBigBagSupplierId: original.defaultBigBagSupplierId ?? null,
+        defaultContainerSupplierId: original.defaultContainerSupplierId ?? null,
+      },
     })
   })
 
-  it('keeps the default when its row survives the save', async () => {
+  it('stores the sent defaults when their rows survive the save', async () => {
     const result = await saveOrderSettingsAction({
-      suppliers: [ALFA, { name: 'Gamma', phone: '601 000 003' }],
+      suppliers: [ALFA, BETA, { name: 'Gamma', phone: '601 000 003' }],
       bigBagPrice: 900,
       containerPrice: 1600,
+      defaultBigBagSupplierId: ALFA.id,
+      defaultContainerSupplierId: BETA.id,
     })
 
     expect(result.success).toBe(true)
@@ -54,28 +61,67 @@ describe.skipIf(!ENV_READY)('order settings actions (DB)', () => {
     expect(stored).toMatchObject({
       bigBagPrice: 900,
       containerPrice: 1600,
-      defaultSupplierId: ALFA.id,
+      defaultBigBagSupplierId: ALFA.id,
+      defaultContainerSupplierId: BETA.id,
     })
-    expect(stored.suppliers.map((row) => row.name)).toEqual(['Alfa Kontenery', 'Gamma'])
+    expect(stored.suppliers.map((row) => row.name)).toEqual([
+      'Alfa Kontenery',
+      'Beta Wywóz',
+      'Gamma',
+    ])
     expect(stored.suppliers[0].id).toBe(ALFA.id)
   })
 
-  it('clears the default when its row is removed', async () => {
-    await saveOrderSettingsAction({ suppliers: [BETA], bigBagPrice: 800, containerPrice: 1500 })
+  it('sets a default to a supplier added in the same save', async () => {
+    const GAMMA = { id: 'supplier-gamma', name: 'Gamma', phone: '601 000 003' }
+    await saveOrderSettingsAction({
+      ...BASELINE,
+      suppliers: [ALFA, BETA, GAMMA],
+      defaultContainerSupplierId: GAMMA.id,
+    })
 
-    expect((await readOrderSettings(payload)).defaultSupplierId).toBeUndefined()
+    expect(await readOrderSettings(payload)).toMatchObject({
+      defaultBigBagSupplierId: ALFA.id,
+      defaultContainerSupplierId: GAMMA.id,
+    })
   })
 
-  it('sets the default and leaves the list and prices alone', async () => {
-    authState.role = 'MANAGER'
-    expect((await setDefaultSupplierAction(BETA.id)).success).toBe(true)
+  it('clears a default left unset', async () => {
+    await saveOrderSettingsAction({ ...BASELINE, defaultContainerSupplierId: undefined })
 
-    expect(await readOrderSettings(payload)).toEqual({ ...BASELINE, defaultSupplierId: BETA.id })
+    expect(await readOrderSettings(payload)).toMatchObject({
+      defaultBigBagSupplierId: ALFA.id,
+      defaultContainerSupplierId: undefined,
+    })
+  })
+
+  it('clears only the default whose row is removed', async () => {
+    await saveOrderSettingsAction({ ...BASELINE, suppliers: [BETA] })
+
+    expect(await readOrderSettings(payload)).toMatchObject({
+      defaultBigBagSupplierId: undefined,
+      defaultContainerSupplierId: BETA.id,
+    })
+  })
+
+  it("sets one kind's default and leaves the other, the list and the prices alone", async () => {
+    authState.role = 'MANAGER'
+    expect((await setDefaultSupplierAction('container', ALFA.id)).success).toBe(true)
+
+    expect(await readOrderSettings(payload)).toEqual({
+      ...BASELINE,
+      defaultContainerSupplierId: ALFA.id,
+    })
   })
 
   it('refuses an unknown supplier id', async () => {
-    expect((await setDefaultSupplierAction('supplier-ghost')).success).toBe(false)
-    expect((await readOrderSettings(payload)).defaultSupplierId).toBe(ALFA.id)
+    expect((await setDefaultSupplierAction('bigBag', 'supplier-ghost')).success).toBe(false)
+    expect(await readOrderSettings(payload)).toEqual(BASELINE)
+  })
+
+  it('refuses an unknown item kind', async () => {
+    expect((await setDefaultSupplierAction('skip' as never, BETA.id)).success).toBe(false)
+    expect(await readOrderSettings(payload)).toEqual(BASELINE)
   })
 
   it('refuses a MANAGER on the save', async () => {

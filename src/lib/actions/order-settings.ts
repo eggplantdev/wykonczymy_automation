@@ -8,6 +8,7 @@ import {
   type OrderSettingsDataT,
 } from '@/components/forms/order-settings-form/order-settings-schema'
 import { revalidateOrderSettings } from '@/lib/cache/revalidate'
+import { ORDER_ITEMS, ORDER_ITEM_KINDS, type OrderItemT } from '@/lib/constants/orders'
 import { readOrderSettings } from '@/lib/orders/read-order-settings'
 import type { ActionResultT } from '@/types/action'
 
@@ -19,12 +20,16 @@ export async function saveOrderSettingsAction(data: OrderSettingsDataT): Promise
     const parsed = validateAction(orderSettingsSchema, data)
     if (!parsed.success) return parsed
 
-    const { defaultSupplierId } = await readOrderSettings(payload)
-    const keepsDefault = parsed.data.suppliers.some((row) => row.id === defaultSupplierId)
+    const keptDefault = (supplierId: string | undefined) =>
+      supplierId && parsed.data.suppliers.some((row) => row.id === supplierId) ? supplierId : null
 
     await payload.updateGlobal({
       slug: 'order-settings',
-      data: { ...parsed.data, defaultSupplierId: keepsDefault ? defaultSupplierId : null },
+      data: {
+        ...parsed.data,
+        defaultBigBagSupplierId: keptDefault(parsed.data.defaultBigBagSupplierId),
+        defaultContainerSupplierId: keptDefault(parsed.data.defaultContainerSupplierId),
+      },
     })
 
     revalidateOrderSettings()
@@ -32,21 +37,30 @@ export async function saveOrderSettingsAction(data: OrderSettingsDataT): Promise
   })
 }
 
-const supplierIdSchema = z.string().min(1)
+const defaultSupplierSchema = z.object({
+  kind: z.enum(ORDER_ITEM_KINDS),
+  supplierId: z.string().min(1),
+})
 
-export async function setDefaultSupplierAction(supplierId: string): Promise<ActionResultT> {
+export async function setDefaultSupplierAction(
+  kind: OrderItemT,
+  supplierId: string,
+): Promise<ActionResultT> {
   return protectedAction('setDefaultSupplierAction', async ({ payload }) => {
-    const parsed = validateAction(supplierIdSchema, supplierId)
+    const parsed = validateAction(defaultSupplierSchema, { kind, supplierId })
     if (!parsed.success) return parsed
 
     const current = await readOrderSettings(payload)
-    if (!current.suppliers.some((row) => row.id === parsed.data)) {
+    if (!current.suppliers.some((row) => row.id === parsed.data.supplierId)) {
       return { success: false, error: 'Nie ma takiego dostawcy — odśwież stronę.' }
     }
 
     await payload.updateGlobal({
       slug: 'order-settings',
-      data: { ...current, defaultSupplierId: parsed.data },
+      data: {
+        ...current,
+        [ORDER_ITEMS[parsed.data.kind].defaultSupplierKey]: parsed.data.supplierId,
+      },
     })
 
     revalidateOrderSettings()
