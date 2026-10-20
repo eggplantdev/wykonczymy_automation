@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { InvestmentDataTable } from '@/components/investments/investment-data-table'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { InvestmentRowT } from '@/types/table-rows'
-import { NO_INVESTMENT_BILLING } from '@/lib/investments/investment-details'
+import {
+  NO_INVESTMENT_BILLING,
+  NO_INVESTMENT_INITIAL_INFO,
+} from '@/lib/investments/investment-details'
 import { bare } from '@/__tests__/helpers/money'
 import { navigationState } from '@/__tests__/stubs/next-navigation'
 import { useCurrentUser as currentUserStub } from '@/__tests__/stubs/use-current-user'
@@ -41,6 +44,7 @@ const investment = (overrides: Partial<InvestmentRowT> = {}): InvestmentRowT => 
   email: '',
   contactPerson: '',
   billing: NO_INVESTMENT_BILLING,
+  initialInfo: NO_INVESTMENT_INITIAL_INFO,
   reviewRequested: false,
   notes: '',
   hasSheet: false,

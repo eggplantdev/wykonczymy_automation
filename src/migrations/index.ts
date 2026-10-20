@@ -159,6 +159,7 @@ import * as migration_20261018_1_drop_worker_expense_drafts_scan_mode from './20
 import * as migration_20261019_0_big_bag_order from './20261019_0_big_bag_order'
 import * as migration_20261020_0_order_default_supplier_per_item from './20261020_0_order_default_supplier_per_item'
 import * as migration_20261020_1_receipt_status_on_money_in from './20261020_1_receipt_status_on_money_in'
+import * as migration_20261020_2_investment_initial_info from './20261020_2_investment_initial_info'
 
 export const migrations = [
   {
@@ -965,5 +966,10 @@ export const migrations = [
     up: migration_20261020_1_receipt_status_on_money_in.up,
     down: migration_20261020_1_receipt_status_on_money_in.down,
     name: '20261020_1_receipt_status_on_money_in',
+  },
+  {
+    up: migration_20261020_2_investment_initial_info.up,
+    down: migration_20261020_2_investment_initial_info.down,
+    name: '20261020_2_investment_initial_info',
   },
 ]

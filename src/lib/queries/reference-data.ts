@@ -15,6 +15,7 @@ import { perfStart } from '@/lib/perf'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 import type { InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
 import type { InvestmentClientTypeT } from '@/lib/constants/investment-client-type'
+import type { InvestmentMarketT } from '@/lib/constants/investment-initial-info'
 import { NO_INVESTMENT_DETAILS } from '@/lib/investments/investment-details'
 import type {
   CashRegisterRefT,
@@ -202,7 +203,8 @@ export const fetchInvestmentDetails = cache(
         SELECT id, notes, ai_notes, postal_code, city, country,
                billing_client_type::text, billing_first_name, billing_last_name,
                billing_company_name, billing_nip, billing_representative, billing_same_as_site,
-               billing_street, billing_postal_code, billing_city, billing_country
+               billing_street, billing_postal_code, billing_city, billing_country,
+               initial_info_market::text
         FROM investments
       `)
       return Object.fromEntries(
@@ -226,6 +228,9 @@ export const fetchInvestmentDetails = cache(
               postalCode: text(row.billing_postal_code),
               city: text(row.billing_city),
               country: text(row.billing_country),
+            },
+            initialInfo: {
+              market: (row.initial_info_market as InvestmentMarketT | null) ?? null,
             },
           } satisfies InvestmentDetailsT,
         ]),

@@ -1069,6 +1069,16 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       polsku i po ukraińsku; filtr „Potwierdzenie" jest na stronie pracownika, który ma tylko
       transfery i wpłaty, bez wypłat.
 
+## EX-1120 — investment-initial-info — sekcja „Wstępne informacje" z polem „Rynek"
+
+- [ ] Dodaj inwestycję → rozwiń „Wstępne informacje" (pod „Kontakt", domyślnie zwinięta) → „Rynek"
+      → „Rynek wtórny" → zapisz. Edytuj tę inwestycję: „Rynek" pokazuje „Rynek wtórny".
+- [ ] Inwestycja bez wybranego rynku: w edycji „Rynek" pokazuje „— nie wiadomo —"; po zmianie innego
+      pola i zapisie nadal „— nie wiadomo —".
+- [ ] Edycja inwestycji (z tabeli i ze strony inwestycji): „Kierownik budowy" jest szeroki jak jego
+      treść i wyrównany do lewej; wybór pracownika nadal zapisuje się od razu.
+- [ ] Następna sprawa AI przyjęta z produkcji ma `inputs/initial-info.md` z linią „Rynek: …".
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
