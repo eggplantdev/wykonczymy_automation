@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 
+import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { cn } from '@/lib/utils/cn'
 
 const buttonVariants = cva(
@@ -10,42 +11,38 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        defaultOutline:
-          'border border-primary text-primary hover:bg-primary hover:text-primary-foreground',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         outline:
           'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         ghostDestructive: 'text-muted-foreground hover:bg-destructive/10 hover:text-destructive',
-        outlineDestructive:
-          'border border-input bg-background shadow-sm text-destructive hover:bg-destructive/10 hover:text-destructive',
         destructive: 'bg-destructive text-white hover:bg-destructive/90',
         destructiveOutline:
           'border border-destructive text-destructive hover:bg-destructive hover:text-white',
         link: 'text-primary underline-offset-4 hover:underline',
-        activeFilter: 'border border-green-600 text-green-600 hover:bg-green-600 hover:text-white',
-        green: 'bg-chart-green text-white hover:bg-chart-green/90',
+        active: 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary font-semibold',
         greenOutline:
           'border border-chart-green text-chart-green hover:bg-chart-green hover:text-white',
-        red: 'bg-chart-red text-white hover:bg-chart-red/90',
-        redOutline: 'border border-chart-red text-chart-red hover:bg-chart-red hover:text-white',
-        blue: 'bg-chart-blue text-white hover:bg-chart-blue/90',
         blueOutline:
           'border border-chart-blue text-chart-blue hover:bg-chart-blue hover:text-white',
-        teal: 'bg-chart-teal text-white hover:bg-chart-teal/90',
-        tealOutline:
-          'border border-chart-teal text-chart-teal hover:bg-chart-teal hover:text-white',
-        turquoise: 'bg-chart-turquoise text-white hover:bg-chart-turquoise/90',
         turquoiseOutline:
           'border border-chart-turquoise text-chart-turquoise hover:bg-chart-turquoise hover:text-white',
+        warningOutline:
+          'border border-warning text-warning hover:bg-warning hover:text-warning-foreground',
         ai: 'gradient-border neon-glow-duo hover:neon-glow-duo-hit transition-shadow disabled:opacity-100',
       },
       size: {
         default: 'h-9 px-4 py-2',
         sm: 'h-8 rounded-md gap-1.5 px-3 text-xs',
         xs: 'h-7 rounded-md gap-1 px-2 text-xs',
+        '2xs': 'h-6 rounded-md gap-1 px-2 text-xs',
         lg: "h-10 rounded-md px-6 [&_svg:not([class*='size-'])]:size-5",
         icon: 'size-9',
+        iconSm: 'size-7',
+        touch: 'h-11 px-4 py-2',
+        iconTouch: "size-11 [&_svg:not([class*='size-'])]:size-7",
+        inline: 'h-auto p-0',
+        row: 'h-auto w-full gap-2 px-1 py-1 text-xs font-normal whitespace-normal',
         iconLg: "size-9 [&_svg:not([class*='size-'])]:size-5",
       },
       align: {
@@ -75,7 +72,17 @@ type ButtonPropsT = React.ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
     animations?: ButtonAnimationT[]
+    pending?: boolean
   }
+
+// A component-typed first child is the leading icon; a DOM element or text is content.
+function withPendingSpinner(children: React.ReactNode) {
+  const [first, ...rest] = React.Children.toArray(children)
+  if (React.isValidElement(first) && typeof first.type !== 'string') {
+    return [<GradientSpinner key="pending-spinner" />, ...rest]
+  }
+  return [<GradientSpinner key="pending-spinner" />, ...React.Children.toArray(children)]
+}
 
 function Button({
   className,
@@ -83,7 +90,10 @@ function Button({
   size,
   align,
   animations,
+  pending = false,
   asChild = false,
+  disabled,
+  children,
   ...props
 }: ButtonPropsT) {
   const Comp = asChild ? Slot : 'button'
@@ -98,8 +108,12 @@ function Button({
         animations?.map((animation) => BUTTON_ANIMATION_CLASSES[animation]),
         className,
       )}
+      disabled={disabled || pending}
+      aria-busy={pending || undefined}
       {...props}
-    />
+    >
+      {pending && !asChild ? withPendingSpinner(children) : children}
+    </Comp>
   )
 }
 

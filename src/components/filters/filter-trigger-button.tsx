@@ -30,9 +30,9 @@ export const FilterTriggerButton = forwardRef<HTMLButtonElement, FilterTriggerBu
       tone === 'destructive'
         ? active
           ? 'destructive'
-          : 'outlineDestructive'
+          : 'destructiveOutline'
         : active
-          ? 'activeFilter'
+          ? 'greenOutline'
           : 'outline'
 
     return (

@@ -1,3 +1,8 @@
+import {
+  EYEBROW_CLASS,
+  SECTION_TITLE_CLASS,
+  SUBSECTION_TITLE_CLASS,
+} from '@/components/ui/section-header'
 import { cn } from '@/lib/utils/cn'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
@@ -63,6 +68,16 @@ export function TypographySection() {
             <span className={size.className}>{SAMPLE}</span>
           </p>
         ))}
+      </ShowcaseRow>
+      <ShowcaseRow
+        title="Skala nagłówków"
+        source="ui/section-header.tsx"
+        className="flex-col items-start"
+      >
+        <p className={SECTION_TITLE_CLASS}>SECTION_TITLE_CLASS — {SAMPLE}</p>
+        <p className="text-base font-semibold">SectionHeader size=md — {SAMPLE}</p>
+        <p className={SUBSECTION_TITLE_CLASS}>SUBSECTION_TITLE_CLASS — {SAMPLE}</p>
+        <p className={EYEBROW_CLASS}>EYEBROW_CLASS — {SAMPLE}</p>
       </ShowcaseRow>
       <ShowcaseRow title="Grubości" source="Tailwind" className="flex-col items-start">
         {WEIGHTS.map((weight) => (

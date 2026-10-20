@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
-import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/transfers/cards/card-list-classes'
+import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/ui/panel'
 import { cn } from '@/lib/utils/cn'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { PayoutStatusBadge } from '@/components/payouts/payout-status-badge'
@@ -92,7 +92,7 @@ export function PayoutsToConfirm({ payouts }: { payouts: PayoutToConfirmT[] }) {
             </Button>
             {payout.status === 'pending' && (
               <Button
-                variant="redOutline"
+                variant="destructiveOutline"
                 className="h-11"
                 disabled={pendingId === payout.id}
                 onClick={() => setOpenDialog({ kind: 'reject', payout })}

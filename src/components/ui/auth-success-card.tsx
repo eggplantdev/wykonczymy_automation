@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react'
+import { Panel } from '@/components/ui/panel'
 
 type AuthSuccessCardPropsT = {
   message: string
@@ -6,9 +7,9 @@ type AuthSuccessCardPropsT = {
 
 export function AuthSuccessCard({ message }: AuthSuccessCardPropsT) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-md border p-6">
-      <Check className="size-8 text-green-600" />
+    <Panel className="flex flex-col items-center gap-2 p-6">
+      <Check className="text-chart-green size-8" />
       <p className="text-foreground text-center text-sm">{message}</p>
-    </div>
+    </Panel>
   )
 }

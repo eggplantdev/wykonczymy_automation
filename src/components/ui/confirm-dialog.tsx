@@ -7,6 +7,8 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { buttonVariants } from '@/components/ui/button'
@@ -39,7 +41,7 @@ export function ConfirmDialog({
   return (
     <AlertDialog open={open} onOpenChange={(next) => !next && onCancel()}>
       <AlertDialogContent>
-        <div className="flex max-w-sm flex-col gap-2">
+        <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           {/* A div, not Radix's <p>: a description may carry a list. */}
           {description != null && (
@@ -47,8 +49,8 @@ export function ConfirmDialog({
               <div>{description}</div>
             </AlertDialogDescription>
           )}
-        </div>
-        <div className="mt-4 flex flex-wrap justify-end gap-2 *:max-sm:grow">
+        </AlertDialogHeader>
+        <AlertDialogFooter>
           <AlertDialogCancel>{cancelLabel ?? t('cancel')}</AlertDialogCancel>
           <AlertDialogAction
             className={variant === 'alert' ? buttonVariants({ variant: 'destructive' }) : undefined}
@@ -56,7 +58,7 @@ export function ConfirmDialog({
           >
             {confirmLabel}
           </AlertDialogAction>
-        </div>
+        </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   )

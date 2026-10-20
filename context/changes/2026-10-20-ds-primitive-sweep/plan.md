@@ -728,7 +728,7 @@ Run once, after phase 12:
 
 #### Automated
 
-- [x] 2.1 Each new spec seen red before its fix, green after
+- [x] 2.1 Each new spec seen red before its fix, green after — 4eaa16758
   - Adapted: the materials footer is unreachable as a bug (the table renders no toolbar, so no
     column can be hidden) — swapped onto `ColumnTotalRow` as a dedup, guarded by a netto-dataset
     footer spec instead of a hidden-column one.
@@ -741,14 +741,19 @@ Run once, after phase 12:
 
 #### Automated
 
-- [ ] 3.1 Existing `ui/` specs pass
-- [ ] 3.2 No reference left to a removed Button variant
+- [x] 3.1 Existing `ui/` specs pass
+  - Adapted: phases 3 and 4 landed as one commit (four parallel agents split by `ui/` file set).
+  - Deferred to the swap phases: `simple-select` `toolbarSm` (six callers outside ui/),
+    `loader/spinner.tsx` deletion (three callers), `env-badge` tooltip (needs `env-badge-shell`).
+- [x] 3.2 No reference left to a removed Button variant — tsc clean
 
 ### Phase 4: New `ui/` pieces
 
 #### Automated
 
-- [ ] 4.1 ui + lib/utils specs pass
+- [x] 4.1 ui + lib/utils specs pass
+  - Adapted: the progress toast lives in `lib/utils/progress-toast.ts` — the dom setup mocks
+    `toast.ts` as `{ toastMessage }` alone.
 
 ### Phase 5: Swaps — buttons and links
 

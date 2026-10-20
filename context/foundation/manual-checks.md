@@ -1066,6 +1066,19 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       bez drugiego, pełnoekranowego wskaźnika na środku strony.
 - [ ] Kosztorys → materiały, zestaw „Materiały rozliczane netto": „Razem" stoi pod kolumną
       „Netto", kolumna „Brutto" w stopce pusta.
+- [ ] `/design`: każda sekcja się renderuje, w jasnym i ciemnym motywie; nowe warianty przycisków,
+      plakietki, panel, wysuwany panel boczny i kolor ostrzeżenia są widoczne i czytelne.
+- [ ] Dowolne okno potwierdzenia (np. usunięcie transakcji): tytuł tej samej wielkości co w zwykłym
+      oknie formularza; na telefonie przyciski jeden pod drugim, na komputerze obok siebie.
+- [ ] Okna formularzy (np. „Dodaj wydatek"): szerokość jak dotąd albo minimalnie większa, nic się
+      nie zawija ani nie ucina.
+- [ ] Lista transakcji → przycisk filtrów z aktywnym filtrem: zielona ramka jak dotąd; przycisk
+      czyszczenia filtrów czerwony obrys, po najechaniu wypełniony.
+- [ ] Menu boczne → licznik nieprzeczytanych: pełna pigułka z liczbą, „99+" powyżej 99, brak przy 0.
+- [ ] Kosztorys edytor → nagłówek etapu: po najechaniu tooltip „Opcje etapu", kliknięcie otwiera
+      menu, a po zamknięciu menu tooltip nie wyskakuje ponownie.
+- [ ] Pola liczbowe w siatce/tabeli (wpisywanie kwoty w wierszu): tekst nie jest ucięty, wyrównany
+      do prawej.
 
 # Zamknięte — indeks
 

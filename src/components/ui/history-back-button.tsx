@@ -2,19 +2,16 @@
 
 import { ArrowLeft } from 'lucide-react'
 
+import { TextButton } from '@/components/ui/text-link'
 import { useHistoryBack } from '@/hooks/use-history-back'
 
 export function HistoryBackButton({ fallbackHref }: { fallbackHref: string }) {
   const goBack = useHistoryBack(fallbackHref)
 
   return (
-    <button
-      type="button"
-      onClick={goBack}
-      className="text-muted-foreground hover:text-foreground flex shrink-0 cursor-pointer items-center gap-1 text-xs"
-    >
+    <TextButton onClick={goBack}>
       <ArrowLeft className="size-4" />
       Wróć
-    </button>
+    </TextButton>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { isValidElement, useState, type ReactNode } from 'react'
 import {
   Collapsible,
   CollapsibleChevron,
@@ -9,12 +9,20 @@ import {
 } from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils/cn'
 
+type ReportHeaderT = { content: ReactNode; className?: string }
+
+function isHeaderObject(header: ReactNode | ReportHeaderT): header is ReportHeaderT {
+  return (
+    typeof header === 'object' && header !== null && !isValidElement(header) && 'content' in header
+  )
+}
+
 export function ReportTable({
   headers,
   className,
   children,
 }: {
-  headers?: ReactNode[]
+  headers?: (ReactNode | ReportHeaderT)[]
   className?: string
   children: ReactNode
 }) {
@@ -27,9 +35,13 @@ export function ReportTable({
               {headers.map((header, index) => (
                 <th
                   key={index}
-                  className={`py-1 font-normal ${index === 0 ? 'text-left' : 'pl-3 text-right'}`}
+                  className={cn(
+                    'py-1 font-normal',
+                    index === 0 ? 'text-left' : 'pl-3 text-right',
+                    isHeaderObject(header) && header.className,
+                  )}
                 >
-                  {header}
+                  {isHeaderObject(header) ? header.content : header}
                 </th>
               ))}
             </tr>

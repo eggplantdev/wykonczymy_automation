@@ -3,7 +3,7 @@
 import type { Row } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/cn'
 import { TransferCard } from '@/components/transfers/cards/transfer-card'
-import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/transfers/cards/card-list-classes'
+import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/ui/panel'
 import { useTranslation } from '@/hooks/use-translation'
 import type { TransferRowT } from '@/types/transfers'
 

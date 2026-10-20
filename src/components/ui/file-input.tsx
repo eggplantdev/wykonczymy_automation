@@ -6,6 +6,7 @@ import { Upload } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { Description } from '@/components/ui/description'
 import { FieldLabel } from '@/components/ui/field'
+import { INPUT_CLASS } from '@/components/ui/input'
 import { useTranslation } from '@/hooks/use-translation'
 import type { MessageKeyT, TranslatorT } from '@/lib/i18n/translations'
 import {
@@ -120,7 +121,8 @@ function FileInput({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          'border-input bg-background flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border px-3 transition-colors',
+          INPUT_CLASS,
+          'flex cursor-pointer items-center justify-center gap-2 shadow-none transition-colors',
           'text-muted-foreground hover:border-primary/50 hover:bg-muted/50',
           isFileDragActive && !isDragOver && !disabled && FILE_DRAG_ARMED_CLASS,
           isDragOver && cn(FILE_DRAG_OVER_CLASS, 'bg-muted/50'),

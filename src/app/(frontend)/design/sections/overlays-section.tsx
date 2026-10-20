@@ -3,6 +3,13 @@
 import { useState } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { HintTooltip, SimpleTooltip } from '@/components/ui/tooltip'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import {
@@ -93,6 +100,21 @@ export function OverlaysSection() {
           InfoTooltip
           <InfoTooltip content="Kliknij lub najedź" />
         </span>
+      </ShowcaseRow>
+      <ShowcaseRow title="Sheet" source="ui/sheet.tsx">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="sm">
+              Otwórz Sheet
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <div className="flex flex-col gap-2 p-4 pr-16">
+              <SheetTitle>Nawigacja</SheetTitle>
+              <SheetDescription>Panel wsuwany z lewej, Esc zamyka.</SheetDescription>
+            </div>
+          </SheetContent>
+        </Sheet>
       </ShowcaseRow>
       <ShowcaseRow title="Popover" source="ui/popover.tsx">
         <Popover>

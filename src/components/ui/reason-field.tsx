@@ -1,5 +1,6 @@
 'use client'
 
+import { Description } from '@/components/ui/description'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -39,9 +40,9 @@ export function ReasonField({
         disabled={disabled}
         autoFocus
       />
-      <p className="text-muted-foreground text-xs">
+      <Description withIcon={false} size="xs">
         {counterText({ length, missing: Math.max(0, min - length) })}
-      </p>
+      </Description>
     </div>
   )
 }

@@ -264,11 +264,6 @@
       "count": 1
     }
   },
-  "src/components/kosztorys/summary/kosztorys-totals-panel-toggle.tsx": {
-    "local/no-hand-rolled-ui": {
-      "count": 1
-    }
-  },
   "src/components/kosztorys/summary/settings/discount-amount-pair-field.tsx": {
     "local/no-hand-rolled-ui": {
       "count": 2

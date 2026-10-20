@@ -23,7 +23,7 @@ function renderEditorHeader(completed: boolean) {
 }
 
 const openMenu = async (user: ReturnType<typeof userEvent.setup>) =>
-  user.click(screen.getByTitle('Opcje etapu'))
+  user.click(screen.getByRole('button', { name: /Łazienka/ }))
 
 const completedRow = () => screen.getByRole('menuitemcheckbox', { name: 'Etap zakończony' })
 
@@ -56,7 +56,7 @@ describe('Nagłówek etapu — etap zakończony', () => {
   it('podgląd nie dostaje menu etapu', () => {
     render(<StageHeader stage={stage(true)} />)
 
-    expect(screen.queryByTitle('Opcje etapu')).toBeNull()
+    expect(screen.queryByRole('button', { name: /Łazienka/ })).toBeNull()
   })
 
   it.each([

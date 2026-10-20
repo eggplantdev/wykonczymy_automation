@@ -26,6 +26,7 @@ export function HeaderMenu({ label, icon, triggerClassName, triggerTitle, tip, c
   // close (it's already forced shut), so without this it would pop back the moment the menu closes.
   const [menuOpen, setMenuOpen] = useState(false)
   const [tipHovered, setTipHovered] = useState(false)
+  const tipText = tip ?? triggerTitle
 
   const onMenuOpenChange = (open: boolean) => {
     setMenuOpen(open)
@@ -33,7 +34,7 @@ export function HeaderMenu({ label, icon, triggerClassName, triggerTitle, tip, c
   }
 
   const trigger = (
-    <HeaderMenuTrigger title={tip ? undefined : triggerTitle} className={triggerClassName}>
+    <HeaderMenuTrigger className={triggerClassName}>
       {label}
       {icon}
     </HeaderMenuTrigger>
@@ -41,11 +42,11 @@ export function HeaderMenu({ label, icon, triggerClassName, triggerTitle, tip, c
 
   return (
     <DropdownMenu open={menuOpen} onOpenChange={onMenuOpenChange}>
-      {tip ? (
+      {tipText ? (
         <TooltipProvider delayDuration={TOOLTIP_DELAY}>
           <Tooltip open={tipHovered && !menuOpen} onOpenChange={setTipHovered}>
             <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-            <TooltipContent>{tip}</TooltipContent>
+            <TooltipContent>{tipText}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       ) : (

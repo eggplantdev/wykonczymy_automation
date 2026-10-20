@@ -18,6 +18,8 @@ export const uk: typeof pl = {
     saving: 'Збереження…',
     keepOpen: 'Не закривати після збереження',
     formHasErrors: 'Форма містить помилки',
+    loading: 'Завантаження',
+    loadingData: 'Завантаження…',
   },
   notices: {
     unknownToken: 'Це посилання застаріло або було скасоване. Попросіть у керівника нове.',

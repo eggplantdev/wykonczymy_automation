@@ -4,7 +4,13 @@ import type { ComponentProps } from 'react'
 import { ChevronRight, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PageWrapper } from '@/components/ui/page-wrapper'
-import { SectionHeader } from '@/components/ui/section-header'
+import { Panel, BORDERED_LIST_CLASS } from '@/components/ui/panel'
+import {
+  EYEBROW_CLASS,
+  SectionHeader,
+  SUBSECTION_TITLE_CLASS,
+} from '@/components/ui/section-header'
+import { cn } from '@/lib/utils/cn'
 import { SettingsCard } from '@/components/ui/settings-card'
 import { CollapsibleSection, OPEN_STATES } from '@/components/ui/collapsible-section'
 import { Separator } from '@/components/ui/separator'
@@ -27,6 +33,8 @@ import { ShowcaseSection } from '../showcase-section'
 
 type CollapsibleSizeT = NonNullable<ComponentProps<typeof CollapsibleSection>['size']>
 type InfoListLayoutT = NonNullable<ComponentProps<typeof InfoList>['layout']>
+type SectionHeaderSizeT = NonNullable<ComponentProps<typeof SectionHeader>['size']>
+type PanelToneT = NonNullable<ComponentProps<typeof Panel>['tone']>
 type EdgeHandleOrientationT = ComponentProps<typeof EdgeHandlePill>['orientation']
 
 const COLLAPSIBLE_SIZES = Object.keys({
@@ -44,6 +52,18 @@ const EDGE_HANDLE_ORIENTATIONS = Object.keys({
   vertical: true,
   horizontal: true,
 } satisfies Record<EdgeHandleOrientationT, true>) as EdgeHandleOrientationT[]
+
+const SECTION_HEADER_SIZES = Object.keys({
+  lg: true,
+  md: true,
+  sm: true,
+} satisfies Record<SectionHeaderSizeT, true>) as SectionHeaderSizeT[]
+
+const PANEL_TONES = Object.keys({
+  plain: true,
+  muted: true,
+  alert: true,
+} satisfies Record<PanelToneT, true>) as PanelToneT[]
 
 const INFO_ITEMS = [
   { label: 'Inwestycja', value: 'Mieszkanie Mokotów' },
@@ -65,6 +85,28 @@ export function LayoutSection() {
             <SectionHeader title="Nagłówek sekcji" />
           </PageWrapper>
         </div>
+      </ShowcaseRow>
+      <ShowcaseRow
+        title="SectionHeader — rozmiar"
+        source="ui/section-header.tsx"
+        className="flex-col items-start"
+      >
+        {SECTION_HEADER_SIZES.map((size) => (
+          <SectionHeader key={size} size={size} title={`size=${size}`} />
+        ))}
+        <p className={SUBSECTION_TITLE_CLASS}>SUBSECTION_TITLE_CLASS</p>
+        <p className={EYEBROW_CLASS}>EYEBROW_CLASS</p>
+      </ShowcaseRow>
+      <ShowcaseRow title="Panel + BORDERED_LIST_CLASS" source="ui/panel.tsx">
+        {PANEL_TONES.map((tone) => (
+          <Panel key={tone} tone={tone} className="p-3 text-sm">
+            tone={tone}
+          </Panel>
+        ))}
+        <ul className={cn(BORDERED_LIST_CLASS, 'w-full max-w-xs text-sm')}>
+          <li className="p-2">Pierwszy</li>
+          <li className="p-2">Drugi</li>
+        </ul>
       </ShowcaseRow>
       <ShowcaseRow title="SettingsCard" source="ui/settings-card.tsx">
         <div className="w-full max-w-md">

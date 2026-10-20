@@ -15,8 +15,12 @@ import Icon from '@/components/ui/icons/icon'
 import ArrowIcon from '@/components/ui/icons/arrow-icon'
 import DropdownIcon from '@/components/ui/icons/dropdown-icon'
 import MenuDotsIcon from '@/components/ui/icons/menu-dots-icon'
+import {
+  ReportRow,
+  ReportTable,
+} from '@/components/kosztorys/editor/dialogs/report/sheet-report-parts'
 import { formatPercent } from '@/lib/kosztorys/format'
-import { formatPLN } from '@/lib/utils/format-currency'
+import { formatPLN, formatSignedPLN } from '@/lib/utils/format-currency'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
@@ -81,6 +85,9 @@ export function DataDisplaySection() {
         {BALANCES.map((value) => (
           <BalanceCell key={value} value={value} />
         ))}
+        {BALANCES.map((value) => (
+          <BalanceCell key={`settled-${value}`} value={value} settled />
+        ))}
         <SignedMoneyDisplay amount={12500} label="Saldo" />
         <SignedMoneyDisplay amount={-830.5} label="Saldo" tooltip="Suma zaznaczonych" />
         <SignedMoneyDisplay
@@ -88,6 +95,32 @@ export function DataDisplaySection() {
           label="Zaznaczone"
           selectionCount={{ selected: 3, total: 12 }}
         />
+      </ShowcaseRow>
+      <ShowcaseRow title="formatSignedPLN" source="lib/utils/format-currency.ts">
+        {BALANCES.map((value) => (
+          <span key={value} className="text-sm tabular-nums">
+            {formatSignedPLN(value)}
+          </span>
+        ))}
+      </ShowcaseRow>
+      <ShowcaseRow
+        title="ReportTable — nagłówki {content, className}"
+        source="kosztorys/editor/dialogs/report/sheet-report-parts.tsx"
+      >
+        <div className="w-full max-w-md">
+          <ReportTable
+            headers={[
+              'Pozycja',
+              { content: 'Ilość', className: 'w-20' },
+              { content: 'Kwota', className: 'text-foreground font-medium' },
+            ]}
+          >
+            <ReportRow
+              label="Płytki"
+              cells={[{ content: '12 m²' }, { content: formatPLN(1200) }]}
+            />
+          </ReportTable>
+        </div>
       </ShowcaseRow>
       <ShowcaseRow title="DecisionProgressBadge" source="ui/decision-progress-badge.tsx">
         <DecisionProgressBadge accepted={7} rejected={2} pending={4} />

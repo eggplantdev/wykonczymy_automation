@@ -4,6 +4,7 @@ import { useState, type ComponentProps } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogFooter,
@@ -19,6 +20,8 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { ColumnOrderDialog, type ColumnToggleItemT } from '@/components/ui/column-order-dialog'
@@ -53,6 +56,7 @@ const ORDER_ITEMS: ColumnToggleItemT[] = [
 export function DialogsSection() {
   const [isActionsOpen, setIsActionsOpen] = useState(false)
   const [isShellOpen, setIsShellOpen] = useState(false)
+  const [isShellOptionsOpen, setIsShellOptionsOpen] = useState(false)
   const [confirmVariant, setConfirmVariant] = useState<ConfirmVariantT | null>(null)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
   const [isOrderOpen, setIsOrderOpen] = useState(false)
@@ -60,7 +64,7 @@ export function DialogsSection() {
 
   return (
     <ShowcaseSection id="dialogs">
-      <ShowcaseRow title="Dialog" source="ui/dialog.tsx, ui/dialog-actions.tsx">
+      <ShowcaseRow title="Dialog" source="ui/dialog.tsx (DialogBody), ui/dialog-actions.tsx">
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">
@@ -68,8 +72,18 @@ export function DialogsSection() {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader title="Tytuł dialogu" description="Opis dialogu." />
-            <p className="text-sm">Treść dialogu.</p>
+            <DialogHeader
+              title="Tytuł dialogu"
+              description={
+                <>
+                  Opis dialogu jako ReactNode:
+                  <br />— druga linia.
+                </>
+              }
+            />
+            <DialogBody>
+              <p className="text-sm">Treść dialogu w DialogBody.</p>
+            </DialogBody>
             <DialogFooter>
               <DialogClose asChild>
                 <Button variant="outline">Zamknij</Button>
@@ -109,6 +123,27 @@ export function DialogsSection() {
           <Input placeholder="Nazwa" />
         </FormDialogShell>
       </ShowcaseRow>
+      <ShowcaseRow
+        title="FormDialogShell — opcje"
+        source="ui/form-dialog-shell.tsx confirmVariant, cancelLabel, showCloseButton"
+      >
+        <Button variant="outline" size="sm" onClick={() => setIsShellOptionsOpen(true)}>
+          Destrukcyjny, bez X
+        </Button>
+        <FormDialogShell
+          open={isShellOptionsOpen}
+          onOpenChange={setIsShellOptionsOpen}
+          title="Usuń pozycję"
+          description="confirmVariant, cancelLabel i showCloseButton={false}."
+          confirmLabel="Usuń"
+          confirmVariant="destructive"
+          cancelLabel="Wróć"
+          showCloseButton={false}
+          onConfirm={() => setIsShellOptionsOpen(false)}
+        >
+          <p className="text-sm">Tej operacji nie można cofnąć.</p>
+        </FormDialogShell>
+      </ShowcaseRow>
       <ShowcaseRow title="ConfirmDialog — warianty" source="ui/confirm-dialog.tsx">
         {CONFIRM_VARIANTS.map((variant) => (
           <Button
@@ -135,12 +170,14 @@ export function DialogsSection() {
         </Button>
         <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
           <AlertDialogContent>
-            <AlertDialogTitle>AlertDialog</AlertDialogTitle>
-            <AlertDialogDescription>Złożony bezpośrednio z prymitywów.</AlertDialogDescription>
-            <div className="mt-4 flex justify-end gap-2">
+            <AlertDialogHeader>
+              <AlertDialogTitle>AlertDialog</AlertDialogTitle>
+              <AlertDialogDescription>Złożony bezpośrednio z prymitywów.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
               <AlertDialogCancel>Anuluj</AlertDialogCancel>
               <AlertDialogAction>OK</AlertDialogAction>
-            </div>
+            </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </ShowcaseRow>

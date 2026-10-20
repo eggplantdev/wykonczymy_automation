@@ -3,6 +3,7 @@
 import { useState, type ComponentProps } from 'react'
 import { Button } from '@/components/ui/button'
 import { GradientSpinner } from '@/components/ui/gradient-spinner'
+import { InlineLoading, BlockLoading } from '@/components/ui/inline-loading'
 import { Spinner } from '@/components/ui/loader/spinner'
 import { Loader } from '@/components/ui/loader/loader'
 import { FixedClientLoader } from '@/components/ui/loader/fixed-client-loader'
@@ -20,14 +21,8 @@ import { LabelHintIcon, type LabelHintT } from '@/components/ui/label-hint-icon'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
 
-type SpinnerVariantT = NonNullable<ComponentProps<typeof Spinner>['variant']>
 type DescriptionSizeT = NonNullable<ComponentProps<typeof Description>['size']>
 type DescriptionToneT = NonNullable<ComponentProps<typeof Description>['tone']>
-
-const SPINNER_VARIANTS = Object.keys({
-  black: true,
-  white: true,
-} satisfies Record<SpinnerVariantT, true>) as SpinnerVariantT[]
 
 const DESCRIPTION_SIZES = Object.keys({
   sm: true,
@@ -38,6 +33,7 @@ const DESCRIPTION_SIZES = Object.keys({
 const DESCRIPTION_TONES = Object.keys({
   muted: true,
   error: true,
+  warning: true,
 } satisfies Record<DescriptionToneT, true>) as DescriptionToneT[]
 
 const LABEL_HINTS = Object.values({
@@ -66,12 +62,19 @@ export function FeedbackSection() {
       >
         <GradientSpinner />
         <GradientSpinner className="size-8" />
-        {SPINNER_VARIANTS.map((variant) => (
-          <div key={variant} className="bg-muted rounded-md p-2">
-            <Spinner variant={variant} />
-          </div>
-        ))}
+        <Spinner />
         <ContentLoading />
+      </ShowcaseRow>
+      <ShowcaseRow
+        title="InlineLoading, BlockLoading"
+        source="ui/inline-loading.tsx"
+        className="grid sm:grid-cols-2"
+      >
+        <InlineLoading />
+        <InlineLoading label="Pobieranie faktury…" />
+        <div className="rounded-md border">
+          <BlockLoading />
+        </div>
       </ShowcaseRow>
       <ShowcaseRow
         title="Ekrany ładowania (w ramce)"
@@ -119,11 +122,17 @@ export function FeedbackSection() {
           </EmptyState>
         </div>
       </ShowcaseRow>
+      <ShowcaseRow title="EmptyState — size=inline" source="ui/empty-state.tsx">
+        <div className="w-full rounded-md border">
+          <EmptyState size="inline" title="Brak zapisanych wersji." />
+        </div>
+      </ShowcaseRow>
       <ShowcaseRow
         title="Ostrzeżenia"
         source="ui/warning-banner.tsx, ui/alert-icon.tsx, ui/label-hint-icon.tsx"
       >
         <WarningBanner className="px-2">Kwoty nie zgadzają się z kosztorysem.</WarningBanner>
+        <WarningBanner bordered={false}>Kwoty nie zgadzają się z kosztorysem.</WarningBanner>
         <AlertIcon />
         {LABEL_HINTS.map((hint) => (
           <LabelHintIcon key={hint.variant} {...hint} size="md" />

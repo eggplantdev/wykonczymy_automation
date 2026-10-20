@@ -18,6 +18,8 @@ export const ru: typeof pl = {
     saving: 'Сохранение…',
     keepOpen: 'Не закрывать после сохранения',
     formHasErrors: 'Форма содержит ошибки',
+    loading: 'Загрузка',
+    loadingData: 'Загрузка…',
   },
   notices: {
     unknownToken: 'Эта ссылка устарела или была отозвана. Попросите у руководителя новую.',

@@ -1,4 +1,5 @@
 import { ESLint, RuleTester } from 'eslint'
+import { describe, expect, it } from 'vitest'
 import { noHandRolledUiRule } from '../../../eslint-rules/no-hand-rolled-ui.mjs'
 
 const ruleTester = new RuleTester({
