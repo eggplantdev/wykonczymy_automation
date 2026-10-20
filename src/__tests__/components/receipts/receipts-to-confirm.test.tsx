@@ -23,7 +23,7 @@ const receipt = (overrides: Partial<ReceiptToConfirmT>): ReceiptToConfirmT => ({
 
 const rowOf = (description: string) => within(screen.getByText(description).closest('li')!)
 
-describe('Wypłaty do potwierdzenia', () => {
+describe('Do potwierdzenia', () => {
   it('offers each wypłata only the answers it can still take', () => {
     render(
       <ReceiptsToConfirm

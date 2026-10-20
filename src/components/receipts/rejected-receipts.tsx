@@ -91,7 +91,7 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptT[] })
       cell: (info) => <span className="whitespace-pre-line">{info.getValue()}</span>,
     }),
     col.accessor('decidedAt', {
-      header: 'Odrzucona',
+      header: 'Odrzucono',
       meta: { minWidth: 'min-w-36' },
       cell: (info) => formatPLDateTime(info.getValue()),
     }),
@@ -100,8 +100,8 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptT[] })
   return (
     <section>
       <CollapsibleSection
-        title="Wypłaty odrzucone przez pracowników"
-        hint="Takie wypłaty trzeba wyjaśnić z pracownikiem lub anulować."
+        title="Odrzucone przez pracowników"
+        hint="Trzeba je wyjaśnić z pracownikiem lub anulować."
         size="sm"
         withSeparator={false}
         storageKey="rejected-payouts:open"

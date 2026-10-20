@@ -26,7 +26,7 @@ import { fetchWorkerReportHistory } from '@/lib/queries/worker-report-history'
 import { fetchReceiptsToConfirm } from '@/lib/queries/receipt-confirmation'
 import { workerPageTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
 import { fetchTransferFacets } from '@/lib/queries/transfer-totals'
-import { TRANSFER_TYPES } from '@/lib/constants/transfers'
+import { TRANSFER_TYPES, carriesPayoutStatus } from '@/lib/constants/transfers'
 import { toOptions } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
@@ -205,7 +205,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
                 transferTypes: offeredIfChoice(transferTypes),
                 otherCategories: toOptions(refData.otherCategories),
                 showCancelledFilter: false,
-                showPayoutStatusFilter: transferTypes.includes('PAYOUT'),
+                showPayoutStatusFilter: transferTypes.some(carriesPayoutStatus),
                 showSearchFilters: false,
               },
               invoiceDownload: isManager,
