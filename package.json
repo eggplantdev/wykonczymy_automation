@@ -135,7 +135,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
+      "eslint --fix --pass-on-unpruned-suppressions",
       "prettier --write"
     ],
     "*.{json,css,md}": [
