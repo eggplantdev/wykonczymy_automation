@@ -138,6 +138,14 @@ describe('SummaryPanelContent — zakładka „Inwestycja"', () => {
     expect(screen.getByText(INVESTMENT.notes)).toBeInTheDocument()
   })
 
+  it('jest tylko do odczytu dla inwestycji w Koszu', async () => {
+    const user = renderPanel({ investment: INVESTMENT, trashed: true })
+
+    await user.click(screen.getByRole('radio', { name: 'Inwestycja' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Inwestycja jest w koszu')
+    expect(screen.queryByRole('button', { name: 'Edytuj notatkę' })).not.toBeInTheDocument()
+  })
+
   it('nie istnieje bez rekordu inwestycji', () => {
     renderPanel()
 

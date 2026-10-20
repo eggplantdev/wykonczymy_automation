@@ -130,6 +130,7 @@ export function KosztorysEditorBody({
   workCatalogue,
   assets,
   investment,
+  trashed,
   workerReports,
   ...panelData
 }: PropsT) {
@@ -520,6 +521,7 @@ export function KosztorysEditorBody({
                       investmentId={investmentId}
                       investmentName={investmentName}
                       investment={investment}
+                      trashed={trashed}
                       assets={assets}
                       depositTransactions={depositTransactions}
                       stages={stages}

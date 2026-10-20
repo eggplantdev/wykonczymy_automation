@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, use } from 'react'
+import { createContext, use, useMemo } from 'react'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import type { SessionUserT } from '@/types/auth'
 import type { OrderSettingsT } from '@/types/order-settings'
@@ -11,12 +11,12 @@ type ReferenceDataPromisesT = {
   orderSettings: Promise<OrderSettingsT> | null
 }
 
-const ReferenceDataContext = createContext<(ReferenceDataPromisesT & { user: SessionUserT }) | null>(
-  null,
-)
+const ReferenceDataContext = createContext<
+  (ReferenceDataPromisesT & { user: SessionUserT }) | null
+>(null)
 
 // Carries the shell's PENDING fetches: awaited in the layout, they would hold every page's own
-// fetches behind them. `null` promises for a non-management session — the data is company-wide PII.
+// fetches behind them.
 export function ReferenceDataProvider({
   referenceData,
   orderSettings,
@@ -34,8 +34,14 @@ export function ReferenceDataProvider({
 // share routes and for an EMPLOYEE.
 export function useReferenceData(): ReferenceDataT | null {
   const ctx = use(ReferenceDataContext)
-  if (!ctx?.referenceData) return null
-  return { ...use(ctx.referenceData), currentUserId: ctx.user.id, currentUserRole: ctx.user.role }
+  const base = ctx?.referenceData ? use(ctx.referenceData) : null
+  const user = ctx?.user
+  // The compiler skips a function that calls only `use`; without this memo `getTransferColumns`
+  // rebuilds every column on each render of the table.
+  return useMemo(
+    () => (base && user ? { ...base, currentUserId: user.id, currentUserRole: user.role } : null),
+    [base, user],
+  )
 }
 
 export function useOrderSettings(): OrderSettingsT | null {
