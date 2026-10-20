@@ -1,7 +1,7 @@
 ---
 change_id: investment-initial-info
 title: Investment „Wstępne informacje” section with a rynek pierwotny/wtórny field
-status: implementing
+status: implemented
 created: 2026-10-20
 updated: 2026-10-20
 archived_at: null

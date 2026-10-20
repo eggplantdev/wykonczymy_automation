@@ -32,7 +32,7 @@ width with its text centred.
 - Add and edit dialogs show a collapsed „Wstępne informacje” section with a „Rynek” select
   („Rynek pierwotny” / „Rynek wtórny”, placeholder „— nie wiadomo —”); the choice persists and reopens.
 - A new AI case carries `inputs/initial-info.md` listing every field of the section by its Polish label
-  („Rynek: wtórny” or „Rynek: — (puste)”); a later round writes the current section and flags a change.
+  („Rynek: Rynek wtórny” or „Rynek: — (puste)”); a later round writes the current section and flags a change.
 - The ai-cases README tells the agent: „Rynek” set → it wins over Notatki; empty → guess as now and add
   a „Do ustalenia z klientem” question.
 - „Kierownik budowy” in the edit form is as wide as its content, left-aligned.
@@ -90,7 +90,7 @@ section title.
 
 #### 3. Migration + types
 
-**File**: `src/migrations/20261020_1_investment_initial_info.ts` (new), `src/migrations/index.ts`,
+**File**: `src/migrations/20261020_2_investment_initial_info.ts` (new), `src/migrations/index.ts`,
 `src/payload-types.ts`
 
 **Intent**: Hand-written additive migration (copy the billing one): create the enum, add the nullable
@@ -185,7 +185,7 @@ The case inputs carry every field of „Wstępne informacje”; the method says 
 
 #### 1. Shared renderer
 
-**File**: `scripts/ai-kosztorys/prod-client.ts`
+**File**: `scripts/ai-kosztorys/initial-info.ts` (split out of `prod-client.ts` at the review gate)
 
 **Intent**: `initialInfoLines(initialInfo)` renders each key of the REST `initialInfo` object as
 `<label>: <value label>` using `INVESTMENT_INITIAL_INFO_LABELS` and the option label maps; an empty value
