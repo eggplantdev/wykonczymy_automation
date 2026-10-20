@@ -67,6 +67,7 @@ produkcję.
       bazy. Świadomie tego nie robimy.
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki). Cron na Preview stoi też za SSO i CRON_SECRET (blokada 3)._
       _needs human: mail dostarczony na listę „Alerty techniczne” — poczta wychodzi tylko z produkcji (blokady 2/3), brak dostępu do skrzynki_
+  _Staging 2026-10-20: wymaga człowieka — mail nie wychodzi poza produkcją (EMAIL_HOST=disabled.invalid), brak dostępu do skrzynki_
 
 ## lead-recovery-notifies-sales
 
@@ -87,6 +88,7 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który ta zmiana napr
       różni je wyłącznie opcja `autoReply`. Została sama dostawa.
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki)._
       _needs human: dostawa maila do skrzynki sprzedaży — poczta tylko z produkcji, brak dostępu do skrzynki_
+  _Staging 2026-10-20: wymaga człowieka — mail nie wychodzi poza produkcją (EMAIL_HOST=disabled.invalid), brak dostępu do skrzynki_
 - [ ] Dokładnie jeden mail podsumowujący, wyłącznie na „Alerty techniczne" (nie do sprzedaży), bez
       Mail poza produkcją nie wychodzi — z założenia nie do sprawdzenia tu (`context/reference/outgoing-effects-isolation.md` § Poczta).
       danych kontaktowych i bez instrukcji „zadzwoń sam" — **blokady 2, 3 i 4**. Alert
@@ -94,6 +96,7 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który ta zmiana napr
       jedynym wołającym sweepa — ręczny przycisk „Pobierz z Facebooka" został usunięty.
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki)._
       _needs human: mail alertowy „Alerty techniczne” — poczta tylko z produkcji, brak dostępu do skrzynki_
+  _Staging 2026-10-20: wymaga człowieka — mail nie wychodzi poza produkcją (EMAIL_HOST=disabled.invalid), brak dostępu do skrzynki_
 
 ## Katalog narzędzi i urządzeń (rejestr sprzętu)
 
@@ -116,6 +119,7 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który ta zmiana napr
       testowej, nie na produkcji.)
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki)._
       _needs human: dostarczony mail przeglądu — poczta tylko z produkcji (EMAIL_HOST=disabled.invalid), brak dostępu do skrzynki_
+  _Staging 2026-10-20: wymaga człowieka — mail nie wychodzi poza produkcją (EMAIL_HOST=disabled.invalid), brak dostępu do skrzynki_
 
 ## lead-delivery (wykonczymy half, 2026-09-21)
 
@@ -137,21 +141,25 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
       _2026-09-30: POST podpisany HMAC-SHA256 (scope „landing-submission") z `LANDING_WEBHOOK_SECRET` z `.env` → 403 na stagingu, czyli sekret z `.env` nie jest sekretem Preview. Brakuje wartości sekretu Preview; do tego realny plik w blobie landingu (callback release dotyka landingu). Nic nie utworzono._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
       _needs human: podpisany webhook landingu — sekret LANDING_WEBHOOK_SECRET z Preview niedostępny, potrzebny też realny blob landingu_
+  _Staging 2026-10-20: wymaga człowieka — podpisany POST wymaga sekretu dostawy leadów i curl, a staging jest za Vercel SSO_
 - [ ] Ten sam request powtórzony nie tworzy niczego i nie wysyła maila
       Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: jak wyżej — brak sekretu Preview (403 na poprawnie podpisany request z sekretem z `.env`)._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
       _needs human: podpisany webhook landingu — sekret LANDING_WEBHOOK_SECRET z Preview niedostępny_
+  _Staging 2026-10-20: wymaga człowieka — podpisany POST wymaga sekretu dostawy leadów i curl, a staging jest za Vercel SSO_
 - [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
       Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: jak wyżej — brak sekretu Preview; bez ważnego podpisu request nie dochodzi do walidacji hosta._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
       _needs human: podpisany webhook landingu — sekret LANDING_WEBHOOK_SECRET z Preview niedostępny_
+  _Staging 2026-10-20: wymaga człowieka — podpisany POST wymaga sekretu dostawy leadów i curl, a staging jest za Vercel SSO_
 - [ ] Request z podmienionym body jest odrzucony (403)
       Nie do sprawdzenia na stagingu — agent nie zna sekretu `LANDING_WEBHOOK_SECRET` z Preview.
       _2026-09-30: 403 obserwowane, ale nie do zaliczenia — poprawnie podpisany request też dostał 403 (zły sekret), więc odrzucenie nie dowodzi kontroli podpisu._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
       _needs human: podpisany webhook landingu — sekret LANDING_WEBHOOK_SECRET z Preview niedostępny (403 nie dowodzi kontroli podpisu)_
+  _Staging 2026-10-20: wymaga człowieka — podpisany POST wymaga sekretu dostawy leadów i curl, a staging jest za Vercel SSO_
 
 ## materialy-inwestora-brutto
 
@@ -161,6 +169,7 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
       _Zweryfikowano 2026-09-29 (staging): pominięto — E2E uruchamia wyłącznie człowiek._
       _Nie sprawdzone 2026-10-04 (staging): spec E2E uruchamia człowiek (nie uruchamiam `pnpm test:e2e`)._
       _needs human: spec E2E (`pnpm test:e2e`) uruchamia wyłącznie człowiek_
+  _Staging 2026-10-20: wymaga człowieka — suite E2E — uruchamia człowiek (zakaz E2E w tym przebiegu)_
 
 ## catalogue-picker-virtualization — „Dodaj pracę z katalogu" rysuje tylko widoczne wiersze (2026-09-28)
 
@@ -171,6 +180,7 @@ powtórzenia na stagingu.
 - [ ] `pnpm exec playwright test e2e/work-catalogue.spec.ts` na bazie E2E — uruchamia człowiek
       _Zweryfikowano 2026-09-29 (staging): pominięto — E2E uruchamia wyłącznie człowiek._
       _needs human: spec E2E uruchamia wyłącznie człowiek_
+  _Staging 2026-10-20: wymaga człowieka — suite E2E — uruchamia człowiek (zakaz E2E w tym przebiegu)_
 
 ## protokol-odbioru — protokół odbioru prac z menu „Inwestor" (2026-09-28)
 
@@ -181,6 +191,7 @@ powtórzenia na stagingu.
       _Zweryfikowano 2026-09-29 (staging): CZĘŚCIOWO — inw. 137, „Generuj” z zaślepką `print` (druk się nie odpalił) otwiera okno z logo (img 360 px), tytułem „PROTOKÓŁ ODBIORU PRAC” i punktami 1–6; w treści brak „denwi”, „Reprezentowany przez” i pkt 7. Porównanie z przyciętym wzorem właściciela (wzór PDF niedostępny w repo) wymaga człowieka._
       _Staging 2026-10-06 (pass 4):_ CZĘŚCIOWO — „Generuj” (inw. 137, `window.open` + `print` zaślepione, druk się nie odpalił): HTML w oknie ma `<img src=…/logo-wykonczymy.png>` (URL zwraca 200 image/png), tytuł „Protokół odbioru prac — testowe inwestycje”, brak „denwi”, „Reprezentowany przez” i pkt 7. Obraz w popupie about:blank nie załadował się w automatyzacji (complete=false) — NEEDS-HUMAN: logo na wydruku i zgodność PDF z przyciętym wzorem.
       _needs human: prawdziwe okno druku / PDF i porównanie z przyciętym wzorem właściciela (wzór poza repo)_
+  _Staging 2026-10-20: wymaga człowieka — natywne okno druku / papier / fizyczne zdjęcie — poza zasięgiem przeglądarki automatycznej_
 
 ## kosztorys-client-view-auto-columns — jeden zestaw kolumn inwestora, rozliczenie gdy są wpisy (2026-09-28)
 
@@ -195,6 +206,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn idzie osobną 
       _Zweryfikowano 2026-09-29 (staging): pominięto — Chromium nie jest Safari._
       _Nie sprawdzone 2026-10-04 (staging): Safari niedostępne w tym narzędziu._
       _needs human: prawdziwe Safari (kopiowanie do schowka) — narzędzie steruje wyłącznie Chromium_
+  _Staging 2026-10-20: wymaga człowieka — Safari — brak w automatyzacji_
 
 ### E2E
 
@@ -202,6 +214,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn idzie osobną 
       _Zweryfikowano 2026-09-29 (staging): pominięto — E2E uruchamia wyłącznie człowiek._
       _Nie sprawdzone 2026-10-04 (staging): spec E2E uruchamia człowiek (nie uruchamiam `pnpm test:e2e`)._
       _needs human: spec E2E uruchamia wyłącznie człowiek_
+  _Staging 2026-10-20: wymaga człowieka — suite E2E — uruchamia człowiek (zakaz E2E w tym przebiegu)_
 
 ## worker-payout-remaining — „Pozostało do wypłaty" per pracownik i „Rozlicz wypłaty" (2026-09-29)
 
@@ -216,6 +229,7 @@ i pracownicy; status inwestycji) i cofa po przebiegu; wypłaty zaksięgowane w t
       _Tylko produkcja — zapis do arkusza właściciela jest na preview zablokowany (konto Viewer), więc nie do sprawdzenia na stagingu; zostaje niezaznaczone._
       _Zweryfikowano 2026-09-29 (staging): pominięto — sprawdzenie wyłącznie na produkcji (zapis do arkusza właściciela wymaga konta Editor)._
       _needs human: tylko produkcja — zapis do arkusza właściciela wymaga konta Editor (na preview 403)_
+  _Staging 2026-10-20: wymaga człowieka — tylko produkcja / odczyt z proda_
 
 ## szablony-plain-revalidation
 
@@ -248,10 +262,12 @@ Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `eras
       _Zweryfikowano 2026-10-09 (lokalnie, 5435; lead 224 z plikiem, inwestycja 154): potwierdzenie wymaga wpisania nazwy (zła nazwa → przycisk wyłączony); po usunięciu zgłoszenie znika z `/kosz` (wiersz wymazany w miejscu, `erased_at` ustawione, `leads_rels` 0); inwestycja 154 nadal ma „Zdjęcia i pliki — Dokumentacja (1)” i `investments_rels` → media 1799. Uwaga: bajty `/api/media/file/marki-pdf-a8a01d.pdf` dają 404 także dla nietkniętego PDF-a z innego leada — preview store nie ma PDF-ów, to nie skutek usunięcia._
       _Cofnięte do `[ ]` 2026-10-14: nie zweryfikowano całego boksu (zob. notatka powyżej)._
       _needs human: wymaga zgłoszenia (leada) z inwestycji ze zdjęciami — UI nie tworzy zgłoszeń, a kasowanie cudzego jest zabronione; część lokalna zweryfikowana 2026-10-09_
+  _Staging 2026-10-20: wymaga człowieka — cron/nocny przebieg lub trwałe usunięcie na prawdziwych danych preview — poza izolacją QA_
 - [ ] Usunięte na zawsze zgłoszenie z Facebooka nie wraca po nocnym uzgodnieniu zgłoszeń (staging,
       następny dzień).
       _Nie sprawdzone 2026-10-03 (staging): wymaga sprawdzenia następnego dnia po przebiegu crona Facebooka — bloker izolacji_
       _needs human: sprawdzenie następnego dnia po nocnym cronie uzgadniania Facebooka (cron + realne zgłoszenie FB)_
+  _Staging 2026-10-20: wymaga człowieka — cron/nocny przebieg lub trwałe usunięcie na prawdziwych danych preview — poza izolacją QA_
 
 ## 2026-10-02 — podsumowanie-pracownika-tabele
 
@@ -260,6 +276,7 @@ Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `eras
       _Lokalnie 2026-10-09: do prawdziwego HTML „Drukuj kosztorys pracownika (PDF)” (print zastubowany, inw. 184) wstrzyknięto 35 wierszy wypłat i wyrenderowano headless Chromium (`page.pdf`, A4 landscape): 4 strony — tabele „Wykonane”/„Pozostało” zostają na str. 2, tabela „Wypłaty” zaczyna się od góry str. 3 (28 wierszy), str. 4 ma resztę (7 + „Razem”); brak pustej połowy strony. Podsumowanie oferty przy prawej krawędzi: ten sam CSS `.totals` (`align-items: flex-end`); w PDF pracownika widać je przy prawej krawędzi, oferty osobno nie renderowano. Zob. Findings 2026-10-09 (pass 4)._
       _Cofnięte do `[ ]` 2026-10-14: nie zweryfikowano całego boksu (zob. notatka powyżej)._
       _needs human: PDF z kilkudziesięcioma wypłatami — brak takiego pracownika na preview; ocena układu PDF wzrokowo (pass 6)_
+  _Staging 2026-10-20: wymaga człowieka — natywne okno druku / papier / fizyczne zdjęcie — poza zasięgiem przeglądarki automatycznej_
 
 ## purge-runner — nocne czyszczenie Kosza po scaleniu sześciu kopii (2026-10-05)
 
@@ -267,14 +284,17 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 
 - [ ] Inwestycja, kasa, pracownik, pojazd, sprzęt i zgłoszenie w `/kosz` dłużej niż okres przechowywania → po przebiegu crona `cleanup` znikają z `/kosz`, a listy (Inwestycje, Kasy, Pracownicy, Flota, Sprzęt, Zgłoszenia) pokazują stan po usunięciu bez ręcznego odświeżania pamięci podręcznej.
       _needs human: cron `cleanup` na preview DB (kopia produkcji) trwale skasowałby prawdziwe wiersze z /kosz — brak izolowanego zestawu przeterminowanych rekordów_
+  _Staging 2026-10-20: wymaga człowieka — cron/nocny przebieg lub trwałe usunięcie na prawdziwych danych preview — poza izolacją QA_
 - [ ] Odpowiedź crona `cleanup` zawiera dla każdego rodzaju `purged` / `blocked` / `failed` (pojazdy, sprzęt i zgłoszenia mają teraz też `blocked: 0`), a inwestycje dodatkowo `skippedKosztorys`.
       _needs human: jak wyżej — odpowiedź crona `cleanup` wymaga jego uruchomienia, które na preview DB kasuje prawdziwe przeterminowane wiersze_
+  _Staging 2026-10-20: wymaga człowieka — cron/nocny przebieg lub trwałe usunięcie na prawdziwych danych preview — poza izolacją QA_
 
 ## ai-translations — AI uzupełnia tłumaczenia UA/RU i tłumaczy prace spoza rozpiski na polski (2026-10-05)
 
 - [ ] Gdy AI było niedostępne w chwili wysyłki: przegląd pokazuje „Brak tłumaczenia" i „Przetłumacz"; po kliknięciu (z działającym AI) polski opis pojawia się bez zamykania okna. Pracownik na swoim linku nie widzi żadnego przycisku tłumaczenia.
       _Staging 2026-10-05:_ NIE sprawdzone — nie da się zasymulować niedostępności AI na stagingu. Sam przycisk „Przetłumacz" sprawdzony na zgłoszeniu z PL opisem (działa).
       _needs human: nie da się zasymulować niedostępności AI w chwili wysyłki na stagingu_
+  _Staging 2026-10-20: wymaga człowieka — wymaga niedostępnego AI w chwili wysyłki_
 
 ## worker-report-scan — zgłoszenie prac wczytane z papierowej kartki
 
@@ -289,20 +309,25 @@ zdjęć, każdy wariant poniżej to osobny skan.
       _Staging 2026-10-05:_ skan syntetyczny (obrót 3-4°, przyciemnienie, rozmycie): przy ostrzejszym wariancie 6/2/5 przesunięte o jeden wiersz (6 trafiło na żelbet zamiast kable miękkie), brak flagi „Niepewny odczyt”; ostry wariant: 2,5→3 i pominięty wiersz. Potrzebne prawdziwe zdjęcie z telefonu — decyzja człowieka
       _Staging 2026-10-06:_ NIE sprawdzone: wymaga prawdziwego zdjęcia kartki raportu z telefonu; nie do zrobienia narzędziem.
       _needs human: wymaga prawdziwego zdjęcia kartki raportu z telefonu (skan syntetyczny nie zastępuje)_
+  _Staging 2026-10-20: wymaga człowieka — natywne okno druku / papier / fizyczne zdjęcie — poza zasięgiem przeglądarki automatycznej_
 
 ## 2026-10-06 — worker-form-mirrors-link — kartka do wypełnienia jak „Zgłaszam pracę”, czytelny wydruk
 
 - [ ] Ta sama kartka wydrukowana na papierze: linie tabeli, nagłówki kolumn i jednostki są wyraźnie widoczne; szare tło mają tylko Nr, Wykonano i Postęp — Opis prac i Zgłaszam są białe.
       _needs human: wydruk kartki na papierze (prawdziwa drukarka)_
+  _Staging 2026-10-20: wymaga człowieka — natywne okno druku / papier / fizyczne zdjęcie — poza zasięgiem przeglądarki automatycznej_
 - [ ] Wydrukuj kosztorys dla klienta i PDF pracownika: linie i szare podpisy też są widoczne na papierze, kolumny dalej w paski jak wcześniej.
       _needs human: wydruk na papierze (prawdziwa drukarka)_
+  _Staging 2026-10-20: wymaga człowieka — natywne okno druku / papier / fizyczne zdjęcie — poza zasięgiem przeglądarki automatycznej_
 - [ ] Wypełnij kartkę ręcznie (kilka ilości w „Zgłaszam”), wczytaj ją przez „Wczytaj zgłoszenie z kartki (AI)”: w zgłoszeniu są dokładnie wpisane ilości, a nie liczby z kolumn „Wykonano” / „Postęp”.
       _needs human: ręcznie wypełniona papierowa kartka + zdjęcie z telefonu_
+  _Staging 2026-10-20: wymaga człowieka — natywne okno druku / papier / fizyczne zdjęcie — poza zasięgiem przeglądarki automatycznej_
 
 ## 2026-10-07 — reorder-dialog-safari — lista „Ustaw kolejność” nie zapada się w Safari
 
 - [ ] Safari (desktop) → kosztorys z kilkoma sekcjami → „Akcje sekcji” → „Ustaw kolejność…”: lista sekcji i prac jest widoczna, przewija się w środku okna, „Zapisz kolejność” działa po przeciągnięciu.
       _needs human: prawdziwe Safari desktop (WebKit)_
+  _Staging 2026-10-20: wymaga człowieka — Safari — brak w automatyzacji_
 
 ## media-upload-other-forms — każdy formularz z plikami na szybkiej ścieżce (2026-10-07)
 
@@ -318,9 +343,11 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 - [ ] Okno leada (zgłoszenie z Facebooka) z plikami → miniatury wyglądają jak dotąd.
       POMINIĘTE 2026-10-07 (staging): żadne z 221 zgłoszeń na preview DB nie ma plików (`leads_rels` bez media), a nowego z plikami nie da się utworzyć bez podpisanego webhooka landingu (sekret Preview niedostępny, zob. sekcja lead-delivery). Wymaga zgłoszenia z plikami od człowieka.
       _needs human: zgłoszenie z plikami — żadne z 221 leadów na preview nie ma załączników, a UI/webhook ich nie dopnie_
+  _Staging 2026-10-20: wymaga człowieka — zgłoszenie z Facebooka / landing — prawdziwy kanał zewnętrzny_
 - [ ] Zgłoszenie z formularza na stronie (landing) ze zdjęciem z telefonu i PDF-em → oba pliki są przy zgłoszeniu, miniatura zdjęcia się wyświetla.
       POMINIĘTE 2026-10-07 (staging): to wymaga prawdziwego formularza na stronie landingu i podpisanego webhooka (`LANDING_WEBHOOK_SECRET` Preview niedostępny, pliki leżą w blobie landingu). Nie da się zrobić z tej sesji.
       _needs human: prawdziwy formularz landingu + podpisany webhook (sekret Preview niedostępny)_
+  _Staging 2026-10-20: wymaga człowieka — zgłoszenie z Facebooka / landing — prawdziwy kanał zewnętrzny_
 
 ## 2026-10-07 — worker-pwa-install-and-long-session — ikona aplikacji na telefonie i logowanie na 90 dni
 
@@ -328,16 +355,22 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
       _Staging 2026-10-14 (pass 3): /manifest.webmanifest: name i short_name „Wykończymy”, trzy ikony (192, 512, maskable 512), display standalone. Podgląd strefy bezpiecznej i błędy instalowalności z DevTools — Needs human._
 - [ ] Android Chrome, prawdziwy telefon, staging, 390px: na własnej stronie pracownika pod „Zmień e-mail lub hasło” jest przycisk instalacji — najpierw w stanie ładowania, potem aktywny; dotknięcie pokazuje systemowe okno instalacji, a ikona trafia na ekran główny.
       _needs human: prawdziwy telefon z Androidem (instalacja PWA)_
+  _Staging 2026-10-20: wymaga człowieka — zainstalowana PWA / prawdziwy telefon (Android/iPhone)_
 - [ ] Ta ikona otwiera aplikację na pełnym ekranie na stronie pracownika, już zalogowaną, i przycisk instalacji nie jest tam pokazany.
       _needs human: zainstalowana PWA na prawdziwym telefonie_
+  _Staging 2026-10-20: wymaga człowieka — zainstalowana PWA / prawdziwy telefon (Android/iPhone)_
 - [ ] iPhone Safari, prawdziwy telefon, staging, 390px: przycisk otwiera instrukcję w trzech krokach; po jej wykonaniu ikona jest na ekranie głównym i otwiera aplikację na pełnym ekranie na `/zaloguj`; po zalogowaniu przycisku nie ma.
       _needs human: prawdziwy iPhone Safari (dodanie do ekranu głównego)_
+  _Staging 2026-10-20: wymaga człowieka — zainstalowana PWA / prawdziwy telefon (Android/iPhone)_
 - [ ] Android z już zainstalowaną aplikacją, strona otwarta w karcie Chrome: przycisk jest ukryty albo po 60 s zmienia się w podpowiedź o menu przeglądarki — nigdy nie zostaje w ładowaniu.
       _needs human: prawdziwy Android z zainstalowaną aplikacją_
+  _Staging 2026-10-20: wymaga człowieka — zainstalowana PWA / prawdziwy telefon (Android/iPhone)_
 - [ ] iPhone, ikona na ekranie głównym: logo jest wyśrodkowane, z marginesem dookoła, nie dotyka krawędzi kafelka.
       _needs human: ikona na ekranie głównym prawdziwego iPhone'a_
+  _Staging 2026-10-20: wymaga człowieka — zainstalowana PWA / prawdziwy telefon (Android/iPhone)_
 - [ ] Aplikacja zainstalowana (Android i iPhone): obok hamburgera jest strzałka wstecz na każdej stronie; cofa do poprzedniej strony, a przy pierwszej stronie po otwarciu prowadzi na stronę główną. W zwykłej karcie przeglądarki strzałki nie ma.
       _needs human: zainstalowana aplikacja na Androidzie i iPhonie (tryb standalone)_
+  _Staging 2026-10-20: wymaga człowieka — zainstalowana PWA / prawdziwy telefon (Android/iPhone)_
 
 ## kosztorys-przedmiar-aktualny — „Aktualizacja przedmiaru” obok „Przedmiaru ofertowego” (2026-10-07)
 
@@ -357,21 +390,25 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
       każdy wpis z okna w tej samej kolejności i każdy Komentarz do pracy z katalogu. Wpis dodany w
       oknie pojawia się po kolejnym uruchomieniu.
       _needs human: skrypt `dump-knowledge-prod.ts` — sesja produkcyjna, tylko produkcja_
+  _Staging 2026-10-20: wymaga człowieka — tylko produkcja / odczyt z proda_
 - [ ] Po migracji na świeżej bazie (produkcja): wpisy „Wysokość pomieszczeń…”, „Otwory w glazurze…”,
       „Glazura…”, „Malowanie i gładź” i „Szlifowanie płytek na 45°” wyświetlają się w punktach,
       każdy punkt w osobnej linii.
       _needs human: migracja na świeżej bazie produkcyjnej — tylko produkcja_
+  _Staging 2026-10-20: wymaga człowieka — tylko produkcja / odczyt z proda_
 
 ## 2026-10-09 — ui-scale — rozmiar interfejsu na telefonie
 
 - [ ] Przy 70% na iPhonie: dotknięcie pola (np. kwota w „Dodaj transakcję”) nie przybliża strony, a wpisywany tekst mieści się w polu.
       _needs human: prawdziwy iPhone (zoom iOS przy fokusie pola)_
+  _Staging 2026-10-20: wymaga człowieka — zainstalowana PWA / prawdziwy telefon (Android/iPhone)_
 
 ## 2026-10-11 — invoice-download-date-range — „Faktury” z zakresem dat
 
 - [ ] „Drukuj” dalej drukuje bieżący zestaw filtrów tabeli, niezależnie od dialogu.
       _Staging 2026-10-14: Okno druku nie weryfikowalne w tym narzędziu._
       _needs human: natywne okno druku — nie do sterowania w automatyzacji_
+  _Staging 2026-10-20: wymaga człowieka — natywne okno druku / papier / fizyczne zdjęcie — poza zasięgiem przeglądarki automatycznej_
 
 ## 2026-10-11 — pwa-push-notifications — powiadomienia push w zainstalowanej aplikacji
 
@@ -379,29 +416,39 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 - [ ] Produkcja, Android, zainstalowana aplikacja → menu mobilne → „Włącz powiadomienia” → zgoda w systemie → toast „Powiadomienia włączone”, przycisk zmienia się na „Wyłącz powiadomienia”; jako ADMIN otwórz `/api/test-push` → przychodzi powiadomienie z jednobarwną ikoną na pasku stanu; dotknięcie otwiera aplikację.
       _needs human: produkcja, prawdziwy Android, push_
+  _Staging 2026-10-20: wymaga człowieka — push na prawdziwym telefonie / produkcja_
 - [ ] Produkcja, iPhone (iOS 16.4+) → w karcie Safari przełącznika nie ma; w aplikacji z ekranu początkowego jest, włączenie pokazuje pytanie o zgodę, a testowe powiadomienie dociera.
       _needs human: produkcja, prawdziwy iPhone, push_
+  _Staging 2026-10-20: wymaga człowieka — push na prawdziwym telefonie / produkcja_
 - [ ] Odmowa zgody na powiadomienia → zamiast przycisku napis „Powiadomienia są zablokowane — włącz je w ustawieniach telefonu.”
       _needs human: odmowa zgody systemowej na powiadomienia w prawdziwej przeglądarce/telefonie_
+  _Staging 2026-10-20: wymaga człowieka — push na prawdziwym telefonie / produkcja_
 - [ ] „Wyłącz powiadomienia” → `/api/test-push` zwraca `sent: 0` i na telefon nic nie przychodzi; to samo po wylogowaniu się na telefonie.
       _needs human: push na prawdziwym telefonie_
+  _Staging 2026-10-20: wymaga człowieka — push na prawdziwym telefonie / produkcja_
 - [ ] Pracownik z włączonymi powiadomieniami zdezaktywowany („Aktywny” wyłączone) albo przeniesiony do kosza → nie dostaje już żadnego powiadomienia.
       _needs human: push na prawdziwym telefonie_
+  _Staging 2026-10-20: wymaga człowieka — push na prawdziwym telefonie / produkcja_
 - [ ] 390px → przełącznik na własnej stronie `/pracownicy/[id]` (obok „Zainstaluj aplikację”) i w stopce menu mobilnego nie rozjeżdża układu.
       _needs human: przełącznik powiadomień jest widoczny tylko w zainstalowanej aplikacji na telefonie_
 - [ ] Produkcja, iPhone pracownika z włączonymi powiadomieniami → zarząd księguje mu wypłatę → przychodzi „Wypłata do potwierdzenia” z kwotą, a ikona aplikacji pokazuje 1; dotknięcie otwiera jego stronę z blokiem „Wypłaty do potwierdzenia”.
       _needs human: produkcja, iPhone, push + odznaka ikony_
+  _Staging 2026-10-20: wymaga człowieka — push na prawdziwym telefonie / produkcja_
 - [ ] Ten sam pracownik „Potwierdzam” albo „Odrzuć” → liczba na ikonie znika od razu, bez zamykania aplikacji.
       _needs human: odznaka ikony aplikacji na iPhonie_
+  _Staging 2026-10-20: wymaga człowieka — push na prawdziwym telefonie / produkcja_
 - [ ] Produkcja, Android → po zaksięgowaniu wypłaty powiadomienie dociera.
       _needs human: produkcja, Android, push_
+  _Staging 2026-10-20: wymaga człowieka — push na prawdziwym telefonie / produkcja_
 - [ ] „Rozlicz wypłaty” dla jednego pracownika na dwóch inwestycjach → przychodzi jedno powiadomienie z sumą kwot, a ikona pokazuje 2.
       _needs human: push na prawdziwym telefonie_
+  _Staging 2026-10-20: wymaga człowieka — push na prawdziwym telefonie / produkcja_
 
 ## 2026-10-12 — investment-ai-stage — „Etap AI” na inwestycji
 
 - [ ] Po deployu i migracji produkcji: ustaw „Recenzja zakończona” na jednej inwestycji, uruchom `collect-reasons-prod.ts` bez `INVESTMENTS` → listuje Powody zmiany dokładnie tej inwestycji.
       _needs human: po deployu i migracji produkcji — skrypt `collect-reasons-prod.ts` na produkcji_
+  _Staging 2026-10-20: wymaga człowieka — tylko produkcja / odczyt z proda_
 
 ## 2026-10-12 — worker-draft-one-expense-per-photo — każdy paragon na zdjęciu osobno
 
@@ -424,6 +471,7 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 - [ ] Stare zgłoszenia z częściowymi decyzjami po migracji: „Do sprawdzenia” z postępem, nie „Przyjęte” (lokalnie: #7, #8, #11 na inw. 139; na preview te numery to inne inwestycje z kompletem decyzji — sprawdzać na lokalnym dumpie).
       _Staging 2026-10-14: na preview DB zgłoszenia #7/#8/#11 to inne inwestycje (139/149/119) i wszystkie linie mają decyzję → status „accepted” jest poprawny; danych do sprawdzenia „Do sprawdzenia z postępem” nie ma. Boks nieaktualny wobec preview DB — Needs human (dane lokalne)._
+  _Staging 2026-10-20: wymaga człowieka — tylko lokalny dump (numery zgłoszeń z preview to inne dane)_
 - [ ] Nagłówki kolumn liczbowych w „Z rozpiski” (Zgłoszono, Przyjmuję, Etap, oba „Pomiar z natury”, Aktualizacja przedmiaru, Pomiar z natury / Aktualizacja przedmiaru) czytają się pionowo od dołu do góry, przyklejone do dołu wiersza nagłówka i wycentrowane w poziomie w swojej kolumnie; wszystkie kolumny poza opisami (Opis prac, Opis w języku pracownika, Może chodzi o) mają nagłówek i komórki wyśrodkowane — checkbox, Nr, Sekcja, Akcje, pole „Przyjmuję”, liczby, „0,5 → 1”, „0,5 / 1” z „przekroczono”; opisy zostają do lewej; długie zawijają się w 2 pionowe linie zamiast przekraczać ~192px wysokości; dopisek stoi jako mniejsza pionowa linia obok tytułu; strzałka sortowania na końcu napisu i klik w nagłówek dalej sortuje. Chrome i Safari.
       _Staging 2026-10-14 (pass 3): Chrome: wszystkie nagłówki liczbowe vertical-rl, vertical-align bottom, text-align center; Nr/Sekcja/Akcje/checkbox/liczby wyśrodkowane, Opis prac start; dopiski 10px pionowe. Safari — Needs human (brak Safari)._
 
@@ -440,6 +488,7 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
       _needs human: telefon/iPhone 390px na prawdziwym urządzeniu (viewport emulowany nie odtwarza dotyku, zoomu iOS ani klawiatury) (pass 6)_
 - [ ] Telefon (iPhone) → raport pracownika (`/z/…`): stuknij w komórkę ilości i zacznij pisać — strona się NIE przybliża, a w trakcie edycji cyfra jest większa (16px); po wyjściu wraca do 12px.
       _needs human: telefon/iPhone 390px na prawdziwym urządzeniu (viewport emulowany nie odtwarza dotyku, zoomu iOS ani klawiatury) (pass 6)_
+  _Staging 2026-10-20: wymaga człowieka — zainstalowana PWA / prawdziwy telefon (Android/iPhone)_
 
 ## 2026-10-13 — review-gate-fixes — poprawki z przeglądu commitów z 13.10
 
@@ -471,10 +520,12 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
       otwiera się mniej więcej na wysokość treści, nie na ~3 linie ze scrollem.
       _Blokada: wymaga Safari 18.x._
       _needs human: prawdziwe Safari (WebKit) — tego nie ma w środowisku MCP (pass 6)_
+  _Staging 2026-10-20: wymaga człowieka — Safari — brak w automatyzacji_
 - [ ] Safari 18.x → dowolne inne pole wielolinijkowe (np. powód anulowania, notatka pozycji
       w katalogu prac): puste ma tę samą wysokość co wcześniej, po wpisaniu kilku linii rośnie.
       _Blokada: wymaga Safari 18.x._
       _needs human: prawdziwe Safari (WebKit) — tego nie ma w środowisku MCP (pass 6)_
+  _Staging 2026-10-20: wymaga człowieka — Safari — brak w automatyzacji_
 
 ## 2026-10-14 — kosztorys-editor-text-size — wielkość czcionki w edytorze kosztorysu
 
@@ -495,9 +546,11 @@ Stan: kosztorys ze zgłoszeniem pracy od pracownika czekającym na przyjęcie.
       z dopiskami („ile jest aktualnie zgłoszone”, „po przyjęciu zgłoszenia”) mieszczą się w swojej
       kolumnie — żaden tekst nie wchodzi na sąsiednią kolumnę (np. „Przedmiar ofertowy”).
       _needs human: prawdziwe Safari (WebKit) — tego nie ma w środowisku MCP (pass 6)_
+  _Staging 2026-10-20: wymaga człowieka — Safari — brak w automatyzacji_
 - [ ] Safari, to samo okno zwężone: nagłówek, który zawija się do dwóch linii, nadal mieści się
       w swojej kolumnie.
       _needs human: prawdziwe Safari (WebKit) — tego nie ma w środowisku MCP (pass 6)_
+  _Staging 2026-10-20: wymaga człowieka — Safari — brak w automatyzacji_
 
 ## kosztorys-ai-rounds — kolejne rundy AI: „Nowe informacje” i „Do ponownego sprawdzenia”
 
@@ -595,6 +648,7 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 
 - [ ] Ładowarka kosztorysu AI na szablonie (lokalnie): pozycje w brzmieniu katalogu, bez duplikatów.
       _Staging 2026-10-18 (pass 10): needs human: wymaga lokalnego uruchomienia ładowarki AI (scripts/ai-kosztorys, repo ../wykonczymy-ai-cases) — nie przeglądarkowe, nie na staging._
+  _Staging 2026-10-20: wymaga człowieka — lokalnie — loader kosztorysu AI_
 ## 2026-10-15 — expense-draft-duplicates-per-row — duplikaty przy własnym paragonie + paragon bez zdjęcia
 
 - [ ] Nieodczytane zgłoszenie bez pobranych zdjęć: nad pozycjami stały komunikat „Nie udało się
@@ -642,14 +696,17 @@ tylko komórka, a siatka ich nie widzi.
 - [ ] PDF zapisany z Safari: ostatnia litera „zł” w skrajnej prawej kolumnie nie jest obcięta, a
       kwota w wierszu „Razem” nie nachodzi na sąsiednią kolumnę.
       _Staging 2026-10-18 (pass 10): HUMAN: Safari/WebKit nie do sterowania z desktopowego Chromium_
+  _Staging 2026-10-20: wymaga człowieka — Safari — brak w automatyzacji_
 - [ ] PDF z Safari dla kosztorysu na 2+ strony: żaden wiersz nie jest rozcięty (opis na jednej
       stronie, kwoty na drugiej) — wiersz, który się nie mieści, przechodzi w całości na następną.
       _Staging 2026-10-18 (pass 10): HUMAN: Safari/WebKit + prawdziwy podgląd wydruku_
+  _Staging 2026-10-20: wymaga człowieka — Safari — brak w automatyzacji_
 ## transfer-actions-db-spec — anulowanie i edycja kwoty zapisują się razem z wpisem w historii
 
 - [ ] Anuluj wydatek materiałowy inwestycji podpiętej do arkusza: jego wiersz znika z arkusza jak
       dotąd.
       _Staging 2026-10-18 (pass 10): NIE do zrobienia na stagingu: zapis do arkusza właściciela jest z założenia zablokowany poza produkcją (konto Viewer, AGENTS.md → Hard Stops), więc „wiersz znika z arkusza” nie jest obserwowalny; samo anulowanie wydatku materiałowego zweryfikowano w boksie powyżej. needs human: tylko produkcja._
+  _Staging 2026-10-20: wymaga człowieka — zapis do Arkuszy Google tylko z produkcji (konto Viewer na preview)_
 ## 2026-10-18 — kosz-plikow — usunięte pliki trafiają do Kosza na 7 dni
 
 Zamiatacz kasuje dopiero po siedmiu dniach, więc boksy o kasowaniu wymagają cofnięcia daty usunięcia
@@ -659,14 +716,17 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       odpowiedź niesie krok `media` z rozbiciem `{ recorded, healed, deleted, failed }`; drugie
       wywołanie pod rząd kasuje zero.
       _Staging 2026-10-18 (pass 10): needs human: niszczący cron czyszczący (/api/cron/cleanup kasuje z Bloba) — poza zakresem agenta; wymaga cofnięcia daty usunięcia na bazie testowej i uruchomienia crona przez człowieka._
+  _Staging 2026-10-20: wymaga człowieka — cron/nocny przebieg lub trwałe usunięcie na prawdziwych danych preview — poza izolacją QA_
 - [ ] Paragon w zgłoszeniu wydatku pracownika i zdjęcie w zgłoszeniu prac przeżywają przebieg crona
       nietknięte.
       _Staging 2026-10-18 (pass 10): needs human: wymaga przebiegu crona /api/cron/cleanup (niszczący, poza zakresem agenta)._
+  _Staging 2026-10-20: wymaga człowieka — cron/nocny przebieg lub trwałe usunięcie na prawdziwych danych preview — poza izolacją QA_
 - [ ] „Usuń na zawsze" przy inwestycji, szablonie i zgłoszeniu w Koszu wygląda i działa jak dotąd:
       ta sama notka w oknie, wymaga wpisania nazwy (przebudowa okna — bez zmiany zachowania).
       _Staging 2026-10-18 (pass 10): inwestycja (213: okno z notką o kosztorysie, przedmiarze, zdjęciach i linku dla inwestora, przycisk nieaktywny do wpisania nazwy) i szablon (okno „Kosztorysy założone z tego szablonu zostają bez zmian…”, wpis nazwy) — OK, oba usunięte; część ze zgłoszeniem (lead) niewykonana — needs human: nieodwracalne, jedyny rekord „Test Test”._
 - [ ] Zgłoszenie, które wcześniej straciło plik do Kosza, usunięte na zawsze: plik znika też z
       sekcji „Pliki".
+  _Staging 2026-10-20: wymaga człowieka — cron/nocny przebieg lub trwałe usunięcie na prawdziwych danych preview — poza izolacją QA_
 
 ## EX-1077 — scan-blocks-save — „Zapisz" czeka na odczyt paragonu
 
@@ -683,6 +743,7 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       SELECT): liczba wierszy `kosztorys_snapshots` z `kind = 'daily'` z tej nocy ≈ liczba inwestycji,
       w których poprzedniego dnia ktoś zmienił kosztorys — nie ~50–80 jak po wcześniejszych takich
       wdrożeniach.
+  _Staging 2026-10-20: wymaga człowieka — tylko produkcja / odczyt z proda_
 
 ## 2026-10-18 — mobile-375-qa — poprawki widoków na telefonie (375 px)
 
@@ -695,15 +756,19 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       parity (in parallel)”, potem trzy sekcje z wynikami („DB integration specs + parity” ostatnia)
       i zrzut bazy. Część testowa trwa ok. 70–80 s zamiast ok. 100 s (dłużej, gdy przebudowuje się
       szablon bazy testowej).
+  _Staging 2026-10-20: wymaga człowieka — hook pre-push przy prawdziwym wypchnięciu — zakaz pushu w tym przebiegu_
 - [ ] Push z celowo zepsutym typem: hook się zatrzymuje, kończy linią „✗ pre-push FAILED at:
       typecheck”, a zrzut bazy się nie uruchamia.
+  _Staging 2026-10-20: wymaga człowieka — hook pre-push przy prawdziwym wypchnięciu — zakaz pushu w tym przebiegu_
 
 ## 2026-10-18 — e2e-run-speed — E2E bez zbędnego buildu, na świeżej bazie
 
 - [ ] Następny pełny `pnpm test:e2e`: na początku „test DB: cloned from template”, potem build bez
       sprawdzania typów, i cały przebieg przechodzi.
+  _Staging 2026-10-20: wymaga człowieka — suite E2E — uruchamia człowiek (zakaz E2E w tym przebiegu)_
 - [ ] Drugi `pnpm test:e2e` bez zmian w `src/` (zmieniony tylko spec): w logu „e2e build: reused”,
       serwer startuje w kilka sekund, a wyniki są takie same.
+  _Staging 2026-10-20: wymaga człowieka — suite E2E — uruchamia człowiek (zakaz E2E w tym przebiegu)_
 
 ## 2026-10-19 — app-audit-refactor faza 1 — przeniesione komponenty wyglądają i działają jak dotąd
 
@@ -721,6 +786,7 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 
 - [ ] Jako ADMIN dodaj wydatek na inwestycji z podpiętym arkuszem: w logu serwera widać próbę
       synchronizacji arkusza (lokalnie konto tylko do odczytu ją odrzuca), bez błędu brakującego modułu.
+  _Staging 2026-10-20: wymaga człowieka — zapis do Arkuszy Google tylko z produkcji (konto Viewer na preview)_
 - [ ] Jako ADMIN na `/pracownicy` kliknij kwotę wypłat przy pracowniku („Rozlicz wypłaty”): kwota
       „Pozostało”, która zaokrągla się do zera, pokazuje „0,00 zł” bez czerwonego koloru.
 
@@ -742,6 +808,7 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
       po druku.
 - [ ] Jako ADMIN zeskanuj paragon i papierowe zgłoszenie prac, przetłumacz opis pozycji kosztorysu —
       wynik taki jak dotąd.
+  _Staging 2026-10-20: wymaga człowieka — skan AI wymaga prawdziwego zdjęcia paragonu/kartki_
 
 ## 2026-10-19 — app-audit-refactor faza 4 — zgłoszenia wydatków, raporty prac, edytor kosztorysu
 
@@ -825,6 +892,7 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       _Staging 2026-10-19 (desktop-regression-audit, MANAGER): „Rozlicz wypłaty” — błąd walidacji pod
       polem OK; edycja przelewu i udany zapis jeszcze niesprawdzone._
 - [ ] Po najbliższym przebiegu crona czyszczenia wersji kosztorysu: w logach Vercela przebieg bez błędu.
+  _Staging 2026-10-20: wymaga człowieka — cron/nocny przebieg lub trwałe usunięcie na prawdziwych danych preview — poza izolacją QA_
 
 ## 2026-10-19 — app-audit-refactor — poprawki z bramki przeglądu
 
@@ -845,17 +913,24 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       „Od pracownika” w kolumnie typu, status inwestycji (odrzucona — teraz czerwona zamiast różowej),
       rola na `/uzytkownicy` i w menu mobilnym, źródło na `/leady`, statusy pojazdów i sprzętu,
       postęp AI na liście inwestycji, statusy zgłoszeń wydatków i raportów pracy.
-- [ ] Zielone badge'e (zaakceptowana wypłata, aktywna inwestycja, rola pracownika, aktywny pojazd)
+  _Staging 2026-10-20: przejrzane: status transakcji/„od pracownika”, rola na /pracownicy, postęp AI na /inwestycje, flota — poprawne; brak punktu odniesienia „jak dotąd”, leady/sprzęt/zgłoszenia nie oglądane._
+- [x] Zielone badge'e (zaakceptowana wypłata, aktywna inwestycja, rola pracownika, aktywny pojazd)
       są teraz morskie, a nie szmaragdowe; tekst czytelny w jasnym i ciemnym motywie.
-- [ ] Strona pracownika z wypłatami → „Lista wydatków / zaliczek” ma filtr „Potwierdzenie” (czeka /
+  _Staging 2026-10-20: kolor badge’a roli/statusu = lab(35.6 -26.7 -4.3) (morski, nie szmaragd); czytelne w jasnym i ciemnym motywie (przełącznik „Przełącz motyw”, /pracownicy, /flota, /inwestycje)._
+- [x] Strona pracownika z wypłatami → „Lista wydatków / zaliczek” ma filtr „Potwierdzenie” (czeka /
       potwierdzona / odrzucona) i zawęża listę do wypłat w tym stanie; pracownik bez wypłat go nie ma.
-- [ ] Karty przelewów (telefon, lista wypłat pracownika): status wypłaty stoi w tej samej linii co
+  _Staging 2026-10-20: MANAGER na /pracownicy/78 (QA, przelew 7 zł z QA Kasy Managera 1 → „Czeka na potwierdzenie”): filtr „Potwierdzenie” (czeka/potwierdzona/odrzucona) zawęża listę (?payoutStatus=accepted → 2 wiersze). Uwaga: filtr widać też u pracownika bez żadnej decyzji (np. /pracownicy/43), bo warunek to typ przelewu (`carriesPayoutStatus`), nie istniejąca wypłata — opis boksu nieaktualny po worker-receipt-confirmation, nie defekt._
+- [x] Karty przelewów (telefon, lista wypłat pracownika): status wypłaty stoi w tej samej linii co
       badge „Wypłata”, przy prawej krawędzi; nagłówek karty to dalej numer i data.
+  _Staging 2026-10-20: 390 px (emulacja), karta #6145: nagłówek „#6145 / data”, w linii z badge’em typu stoi „Czeka na potwierdzenie” po prawej._
 - [ ] `/uzytkownicy`: status „Aktywny” / „Nieaktywny” to zwykły badge (morski / szary); kliknięcie
       przełącza aktywność konta i nie otwiera strony pracownika.
-- [ ] Kasy: kasę, którą możesz zmieniać, przełączasz kliknięciem w status; przy cudzej kasie status
+      _Staging 2026-10-20: strona `/uzytkownicy` już nie istnieje („Nie znaleziono”); status jest teraz przyciskiem w tabeli `/pracownicy` — tam sprawdzone: uprawnienia (OWNER/MANAGER) zgodne, klik w badge niesprawdzony na prawdziwych kontach._
+- [x] Kasy: kasę, którą możesz zmieniać, przełączasz kliknięciem w status; przy cudzej kasie status
       jest nieklikalny.
-- [ ] Przycisk „Wpłata” wygląda jak dotąd (zielony obrys, wypełnia się po najechaniu).
+  _Staging 2026-10-20: MANAGER: status QA Kasy Managera 2 klika się (Aktywna→Nieaktywna→Aktywna, potwierdzone w DB), status cudzej kasy (Telmak, Bartek Antonik) nie jest przyciskiem._
+- [x] Przycisk „Wpłata” wygląda jak dotąd (zielony obrys, wypełnia się po najechaniu).
+      _Staging 2026-10-20: zielony obrys, po najechaniu wypełnia się (rgb 29,192,131); „Wydatek” ma czerwony obrys._
 ## 2026-10-19 — rejected-payouts-table — odrzucone wypłaty na pulpicie, bez strony „Wypłaty”
 
 - [ ] W tej tabeli ID, pracownik, inwestycja i kasa to linki: ID otwiera transakcję na liście
@@ -871,9 +946,9 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 ## 2026-10-19 — slice-review-gate — właściciel kasy, kolory kwot, odrzucone wypłaty
 
-- [ ] Jako MANAGER „Dodaj kasę” z innym managerem jako właścicielem: komunikat „Brak uprawnień”, kasa
+- [x] Jako MANAGER „Dodaj kasę” z innym managerem jako właścicielem: komunikat „Brak uprawnień”, kasa
       nie pojawia się na `/kasy`. Z pracownikiem jako właścicielem kasa powstaje.
-- [ ] Jako MANAGER edytuj kasę pracownika i ustaw siebie jako właściciela: zapis działa, po odświeżeniu
+- [x] Jako MANAGER edytuj kasę pracownika i ustaw siebie jako właściciela: zapis działa, po odświeżeniu
       właścicielem jesteś ty. Ustawienie innego managera kończy się „Brak uprawnień”.
 - [ ] Pulpit → odrzucone wypłaty: przy wypłacie z zablokowanej inwestycji „Anuluj transakcję” jest
       wyszarzone z dymkiem o blokadzie; numer ID otwiera tę transakcję.
@@ -886,10 +961,12 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 - [ ] Po restarcie `pnpm dev` `/inwestycje`, strona inwestycji i `/pracownicy` ładują się bez błędu
       „column does not exist”.
+  _Staging 2026-10-20: wymaga człowieka — restart `pnpm dev` lokalnie — poza stagingiem_
 - [ ] W pierwszym kroku „Dostawca” → inny → „Zapisz jako domyślnego dostawcę” → następne zamówienie
       wybiera go od razu. Bez dostawców: krok mówi „Lista dostawców jest pusta”, SMS bez odbiorcy.
       _Staging 2026-10-19 (desktop-regression-audit, OWNER): „Zapisz jako domyślnego dostawcę” działa; stan bez dostawców niesprawdzony._
 - [ ] Z telefonu (IP w sieci LAN): „Zapisz” wydatku sam otwiera Wiadomości z dostawcą i treścią.
+  _Staging 2026-10-20: wymaga człowieka — prawdziwy telefon przez LAN (emulacja Chrome nie jest zamiennikiem)_
 - [ ] Inwestycja bez kierownika budowy: kontakt „— brak —”, a treść SMS-a nie ma linii „Kontakt na
       miejscu”.
 - [ ] Oznacz inwestycję jako zakończoną: na jej liście transakcji, w „Tabela” i „Karty”, znaczek jest
@@ -921,8 +998,10 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       zamknięta: zaksięguj wypłatę na to konto z komputera → na telefonie przychodzi powiadomienie
       „Wypłata do potwierdzenia” z treścią „Potwierdź odbiór {kwota}.” (bez „albo napisz, czego
       brakuje”), a na ikonie aplikacji licznik rośnie o 1.
+  _Staging 2026-10-20: wymaga człowieka — push na prawdziwym telefonie / produkcja_
 - [ ] Stuknięcie w to powiadomienie otwiera stronę pracownika z wypłatą do potwierdzenia; po
       potwierdzeniu licznik na ikonie znika.
+  _Staging 2026-10-20: wymaga człowieka — push na prawdziwym telefonie / produkcja_
 
 ## 2026-10-19 — transfers-worker-column-width — szersza kolumna „Pracownik”
 
@@ -943,21 +1022,22 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       nocnym sprzątaniu link inwestora nie pokazuje już żadnej wersji w historii, a w edytorze
       → „Wersje" zostają wersje automatyczne i ręczne. Inwestycja „Zakończona" niedawno zachowuje
       swoją historię jak dotąd.
+  _Staging 2026-10-20: wymaga człowieka — cron/nocny przebieg lub trwałe usunięcie na prawdziwych danych preview — poza izolacją QA_
 
 ## EX-1115 — investments-row-badges — status i Etap AI zmieniane prosto z wiersza listy
 
-- [ ] Lista „Inwestycje" → klik w plakietkę statusu otwiera menu samych plakietek; wybór zmienia
+- [x] Lista „Inwestycje" → klik w plakietkę statusu otwiera menu samych plakietek; wybór zmienia
       status bez przechodzenia na stronę inwestycji, a wiersz zostaje na miejscu.
-- [ ] Lista „Inwestycje" → klik w plakietkę „Analiza AI" otwiera menu plakietek z opisem pod
+- [x] Lista „Inwestycje" → klik w plakietkę „Analiza AI" otwiera menu plakietek z opisem pod
       każdą; wybór zmienia etap, opis nie pojawia się w zamkniętej plakietce.
-- [ ] Lista „Inwestycje" → klik w nazwę inwestycji przenosi na jej stronę; klik w puste miejsce
+- [x] Lista „Inwestycje" → klik w nazwę inwestycji przenosi na jej stronę; klik w puste miejsce
       wiersza już nie przenosi.
-- [ ] Lista „Inwestycje" → „Zamów" na wierszu inwestycji z kierownikiem budowy: kierownik jest
+- [x] Lista „Inwestycje" → „Zamów" na wierszu inwestycji z kierownikiem budowy: kierownik jest
       wstępnie wybrany jak dotąd.
-- [ ] Strona inwestycji → „Edytuj": pole „Kierownik budowy" pokazuje obecnego kierownika, a wybór
+- [x] Strona inwestycji → „Edytuj": pole „Kierownik budowy" pokazuje obecnego kierownika, a wybór
       innego zapisuje się od razu (widać go po zamknięciu okna). To samo z listy i z zakładki
       „Inwestycja" w kosztorysie.
-- [ ] Strona inwestycji → plakietka statusu i „Etap AI" pod listą informacji działają jak wcześniej
+- [x] Strona inwestycji → plakietka statusu i „Etap AI" pod listą informacji działają jak wcześniej
       (menu, zmiana, brak kursora tekstowego).
 
 ## EX-1116 — kosztorys-commit-on-settle — komórki liczbowe zapisują się po Enterze
@@ -983,24 +1063,24 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 ## 2026-10-20 — investment-overview-shared — jeden blok „Inwestycja" na stronie i w kosztorysie
 
-- [ ] Jako właściciel na dowolnej stronie: „Wpłata", „Transfer między kasami" i „Wydatek" z górnego paska
+- [x] Jako właściciel na dowolnej stronie: „Wpłata", „Transfer między kasami" i „Wydatek" z górnego paska
       otwierają się z tymi samymi listami kas / inwestycji / pracowników co wcześniej i zapisują.
-- [ ] Strona inwestycji wygląda i działa jak wcześniej: przyciski, „Kierownik budowy", status, notatki,
+- [x] Strona inwestycji wygląda i działa jak wcześniej: przyciski, „Kierownik budowy", status, notatki,
       notatki AI, „Zdjęcia i pliki".
-- [ ] Edytor kosztorysu → „Podsumowanie" → „Inwestycja": ten sam blok co na stronie inwestycji, bez
-      „Kosztorys v2"; „Zamów" otwiera zamówienie z adresem i kierownikiem inwestycji; zmiana statusu,
+- [x] Edytor kosztorysu → „Podsumowanie" → „Inwestycja": ten sam blok co na stronie inwestycji, bez
+      „Kosztorys v2"; „Zamów" otwiera zamówienie z kierownikiem inwestycji (adres: nie sprawdzony — inwestycja QA go nie miała); zmiana statusu,
       „Etap AI" i „Kierownik budowy" zostaje po odświeżeniu.
-- [ ] Inwestycja zakończona pokazuje „Prośba o weryfikację" w obu widokach; inwestycja z arkuszem pokazuje
+- [ ] Inwestycja zakończona pokazuje „Prośba o weryfikację" w obu widokach; *(2026-10-20: przycisk „Poproś o opinię" widoczny w obu widokach, nazwa w opisie boksu nieaktualna; „Arkusz" przy inwestycji z arkuszem — nie sprawdzone)* inwestycja z arkuszem pokazuje
       „Arkusz".
-- [ ] Inwestycja w Koszu: oba widoki pokazują baner i są tylko do odczytu.
-- [ ] „Sprzęt" → „Dodaj sprzęt" i „Przekaż" na stronie sprzętu listują tych samych pracowników / inwestycje.
+- [x] Inwestycja w Koszu: oba widoki pokazują baner i są tylko do odczytu.
+- [x] „Sprzęt" → „Dodaj sprzęt" i „Przekaż" na stronie sprzętu listują tych samych pracowników / inwestycje.
 - [ ] „Kasy" → „Dodaj kasę" listuje pracowników; na stronie kasy „Edytuj" i „Sprawdzenie Telmak" otwierają
-      się i zapisują.
+      się i zapisują. *(2026-10-20: „Dodaj kasę" listuje pracowników, „Edytuj" otwiera się i zapisuje; „Sprawdzenie Telmak" nie sprawdzone — brak takiej kasy do otwarcia na staging.)*
 - [ ] „Zgłoszenia" → filtr inwestycji listuje inwestycje; „Zgłoszenia wydatków" → akceptacja zgłoszenia
       otwiera wypełniony formularz wydatku i zapisuje.
 - [ ] Lista „Inwestycje" → „Edytuj" na wierszu (z „Kierownikiem budowy") i „Zamów" działają;
       „Kosztorysy" → „Dodaj kosztorys" listuje inwestycje bez kosztorysu.
-- [ ] „Pracownicy" i strona pracownika (jako właściciel) → „Edytuj" listuje kasy; „Edytuj" na wierszu
+- [ ] „Pracownicy" i strona pracownika (jako właściciel) *(2026-10-20: „Edytuj pracownika" listuje kasy; „Edytuj" na wierszu transakcji nie sprawdzone.)*  → „Edytuj" listuje kasy; „Edytuj" na wierszu
       transakcji otwiera się i zapisuje.
 - [ ] Edytor kosztorysu: podział na etapy, menu „Pracownicy" i widok podwykonawcy w „Podsumowaniu"
       pokazują tych samych pracowników.
@@ -1081,8 +1161,10 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       do prawej.
 - [ ] Telefon (390px, przez LAN) → menu: logo w lewym górnym rogu, X w prawym; za panelem
       przyciemnione tło, Esc i kliknięcie w tło zamykają panel z animacją, fokus wraca na przycisk menu.
+  _Staging 2026-10-20: wymaga człowieka — prawdziwy telefon przez LAN (emulacja Chrome nie jest zamiennikiem)_
 - [ ] Telefon (390px) → konto pracownika z wypłatami do potwierdzenia i strona raportu pracownika
       (link z „Udostępnij"): przyciski i pasek raportu mieszczą się w szerokości, nic się nie ucina.
+  _Staging 2026-10-20: wymaga człowieka — prawdziwy telefon przez LAN (emulacja Chrome nie jest zamiennikiem)_
 - [ ] „Rozlicz wypłaty": podczas wczytywania gradientowy wskaźnik; „Brak wypłat do rozliczenia."
       wyśrodkowane; wysłanie z błędem pokazuje komunikat „formularz ma błędy".
 - [ ] „Anulowanie transakcji" i odrzucenie wypłaty: okno węższe, bez X w rogu; zamyka „Anuluj" i Esc.
@@ -1113,8 +1195,10 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       komunikat pod formularzem jak dotąd.
 - [ ] Telefon (390px, przez LAN), konto kierownika → menu → „Manual Wykończymy": menu się zamyka,
       a okno Manuala zostaje otwarte z wczytanymi wpisami.
+  _Staging 2026-10-20: wymaga człowieka — prawdziwy telefon przez LAN (emulacja Chrome nie jest zamiennikiem)_
 - [ ] Telefon → otwórz menu i obróć telefon poziomo (szerokość ≥ 768px): nie zostaje przyciemnione
       tło nad stroną.
+  _Staging 2026-10-20: wymaga człowieka — prawdziwy telefon przez LAN (emulacja Chrome nie jest zamiennikiem)_
 - [ ] Kosztorys → „Pobierz z arkusza" → „Rozliczenie i wykonawca etapów": pole wyboru wykonawcy ma tę
       samą wysokość co pole rozliczenia obok.
 - [ ] Kosztorys → „Zgłoszenia prac" → przegląd zgłoszenia: nagłówki grup wielkimi literami; dopisek
@@ -1124,6 +1208,7 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] „Dodaj kosztorys" (link do arkusza), „Podłącz arkusz do inwestycji", „Synchronizuj wydatki
       inwestycyjne", „Dodaj do inwestycji" w załącznikach zgłoszenia i przycisk potwierdzenia w oknach
       „Anuluj / Potwierdź": w trakcie wysyłki przycisk jest wyszarzony i kręci się w nim wskaźnik.
+  _Staging 2026-10-20: wymaga człowieka — zapis do Arkuszy Google tylko z produkcji (konto Viewer na preview)_
 - [ ] Komunikaty błędów pod formularzami (logowanie, „Rozlicz wypłaty", zamówienia): bez ikony
       trójkąta jak dotąd; małe błędy przy polach (plik, lista odbiorców, „Zapisz szablon") z ikoną.
 - [ ] Plakietka z X (np. aktywny filtr, wybrany odbiorca): X ma ten sam rozmiar, po najechaniu
@@ -1160,6 +1245,7 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [x] Edycja inwestycji (z tabeli i ze strony inwestycji): „Kierownik budowy" jest szeroki jak jego
       treść i wyrównany do lewej; wybór pracownika nadal zapisuje się od razu.
 - [ ] Następna sprawa AI przyjęta z produkcji ma `inputs/initial-info.md` z linią „Rynek: …".
+  _Staging 2026-10-20: wymaga człowieka — sprawa AI z produkcji_
 
 ## 2026-10-20 — sidebar-width-animation — pasek boczny zwija się i rozwija z animacją
 
