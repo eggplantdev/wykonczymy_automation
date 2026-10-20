@@ -11,11 +11,12 @@ vi.mock('payload', async (importOriginal) => ({
 const execute = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({ execute })) }))
 
-const { acceptReceiptAction, rejectReceiptAction } = await import('@/lib/actions/receipt-confirmation')
+const { acceptReceiptAction, rejectReceiptAction } =
+  await import('@/lib/actions/receipt-confirmation')
 
 const WORKER_ID = 7
 
-describe('payout confirmation actions', () => {
+describe('receipt confirmation actions', () => {
   beforeEach(() => {
     getCurrentUserJwt.mockResolvedValue({
       id: WORKER_ID,

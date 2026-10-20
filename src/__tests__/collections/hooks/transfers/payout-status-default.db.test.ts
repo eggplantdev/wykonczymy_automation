@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import type { Transaction } from '@/payload-types'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { TRANSFER_TYPES, carriesPayoutStatus } from '@/lib/constants/transfers'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createTestRegister } from '@/__tests__/helpers/register'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
@@ -22,6 +23,7 @@ describe.skipIf(!ENV_READY)(
     let workerId: number
     let registerId: number
     let secondWorkerRegisterId: number
+    let workerTypeRegisterId: number
     let otherWorkerRegisterId: number
     let managerRegisterId: number
 
@@ -42,6 +44,13 @@ describe.skipIf(!ENV_READY)(
       })
       return Number(created.id)
     }
+
+    // Drizzle wraps the driver error, so the pg fields live on `cause`.
+    const violatedConstraint = (statement: Promise<unknown>) =>
+      statement.then(
+        () => undefined,
+        (error: { cause?: { constraint?: string } }) => error.cause?.constraint,
+      )
 
     async function persisted(transactionId: number): Promise<PersistedT> {
       const result = await db.execute(sql`
@@ -70,6 +79,14 @@ describe.skipIf(!ENV_READY)(
 
       registerId = await createTestRegister(payload, workerId, 'payout-default-register')
       secondWorkerRegisterId = await createTestRegister(payload, workerId, 'payout-default-second')
+      workerTypeRegisterId = await createTestRegister(
+        payload,
+        workerId,
+        'payout-default-worker-type',
+        {
+          type: 'WORKER',
+        },
+      )
 
       const otherWorkerId = await createTestUser(payload, {
         name: 'Payout Default Other Worker',
@@ -111,6 +128,12 @@ describe.skipIf(!ENV_READY)(
 
     it.each([
       ['manager → worker', () => managerRegisterId, () => registerId, 'pending'],
+      [
+        'manager → worker’s Pracownicze kasa',
+        () => managerRegisterId,
+        () => workerTypeRegisterId,
+        'pending',
+      ],
       ['worker → another worker', () => registerId, () => otherWorkerRegisterId, 'pending'],
       ['worker → manager', () => registerId, () => managerRegisterId, null],
       ['between two kasy of the same worker', () => registerId, () => secondWorkerRegisterId, null],
@@ -142,7 +165,7 @@ describe.skipIf(!ENV_READY)(
       },
     )
 
-    it('leaves every other type without a status', async () => {
+    it('leaves every other type without a status, and the database refuses one', async () => {
       const id = await createRow({
         description: `${MARKER} bonus`,
         type: 'BONUS',
@@ -151,6 +174,23 @@ describe.skipIf(!ENV_READY)(
       })
 
       expect((await persisted(id)).status).toBeNull()
+      expect(
+        await violatedConstraint(
+          db.execute(sql`UPDATE transactions SET payout_status = 'pending' WHERE id = ${id}`),
+        ),
+      ).toBe('transactions_payout_status_only_on_money_in')
+    })
+
+    it('admits a status at the database for exactly the types the app stamps', async () => {
+      const result = await db.execute(sql`
+      SELECT pg_get_constraintdef(oid) AS definition FROM pg_constraint
+      WHERE conname = 'transactions_payout_status_only_on_money_in'
+    `)
+      const definition = String(result.rows[0]?.definition ?? '')
+
+      expect(TRANSFER_TYPES.filter((type) => definition.includes(`'${type}'`))).toEqual(
+        TRANSFER_TYPES.filter(carriesPayoutStatus),
+      )
     })
 
     it('keeps the worker’s answer through a Local API edit that carries a status back', async () => {
@@ -189,13 +229,6 @@ describe.skipIf(!ENV_READY)(
         type: 'PAYOUT',
         worker: workerId,
       })
-
-      // Drizzle wraps the driver error, so the pg fields live on `cause`.
-      const violatedConstraint = (statement: Promise<unknown>) =>
-        statement.then(
-          () => undefined,
-          (error: { cause?: { constraint?: string } }) => error.cause?.constraint,
-        )
 
       expect(
         await violatedConstraint(

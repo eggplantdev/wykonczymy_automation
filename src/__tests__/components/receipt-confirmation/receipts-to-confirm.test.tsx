@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { ReceiptsToConfirm } from '@/components/receipts/receipts-to-confirm'
+import { ReceiptsToConfirm } from '@/components/receipt-confirmation/receipts-to-confirm'
 import { acceptReceiptAction, rejectReceiptAction } from '@/lib/actions/receipt-confirmation'
 import { CANCEL_REASON_MIN_LENGTH } from '@/lib/schemas/transfer'
 import type { ReceiptToConfirmT } from '@/lib/db/receipt-confirmation'

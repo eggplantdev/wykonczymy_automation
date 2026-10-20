@@ -16,7 +16,7 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/user'
 import { createRegisterOwner } from '@/__tests__/helpers/register'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
-const MARKER = 'payout confirmation spec'
+const MARKER = 'receipt confirmation spec'
 const CONTEXT = { skipRevalidation: true, skipSheetSync: true }
 
 describe.skipIf(!ENV_READY)('the receiving worker’s decision on money handed to him (DB)', () => {
