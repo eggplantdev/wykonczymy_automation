@@ -1,7 +1,7 @@
 ---
 change_id: worker-receipt-confirmation
 title: Worker confirms money booked into his own kasa, like a wypłata
-status: implementing
+status: implemented
 created: 2026-10-20
 updated: 2026-10-20
 archived_at: null

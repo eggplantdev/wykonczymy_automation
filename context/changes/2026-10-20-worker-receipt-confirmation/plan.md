@@ -498,4 +498,4 @@ Additive: `pnpm db:migrate:prod` (human) before the push. No backfill.
 #### Automated
 
 - [ ] 5.1 Copy-reading specs pass
-- [ ] 5.2 No „wypłat" left in the flow's copy
+- [x] 5.2 No „wypłat" left in the flow's copy — 05447566d
