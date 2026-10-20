@@ -13,12 +13,15 @@ const CONTEXT = { skipRevalidation: true, skipSheetSync: true }
 
 type PersistedT = { status: string | null; decidedAt: unknown; reason: string | null }
 
-describe.skipIf(!ENV_READY)('a wypłata is born pending and only the worker moves it (DB)', () => {
+describe.skipIf(!ENV_READY)('money handed to a worker is born pending and only he moves it (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
   let investmentId: number
   let workerId: number
   let registerId: number
+  let secondWorkerRegisterId: number
+  let otherWorkerRegisterId: number
+  let managerRegisterId: number
 
   async function createRow(
     data: Partial<Transaction> & Pick<Transaction, 'type' | 'description'>,
@@ -64,25 +67,28 @@ describe.skipIf(!ENV_READY)('a wypłata is born pending and only the worker move
     })
 
     registerId = await createTestRegister(payload, workerId, 'payout-default-register')
+    secondWorkerRegisterId = await createTestRegister(payload, workerId, 'payout-default-second')
+
+    const otherWorkerId = await createTestUser(payload, {
+      name: 'Payout Default Other Worker',
+      email: 'payout-default-other@test.local',
+    })
+    otherWorkerRegisterId = await createTestRegister(payload, otherWorkerId, 'payout-default-other')
+
+    const managerId = await createTestUser(payload, {
+      name: 'Payout Default Manager',
+      email: 'payout-default-manager@test.local',
+      role: 'MANAGER',
+    })
+    managerRegisterId = await createTestRegister(payload, managerId, 'payout-default-manager')
 
     investmentId = await createTestInvestment(payload, 'payout-default-investment')
   })
 
   afterAll(async () => {
     await db.execute(sql`DELETE FROM transactions WHERE description LIKE ${`${MARKER}%`}`)
-    if (registerId)
-      await payload.delete({
-        collection: 'cash-registers',
-        id: registerId,
-        context: { skipRevalidation: true },
-      })
     if (investmentId) await deleteTestInvestment(payload, investmentId)
-    if (workerId)
-      await payload.delete({
-        collection: 'users',
-        id: workerId,
-        context: { skipRevalidation: true },
-      })
+    await purgeFixtureUsers(db)
   })
 
   it('stamps pending on a new wypłata, even when the caller claims it is decided', async () => {
@@ -96,6 +102,39 @@ describe.skipIf(!ENV_READY)('a wypłata is born pending and only the worker move
 
     expect(await persisted(id)).toEqual({ status: 'pending', decidedAt: null, reason: null })
   })
+
+  it.each([
+    ['manager → worker', () => managerRegisterId, () => registerId, 'pending'],
+    ['worker → another worker', () => registerId, () => otherWorkerRegisterId, 'pending'],
+    ['worker → manager', () => registerId, () => managerRegisterId, null],
+    ['between two kasy of the same worker', () => registerId, () => secondWorkerRegisterId, null],
+  ])('a transfer %s is stamped %s', async (label, source, target, expected) => {
+    const id = await createRow({
+      description: `${MARKER} transfer ${label}`,
+      type: 'REGISTER_TRANSFER',
+      sourceRegister: source(),
+      targetRegister: target(),
+      investment: null,
+    })
+
+    expect((await persisted(id)).status).toBe(expected)
+  })
+
+  it.each(['INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT'] as const)(
+    'stamps pending on a %s into a worker’s kasa, and nothing into a manager’s',
+    async (type) => {
+      const data = { type, paymentMethod: 'CASH' as const, vatPlane: 'NET' as const }
+      const intoWorker = await createRow({ description: `${MARKER} ${type} worker`, ...data })
+      const intoManager = await createRow({
+        description: `${MARKER} ${type} manager`,
+        ...data,
+        sourceRegister: managerRegisterId,
+      })
+
+      expect((await persisted(intoWorker)).status).toBe('pending')
+      expect((await persisted(intoManager)).status).toBeNull()
+    },
+  )
 
   it('leaves every other type without a status', async () => {
     const id = await createRow({

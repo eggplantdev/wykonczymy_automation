@@ -160,7 +160,7 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   carriesPayoutStatus: {
     fn: carriesPayoutStatus,
-    trueFor: ['PAYOUT'],
+    trueFor: ['PAYOUT', 'REGISTER_TRANSFER', 'INVESTOR_DEPOSIT', 'COMPANY_FUNDING', 'OTHER_DEPOSIT'],
   },
   isInvestmentExpense: {
     fn: isInvestmentExpense,

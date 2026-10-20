@@ -31,6 +31,24 @@ export type RejectedReceiptT = {
   decidedAt: string
 }
 
+// Moving money between two kasy of the same worker hands him nothing, so it asks him nothing.
+export async function handsMoneyToEmployee(
+  db: DbExecutorT,
+  registers: { receivingRegisterId: number; sendingRegisterId?: number },
+): Promise<boolean> {
+  const sameOwner =
+    registers.sendingRegisterId === undefined
+      ? sql`FALSE`
+      : sql`r.owner_id IS NOT DISTINCT FROM (SELECT owner_id FROM cash_registers WHERE id = ${registers.sendingRegisterId})`
+  const res = await db.execute(sql`
+    SELECT EXISTS (
+      SELECT 1 FROM cash_registers r JOIN users u ON u.id = r.owner_id
+      WHERE r.id = ${registers.receivingRegisterId} AND u.role = 'EMPLOYEE' AND NOT (${sameOwner})
+    ) AS hands
+  `)
+  return res.rows[0]?.hands === true
+}
+
 // Ownership and state ride in the WHERE, so a foreign, cancelled or already-decided wypłata matches
 // zero rows — the race between two tabs, or the worker and a cancellation, is settled by Postgres.
 const DECIDABLE = (transactionId: number, workerId: number) => sql`

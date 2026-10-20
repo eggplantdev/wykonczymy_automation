@@ -295,7 +295,7 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
       ...carried,
     })
     expect(persisted.rows).toEqual([
-      row('INVESTOR_DEPOSIT', { ...fromA, payment_method: 'CASH' }),
+      row('INVESTOR_DEPOSIT', { ...fromA, payment_method: 'CASH', payout_status: 'pending' }),
       row('INVESTMENT_EXPENSE', fromA),
       row('CORRECTION', fromA),
       row('LABOR_COST'),
@@ -307,6 +307,7 @@ describe.skipIf(!ENV_READY)('transfer actions on persisted state (DB)', () => {
         source_register_id: registerA,
         target_register_id: registerB,
         investment_id: null,
+        payout_status: 'pending',
       }),
     ])
   })

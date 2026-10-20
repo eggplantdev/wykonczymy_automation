@@ -20,6 +20,7 @@ import { getDb } from '@/lib/db/get-db'
 import { investmentLockMessage } from '@/lib/db/investment-gate'
 import { trashedRegisterMessage } from '@/lib/db/cash-register-gate'
 import { trashedWorkerMessage } from '@/lib/db/worker-gate'
+import { handsMoneyToEmployee } from '@/lib/db/receipt-confirmation'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { isInvoiceOnlyPatch } from '@/collections/hooks/transfers/invoice-only-patch'
 
@@ -60,10 +61,22 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
   const vatPlane = resolved('vatPlane')
   const paymentMethod = resolved('paymentMethod')
 
+  const asksForReceipt = async (): Promise<boolean> => {
+    if (type === 'PAYOUT') return true
+    if (!carriesPayoutStatus(type)) return false
+    const source = resolveId(sourceRegister)
+    const receiving = type === 'REGISTER_TRANSFER' ? resolveId(targetRegister) : source
+    if (receiving === undefined) return false
+    return handsMoneyToEmployee(await getDb(req.payload, req), {
+      receivingRegisterId: receiving,
+      sendingRegisterId: type === 'REGISTER_TRANSFER' ? source : undefined,
+    })
+  }
+
   // A Local API update runs with overrideAccess and
   // skips the fields' `access.update`, so an edit carrying the stored doc back must not reach them.
   if (operation === 'create') {
-    d.payoutStatus = carriesPayoutStatus(type) ? 'pending' : null
+    d.payoutStatus = (await asksForReceipt()) ? 'pending' : null
     d.payoutDecidedAt = null
     d.payoutRejectionReason = null
   } else {

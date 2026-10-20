@@ -469,7 +469,7 @@ Additive: `pnpm db:migrate:prod` (human) before the push. No backfill.
 
 - [ ] 1.1 Renamed specs pass
 - [ ] 1.2 Renamed DB spec passes
-- [ ] 1.3 No stale import path
+- [x] 1.3 No stale import path — 84620ed50
 
 ### Phase 2: Stamp money handed to an employee as pending
 
