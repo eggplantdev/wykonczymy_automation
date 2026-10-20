@@ -1,7 +1,7 @@
 ---
 change_id: investment-overview-shared
 title: One shared investment overview for the investment page and the kosztorys tab
-status: implementing
+status: implemented
 created: 2026-10-20
 updated: 2026-10-20
 archived_at: null

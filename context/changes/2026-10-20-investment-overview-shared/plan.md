@@ -447,5 +447,5 @@ by Critical Implementation Details and gated by Phases 2 and 5.
 
 #### Automated
 
-- [x] 5.1 research.md pass criteria hold on every page; `kosztorys_v2` and `/inwestycje/26` grow < 5 KB
-- [x] 5.2 refData copies 1 (OWNER) / 0 (EMPLOYEE)
+- [x] 5.1 research.md pass criteria hold on every page; `kosztorys_v2` and `/inwestycje/26` grow < 5 KB — ec40ae68a
+- [x] 5.2 refData copies 1 (OWNER) / 0 (EMPLOYEE) — ec40ae68a

@@ -981,6 +981,33 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Telefon, raport pracownika → wpisz ilość, bez Entera przełącz się na inną aplikację i wróć:
       ilość została w szkicu.
 
+## 2026-10-20 — investment-overview-shared — jeden blok „Inwestycja" na stronie i w kosztorysie
+
+- [ ] Jako właściciel na dowolnej stronie: „Wpłata", „Transfer między kasami" i „Wydatek" z górnego paska
+      otwierają się z tymi samymi listami kas / inwestycji / pracowników co wcześniej i zapisują.
+- [ ] Strona inwestycji wygląda i działa jak wcześniej: przyciski, „Kierownik budowy", status, notatki,
+      notatki AI, „Zdjęcia i pliki".
+- [ ] Edytor kosztorysu → „Podsumowanie" → „Inwestycja": ten sam blok co na stronie inwestycji, bez
+      „Kosztorys v2"; „Zamów" otwiera zamówienie z adresem i kierownikiem inwestycji; zmiana statusu,
+      „Etap AI" i „Kierownik budowy" zostaje po odświeżeniu.
+- [ ] Inwestycja zakończona pokazuje „Prośba o weryfikację" w obu widokach; inwestycja z arkuszem pokazuje
+      „Arkusz".
+- [ ] Inwestycja w Koszu: oba widoki pokazują baner i są tylko do odczytu.
+- [ ] „Sprzęt" → „Dodaj sprzęt" i „Przekaż" na stronie sprzętu listują tych samych pracowników / inwestycje.
+- [ ] „Kasy" → „Dodaj kasę" listuje pracowników; na stronie kasy „Edytuj" i „Sprawdzenie Telmak" otwierają
+      się i zapisują.
+- [ ] „Zgłoszenia" → filtr inwestycji listuje inwestycje; „Zgłoszenia wydatków" → akceptacja zgłoszenia
+      otwiera wypełniony formularz wydatku i zapisuje.
+- [ ] Lista „Inwestycje" → „Edytuj" na wierszu (z „Kierownikiem budowy") i „Zamów" działają;
+      „Kosztorysy" → „Dodaj kosztorys" listuje inwestycje bez kosztorysu.
+- [ ] „Pracownicy" i strona pracownika (jako właściciel) → „Edytuj" listuje kasy; „Edytuj" na wierszu
+      transakcji otwiera się i zapisuje.
+- [ ] Edytor kosztorysu: podział na etapy, menu „Pracownicy" i widok podwykonawcy w „Podsumowaniu"
+      pokazują tych samych pracowników.
+- [ ] Pracownik na telefonie: własna strona ładuje się, górny pasek nie ma okien zarządu, „Wyślij zgłoszenie
+      wydatku" listuje tylko jego kasy.
+- [ ] Link inwestora (`/k/...`) i „Podgląd inwestora" (w tym „Podsumowanie") bez zmian.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
