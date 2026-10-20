@@ -138,6 +138,36 @@ pass, listed per pass.
   like the old `TopNav` prop. Fetch-level TTFB from that script is noise on this machine (EMPLOYEE html warm
   median 123 → 411 ms in one pass, 147 → 325 ms reversed in another).
 
+### Load timings (after)
+
+Before = `ae2ab8208` on :3100, after = `de891752a` (every phase in) on :3101, same protocol as phase 2: one
+warm-up pass per side, then before → after → before → after, after → before → after → before. Each cell is the
+median over the four passes of that side's per-pass warm median.
+
+| page | warm SQL b / a | depth b / a | TTFB ms b → a | LCP ms b → a | doc KB b / a |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `/` | 5 / 5 | 2 / 2 | 26 → 25 | 416 → 404 | 996 / 989 |
+| `/inwestycje` | 2 / 2 | 2 / 2 | 119 → 100 | 330 → 170 | 1359 / 1353 |
+| `/inwestycje/26` | 4 / 4 | 2 / 2 | 28 → 33 | 132 → 110 | 756 / 738 |
+| `kosztorys_v2` | 4 / 4 | 2 / 2 | 29 → 30 | 380 → 384 | 727 / 722 |
+| `/pracownicy` | 2 / 2 | 2 / 2 | 38 → 40 | 114 → 78 | 337 / 333 |
+| `/pracownicy/77` (OWNER) | 7 / 7 | 2–3 / 2 | 24 → 25 | 362 → 374 | 259 / 253 |
+| `/kasy` | 2 / 2 | 2 / 2 | 36 → 38 | 104 → 78 | 279 / 274 |
+| `/sprzet` | 3 / 3 | 2 / 2 | 25 → 20 | 368 → 362 | 207 / 202 |
+| `/zgloszenia-wydatkow` | 7 / 7 | 2 / 2 | 24 → 23 | 388 → 396 | 706 / 701 |
+| `/zgloszenia` | 3 / 3 | 2 / 2 | 21 → 24 | 386 → 386 | 493 / 477 |
+| `/kosztorysy` | 2 / 2 | 2 / 2 | 67 → 89, re-run 59 → 61 | 118 → 142, re-run 120 → 114 | 648 / 638 |
+| EMPLOYEE own page | 7 / 7 | 2 / 2 | 14 → 13 | 358 → 370 | 136 / 134 |
+
+- **SQL and depth identical** on every page.
+- **Timings:** every page within max(15 %, 20 ms) except `/kosztorysy` on the first run (+22 ms TTFB, +24 ms
+  LCP). Re-measured alone in six interleaved 8-run passes per side: inside the band, so noise. The page is
+  deprecated anyway.
+- **Doc KB shrinks on every page**, 18 KB on `/inwestycje/26` (one client `InvestmentOverview` instead of a
+  server block passing workers / order settings into each child). `kosztorys_v2` loses 5 KB although it now
+  renders the full overview.
+- **refData copies** (`baseline.mjs`): ×64 on every OWNER page on both sides, ×0 for the EMPLOYEE.
+
 ### Production timings (before)
 
 Vercel Observability, `POST /v2/observability/query` via `vercel api` (team `team_BWfyTqJnjIqZBkHwBL0elgS4`,

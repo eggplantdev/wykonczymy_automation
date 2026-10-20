@@ -440,12 +440,12 @@ by Critical Implementation Details and gated by Phases 2 and 5.
 
 #### Automated
 
-- [x] 4.1 `investment-overview.test.tsx` passes
-- [x] 4.2 Existing kosztorys summary-panel specs pass
+- [x] 4.1 `investment-overview.test.tsx` passes — de891752a
+- [x] 4.2 Existing kosztorys summary-panel specs pass — de891752a
 
 ### Phase 5: Final perf run
 
 #### Automated
 
-- [ ] 5.1 research.md pass criteria hold on every page; `kosztorys_v2` and `/inwestycje/26` grow < 5 KB
-- [ ] 5.2 refData copies 1 (OWNER) / 0 (EMPLOYEE)
+- [x] 5.1 research.md pass criteria hold on every page; `kosztorys_v2` and `/inwestycje/26` grow < 5 KB
+- [x] 5.2 refData copies 1 (OWNER) / 0 (EMPLOYEE)
