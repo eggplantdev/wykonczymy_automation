@@ -76,3 +76,5 @@ Checks run: `10x-impl-review`, `code-review`, `tailwind-v4-audit`, `comment-nois
 Ran /simplify + primitive-reuse-scan — 14 applied, 1 skipped, 7 dropped; each folded into ## Findings (tagged `simplify` / `reuse-scan`).
 
 ## Tests & suite
+
+Deferred by user — typecheck, lint, specs and `pnpm build` to run on staging after the merge (3f237f4c2).
