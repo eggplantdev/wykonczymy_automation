@@ -1300,6 +1300,26 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       całą stroną, znika po zakończeniu — jak wcześniej.
 - [ ] Przyciski w trakcie zapisu i małe wskaźniki „Wczytywanie…" dalej pokazują gradientowe kółko.
 
+## 2026-10-21 — ds-audit-phase1 — scalone ręczne kopie bez zmiany wyglądu
+
+Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmianą.
+
+- [ ] Listy z paskiem narzędzi (inwestycje, przelewy, kasy, pracownicy, sprzęt, flota, leady,
+      presety, kosztorysy, raporty pracowników, katalog prac): wyszukiwarka, filtry, chipy filtrów,
+      przyciski akcji i „Kolumny" są na swoich miejscach i działają.
+- [ ] Kolumny akcji (ołówek/kosz) w tych tabelach: przyciski po prawej, otwierają edycję/usunięcie.
+- [ ] Kolumny dat i kwot w tabelach (sprzęt, flota, leady, presety, Telmak, rozliczenie wypłat,
+      inwestycje): format i wyrównanie bez zmian; pusta wartość to szare lub zwykłe „—" jak wcześniej.
+- [ ] Przyciski „Dodaj…" na listach (kasy, sprzęt, flota, pracownicy, inwestycje, kosztorysy,
+      katalog, przeglądy, nowy preset): ten sam wygląd z plusem, otwierają swój dialog.
+- [ ] Badge statusu wypłaty, szkicu wydatku i raportu pracownika: kolory jak wcześniej dla
+      oczekujących / zaakceptowanych / odrzuconych.
+- [ ] „Zapomniane hasło" i „Reset hasła": link „Powrót do logowania" jest i prowadzi do logowania.
+- [ ] Kosztorys → raport pracownika → podgląd: „kto i kiedy zdecydował" w tym samym formacie co w
+      tabelach raportów i szkiców.
+- [ ] `/design/audyt`: spis treści i wszystkie grupy domyślnie zwinięte; klik w spisie rozwija
+      i przewija do grupy.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
