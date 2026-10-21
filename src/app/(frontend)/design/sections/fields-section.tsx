@@ -210,7 +210,11 @@ export function FieldsSection() {
         </Field>
         <FieldGroup>
           <Field orientation="horizontal">
-            <Checkbox id="field-content" checked={isChecked} onCheckedChange={setIsChecked} />
+            <Checkbox
+              id="field-content"
+              checked={isChecked}
+              onCheckedChange={(checked) => setIsChecked(checked === true)}
+            />
             <FieldContent>
               <FieldLabel htmlFor="field-content">FieldGroup + FieldContent</FieldLabel>
               <FieldDescription>Etykieta i opis obok kontrolki</FieldDescription>

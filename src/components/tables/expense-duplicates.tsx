@@ -84,7 +84,7 @@ export function getExpenseDuplicateColumns<R extends DuplicateMatchT>({
     col.accessor((row) => dayOf(row) ?? row.date, {
       id: 'date',
       header: 'Data',
-      cell: dateCell,
+      cell: (info) => dateCell(info),
     }),
     col.accessor((row) => row.amount, {
       id: 'amount',
