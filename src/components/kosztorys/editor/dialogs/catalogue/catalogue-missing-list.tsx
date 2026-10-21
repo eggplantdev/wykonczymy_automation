@@ -13,6 +13,7 @@ import type {
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 import { unitLabel } from '@/lib/kosztorys/format'
+import { Description } from '@/components/ui/description'
 
 const SEARCH_RESULT_LIMIT = 8
 
@@ -34,10 +35,10 @@ export function CatalogueMissingList({
   return (
     <div className="space-y-2 text-xs">
       {!readOnly && (
-        <p className="text-muted-foreground">
+        <Description size="xs" withIcon={false}>
           Kliknij podpowiedź, żeby zapisać w kosztorysie nazwę z katalogu i jednostkę. Ceny zostają
           bez zmian.
-        </p>
+        </Description>
       )}
 
       {missing.map((row) => (
@@ -60,7 +61,11 @@ export function CatalogueMissingList({
             )}
           </div>
 
-          {row.hints.length > 0 && <p className="text-muted-foreground pl-4">{hintLead(row)}</p>}
+          {row.hints.length > 0 && (
+            <Description size="xs" withIcon={false} className="pl-4">
+              {hintLead(row)}
+            </Description>
+          )}
 
           <div className="pl-4">
             {row.hints.map((hint) => (

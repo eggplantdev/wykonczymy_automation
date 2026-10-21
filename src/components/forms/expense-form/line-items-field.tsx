@@ -2,6 +2,7 @@
 
 import { Fragment } from 'react'
 import { Trash2, Unlink, WandSparkles } from 'lucide-react'
+import { AddButton } from '@/components/ui/add-button'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Description } from '@/components/ui/description'
@@ -400,15 +401,14 @@ export function LineItemsField({
                       aria-label="Co oznaczają wybrane zdjęcia"
                     />
                   )}
-                  <Button
+                  <AddButton
                     type="button"
-                    variant="outline"
-                    size="sm"
+                    icon={null}
                     className="ml-auto"
                     onClick={() => lineItemsField.pushValue(newItem())}
                   >
                     Dodaj pozycję
-                  </Button>
+                  </AddButton>
                 </div>
                 {onGenerate && <Description size="xs">{SCAN_MODE_HINT[scanMode]}</Description>}
                 {onGenerate && (

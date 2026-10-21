@@ -1,3 +1,4 @@
+import { EmptyValue } from '@/components/ui/empty-value'
 import { daysLabel } from '@/lib/utils/deadline-label'
 import { EXPIRED, type WarrantyBucketT } from '@/lib/equipment/warranty-thresholds'
 import { formatPLDate } from '@/lib/utils/format-date'
@@ -12,7 +13,7 @@ type WarrantyCellPropsT = {
 
 export function WarrantyCell({ warrantyUntil, daysLeft, bucket, muted }: WarrantyCellPropsT) {
   if (!warrantyUntil || daysLeft === null) {
-    return <span className="text-muted-foreground text-xs">—</span>
+    return <EmptyValue size="xs" />
   }
 
   const expired = bucket === EXPIRED

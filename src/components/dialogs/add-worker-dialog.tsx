@@ -1,8 +1,7 @@
 'use client'
 
-import { Plus } from 'lucide-react'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { WorkerForm } from '@/components/forms/worker-form/worker-form'
 import { createWorkerAction } from '@/lib/actions/workers'
@@ -28,16 +27,7 @@ type AddWorkerDialogPropsT = {
 export function AddWorkerDialog({ roles }: AddWorkerDialogPropsT) {
   const cashRegisters = useReferenceData()?.cashRegisters ?? []
   return (
-    <FormDialog
-      formId="add-worker"
-      trigger={
-        <Button variant="outline" size="sm">
-          <Plus />
-          Dodaj
-        </Button>
-      }
-      title="Nowy pracownik"
-    >
+    <FormDialog formId="add-worker" trigger={<AddButton>Dodaj</AddButton>} title="Nowy pracownik">
       {(onSubmitSuccess, keepOpen) => (
         <WorkerForm
           formId="add-worker"

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { AddButton } from '@/components/ui/add-button'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
@@ -38,11 +38,10 @@ export function ExtraWorksDialogButton({ extras, commonUnits, onSave, onRemove }
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={open}>
-        <Plus />
+      <AddButton onClick={open}>
         {t('newWork')}
         {extras.length > 0 && ` (${extras.length})`}
-      </Button>
+      </AddButton>
       <Dialog open={isOpen} onOpenChange={(next) => (next ? setIsOpen(true) : close())}>
         <DialogContent className="sm:max-w-dialog-lg">
           <DialogHeader title={t('extrasTitle')} description={t('extrasDescription')} />

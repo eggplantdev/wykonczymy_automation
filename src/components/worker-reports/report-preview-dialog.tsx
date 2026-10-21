@@ -9,6 +9,7 @@ import { useTranslation } from '@/hooks/use-translation'
 import type { ReportLineKindT, ReportPreviewT } from '@/lib/kosztorys/worker-report/types'
 import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
 import { formatPLDateTime } from '@/lib/utils/format-date'
+import { formatDecision } from '@/lib/utils/format-decision'
 
 const GROUPS = [
   { kind: 'rozpiska', titleKey: 'groupRozpiska' },
@@ -33,9 +34,7 @@ function ReportPreviewBody({ preview }: { preview: ReportPreviewT }) {
   const { t, locale } = useTranslation('workerReports')
   const { t: tDrafts } = useTranslation('expenseDrafts')
   const decision = preview.decidedAt
-    ? [formatPLDateTime(preview.decidedAt, locale), preview.decidedByName]
-        .filter(Boolean)
-        .join(' · ')
+    ? formatDecision(preview.decidedAt, preview.decidedByName, locale)
     : undefined
 
   return (

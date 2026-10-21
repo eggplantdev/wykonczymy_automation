@@ -119,8 +119,7 @@ export function DecimalField({
           <Button
             type="button"
             variant="outline"
-            size="sm"
-            className="h-7 px-2"
+            size="xs"
             disabled={disabled || !canSave}
             onClick={() => canSave && settle(pending)}
           >

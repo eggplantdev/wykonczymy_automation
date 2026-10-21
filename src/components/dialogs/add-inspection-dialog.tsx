@@ -1,7 +1,6 @@
 'use client'
 
-import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { InspectionForm } from '@/components/forms/inspection-form/inspection-form'
 import { createInspectionAction } from '@/lib/actions/fleet'
@@ -37,16 +36,7 @@ export function AddInspectionDialog({ vehicles, vehicleId }: AddInspectionDialog
   }
 
   return (
-    <FormDialog
-      formId={formId}
-      trigger={
-        <Button variant="outline" size="sm">
-          <Plus />
-          Przegląd
-        </Button>
-      }
-      title="Nowy przegląd"
-    >
+    <FormDialog formId={formId} trigger={<AddButton>Przegląd</AddButton>} title="Nowy przegląd">
       {(onSubmitSuccess, keepOpen) => (
         <InspectionForm
           formId={formId}

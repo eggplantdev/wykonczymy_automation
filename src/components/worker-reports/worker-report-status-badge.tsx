@@ -1,5 +1,8 @@
-import { Badge, type BadgeToneT } from '@/components/ui/badge'
-import { DecisionProgressBadge } from '@/components/ui/decision-progress-badge'
+import { Badge } from '@/components/ui/badge'
+import {
+  DecisionProgressBadge,
+  SETTLED_DECISION_TONE,
+} from '@/components/ui/decision-progress-badge'
 import { useTranslation } from '@/hooks/use-translation'
 import {
   REPORT_STATUS_LABEL_KEYS,
@@ -11,12 +14,6 @@ type PropsT = {
   lineCount: number
   acceptedLineCount: number
   rejectedLineCount: number
-}
-
-const STATUS_TONE: Record<ReportStatusT, BadgeToneT> = {
-  pending: 'pending',
-  accepted: 'positive',
-  rejected: 'muted',
 }
 
 export function WorkerReportStatusBadge({
@@ -36,5 +33,5 @@ export function WorkerReportStatusBadge({
       />
     )
   }
-  return <Badge tone={STATUS_TONE[status]}>{t(REPORT_STATUS_LABEL_KEYS[status])}</Badge>
+  return <Badge tone={SETTLED_DECISION_TONE[status]}>{t(REPORT_STATUS_LABEL_KEYS[status])}</Badge>
 }

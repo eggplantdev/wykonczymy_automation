@@ -20,6 +20,7 @@ import {
   LEAD_ASSET_REMOVAL_LABELS,
   LEAD_ASSET_STRIP_SIZES,
 } from './lead-asset-labels'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { toastMessage } from '@/lib/utils/toast'
 import { activeOrSelected } from '@/lib/utils/is-active-ref'
 import type { LeadRowT } from '@/lib/leads/types'
@@ -78,7 +79,7 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
     }
   }, [open, target, ownInvestmentId, ownAssetIds])
 
-  if (visibleFiles.length === 0) return '—'
+  if (visibleFiles.length === 0) return EMPTY_VALUE
 
   const carried = attachedIds ? visibleFiles.filter((file) => attachedIds.has(file.id)) : []
   const waiting = attachedIds

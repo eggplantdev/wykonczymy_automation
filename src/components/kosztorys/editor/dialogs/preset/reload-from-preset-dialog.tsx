@@ -11,6 +11,7 @@ import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { useSearchFilter } from '@/hooks/use-search-filter'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { cn } from '@/lib/utils/cn'
 import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { toastMessage } from '@/lib/utils/toast'
@@ -23,6 +24,7 @@ import {
 import { itemNoun, sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { usePresetSections } from './use-preset-sections'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
+import { Description } from '@/components/ui/description'
 
 const countItems = (group: PresetGroupT) =>
   group.metas.reduce((total, meta) => total + meta.itemCount, 0)
@@ -153,12 +155,13 @@ export function ReloadFromPresetDialog() {
       )}
 
       <div className="space-y-1 text-sm">
-        <p className="text-muted-foreground">
+        <Description withIcon={false}>
           {copy.outgoing}: {summary(currentSections, currentItems)}
-        </p>
-        <p className="text-muted-foreground">
-          {copy.incoming}: {selected ? summary(selected.metas.length, countItems(selected)) : '—'}
-        </p>
+        </Description>
+        <Description withIcon={false}>
+          {copy.incoming}:{' '}
+          {selected ? summary(selected.metas.length, countItems(selected)) : EMPTY_VALUE}
+        </Description>
       </div>
     </FormDialogShell>
   )

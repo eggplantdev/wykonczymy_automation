@@ -7,6 +7,7 @@ import {
   SummaryLabelCell,
   SummaryTable,
 } from '@/components/ui/summary-grid'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { EquipmentRowT } from '@/lib/equipment/types'
 import { createTranslator } from '@/lib/i18n/translations'
@@ -42,9 +43,9 @@ export function HeldEquipmentSection({
                 {item.name}
               </OptionalLink>
             </SummaryLabelCell>
-            <SummaryLabelCell>{item.serialNumber || '—'}</SummaryLabelCell>
+            <SummaryLabelCell>{item.serialNumber || EMPTY_VALUE}</SummaryLabelCell>
             <SummaryLabelCell>
-              {item.locatedAt ? formatPLDate(item.locatedAt) : '—'}
+              {item.locatedAt ? formatPLDate(item.locatedAt) : EMPTY_VALUE}
             </SummaryLabelCell>
           </div>
         ))}

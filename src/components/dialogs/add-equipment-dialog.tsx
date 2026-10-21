@@ -1,7 +1,6 @@
 'use client'
 
-import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { AddEquipmentForm } from '@/components/forms/equipment-form/add-equipment-form'
 import { createEquipmentAction } from '@/lib/actions/equipment'
@@ -35,16 +34,7 @@ export function AddEquipmentDialog({ warehouses }: AddEquipmentDialogPropsT) {
   }
 
   return (
-    <FormDialog
-      formId="add-equipment"
-      trigger={
-        <Button variant="outline" size="sm">
-          <Plus />
-          Sprzęt
-        </Button>
-      }
-      title="Nowy sprzęt"
-    >
+    <FormDialog formId="add-equipment" trigger={<AddButton>Sprzęt</AddButton>} title="Nowy sprzęt">
       {(onSubmitSuccess, keepOpen) => (
         <AddEquipmentForm
           formId="add-equipment"

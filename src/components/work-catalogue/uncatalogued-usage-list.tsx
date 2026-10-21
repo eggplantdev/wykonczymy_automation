@@ -5,6 +5,7 @@ import { CandidateRow } from '@/components/kosztorys/editor/dialogs/catalogue/ca
 import { hintLead } from '@/lib/kosztorys/work-catalogue/hint-lead'
 import type { UncataloguedUsageT } from '@/lib/kosztorys/work-catalogue/types'
 import { unitLabel } from '@/lib/kosztorys/format'
+import { Description } from '@/components/ui/description'
 
 export function UncataloguedUsageList({ groups }: { groups: readonly UncataloguedUsageT[] }) {
   return (
@@ -23,7 +24,9 @@ export function UncataloguedUsageList({ groups }: { groups: readonly Uncatalogue
             </div>
             {group.hints.length > 0 && (
               <>
-                <p className="text-muted-foreground pl-4">{hintLead(group)}</p>
+                <Description size="xs" withIcon={false} className="pl-4">
+                  {hintLead(group)}
+                </Description>
                 <div className="pl-4">
                   {group.hints.map((hint) => (
                     <CandidateRow key={hint.id} entry={hint} readOnly />

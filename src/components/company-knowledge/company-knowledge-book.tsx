@@ -1,11 +1,10 @@
 'use client'
 
 import { Reorder, motion } from 'framer-motion'
-import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { KnowledgeEntryRow } from '@/components/company-knowledge/knowledge-entry-row'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
 import { DialogActions } from '@/components/ui/dialog-actions'
@@ -178,15 +177,12 @@ export function CompanyKnowledgeBook({
           options={SORT_OPTIONS}
           variant="toolbar"
         />
-        <Button
-          variant="outline"
-          size="sm"
+        <AddButton
           disabled={draft?.id === null}
           onClick={() => setDraft({ id: null, topic: '', content: '' })}
         >
-          <Plus />
           Dodaj wpis
-        </Button>
+        </AddButton>
       </div>
       {draft?.id === null && <Panel className="p-3">{form}</Panel>}
       {!canReorder && (

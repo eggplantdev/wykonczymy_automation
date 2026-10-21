@@ -3,6 +3,7 @@ import { formatNet, formatQty, formatQtyWithUnit } from '@/lib/kosztorys/format'
 import { toGross } from '@/lib/kosztorys/calc'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { DiscountAtVatT, FieldChangeT, ItemRefT, VersionDiffT } from './types'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const FORMAT_BY_FIELD: Record<FieldChangeT['field'], (value: number) => string> = {
   plannedQty: formatQty,
@@ -15,7 +16,7 @@ const FORMAT_BY_FIELD: Record<FieldChangeT['field'], (value: number) => string> 
 
 // `null` is an Aktualizacja przedmiaru that follows the ofertowy — no figure of its own.
 export const formatChangeValue = (change: FieldChangeT, value: number | null) =>
-  value === null ? '—' : FORMAT_BY_FIELD[change.field](value)
+  value === null ? EMPTY_VALUE : FORMAT_BY_FIELD[change.field](value)
 
 export type ChangeRowT = {
   sectionName: string | null
@@ -25,7 +26,7 @@ export type ChangeRowT = {
   after: string
 }
 
-const describe = (item: ItemRefT) => item.description ?? '—'
+const describe = (item: ItemRefT) => item.description ?? EMPTY_VALUE
 
 const discountText = (discount: DiscountAtVatT) =>
   discount.type === 'amount'
@@ -85,7 +86,7 @@ export function versionChangeRows(diff: VersionDiffT): ChangeRowT[] {
       description: describe(item),
       what: 'Usunięta praca',
       before: formatQtyWithUnit(item.plannedQty, item.unit),
-      after: '—',
+      after: EMPTY_VALUE,
     })
   }
   for (const item of diff.added) {
@@ -93,7 +94,7 @@ export function versionChangeRows(diff: VersionDiffT): ChangeRowT[] {
       sectionName: item.sectionName,
       description: describe(item),
       what: 'Nowa praca',
-      before: '—',
+      before: EMPTY_VALUE,
       after: formatQtyWithUnit(item.plannedQty, item.unit),
     })
   }

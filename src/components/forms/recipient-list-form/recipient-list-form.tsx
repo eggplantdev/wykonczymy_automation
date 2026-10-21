@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { FieldGroup } from '@/components/ui/field'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
@@ -71,14 +71,13 @@ export function RecipientListForm({
                   />
                 </div>
               ))}
-              <Button
+              <AddButton
                 type="button"
-                variant="outline"
-                size="sm"
+                icon={null}
                 onClick={() => emailsField.pushValue(makeRecipientRow())}
               >
                 Dodaj odbiorcę
-              </Button>
+              </AddButton>
             </div>
           )}
         </form.Field>

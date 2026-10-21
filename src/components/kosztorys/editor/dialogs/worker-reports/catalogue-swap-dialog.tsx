@@ -115,7 +115,6 @@ export function CatalogueSwapDialog({
         )}
         <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-4">
           <Button
-            className="shrink-0"
             disabled={isSectionMissing || isPending}
             onClick={() => onNewItem(Number(sectionId), searchTerm.trim())}
           >

@@ -1,7 +1,6 @@
 'use client'
 
-import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { CashRegisterForm } from '@/components/forms/cash-register-form/cash-register-form'
 import { createCashRegisterAction } from '@/lib/actions/cash-registers'
@@ -18,16 +17,7 @@ const EMPTY_DEFAULTS: CashRegisterFormValuesT = {
 export function AddCashRegisterDialog() {
   const workers = useReferenceData()?.workers ?? []
   return (
-    <FormDialog
-      formId="add-cash-register"
-      trigger={
-        <Button variant="outline" size="sm">
-          <Plus />
-          Dodaj
-        </Button>
-      }
-      title="Nowa kasa"
-    >
+    <FormDialog formId="add-cash-register" trigger={<AddButton>Dodaj</AddButton>} title="Nowa kasa">
       {(onSubmitSuccess, keepOpen) => (
         <CashRegisterForm
           formId="add-cash-register"

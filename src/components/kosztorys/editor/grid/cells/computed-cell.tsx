@@ -2,10 +2,11 @@ import type { ReactNode } from 'react'
 import { Column, type CellProps } from 'react-datasheet-grid'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { HintTooltip } from '@/components/ui/tooltip'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { formatNet as fmt } from '@/lib/kosztorys/format'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-const fmtOrDash = (value: number | null) => (value == null ? '—' : fmt(value))
+const fmtOrDash = (value: number | null) => (value == null ? EMPTY_VALUE : fmt(value))
 
 type ComputedCellToneT = 'muted' | 'danger'
 

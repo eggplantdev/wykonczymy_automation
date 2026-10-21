@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { HistoryChangesTable } from '@/components/kosztorys/editor/history/history-changes-table'
 import * as Collapsible from '@/components/ui/collapsible'
+import { Description } from '@/components/ui/description'
 import { TextLink } from '@/components/ui/text-link'
 import { differenceSummary, versionChangeRows } from '@/lib/kosztorys/history/change-rows'
 import type { PastVersionT } from '@/lib/kosztorys/history/types'
@@ -34,10 +35,10 @@ export function HistoryBanner({ version }: { version: PastVersionT | null }) {
         </TextLink>
       </p>
       {version.diff.discount.state === 'unknown' && (
-        <p className="text-muted-foreground">Rabat nieznany — ta wersja nie zapisała rabatu</p>
+        <Description withIcon={false}>Rabat nieznany — ta wersja nie zapisała rabatu</Description>
       )}
       {rows.length === 0 ? (
-        <p className="text-muted-foreground">{differenceSummary(0)}</p>
+        <Description withIcon={false}>{differenceSummary(0)}</Description>
       ) : (
         <Collapsible.Root open={changesOpen} onOpenChange={setChangesOpen}>
           <Collapsible.Trigger className="flex cursor-pointer items-center gap-1 font-medium">

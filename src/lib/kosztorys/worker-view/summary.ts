@@ -10,6 +10,7 @@ import type {
 } from '@/lib/kosztorys/types'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import type { PayoutTransactionRowT } from '@/types/transfers'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 export type WorkerSummaryT = {
   plannedNet: number
@@ -102,5 +103,5 @@ function shareOf(
 
 export function stageShareLabel(line: WorkerStageLineT): string {
   if (!line.share) return formatPercent(1)
-  return line.share.percent == null ? '—' : formatPercent(line.share.percent / 100)
+  return line.share.percent == null ? EMPTY_VALUE : formatPercent(line.share.percent / 100)
 }

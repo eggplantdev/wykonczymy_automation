@@ -1,3 +1,4 @@
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { cn } from '@/lib/utils/cn'
 
 type InfoListPropsT = {
@@ -22,7 +23,7 @@ export function InfoList({ items, layout = 'inline', className }: InfoListPropsT
       {items.map((item) => (
         <div key={item.label} className={stacked ? 'space-y-1' : 'contents'}>
           <dt className={cn('text-muted-foreground font-medium', !stacked && ROW)}>{item.label}</dt>
-          <dd className={cn('text-foreground', !stacked && ROW)}>{item.value || '—'}</dd>
+          <dd className={cn('text-foreground', !stacked && ROW)}>{item.value || EMPTY_VALUE}</dd>
         </div>
       ))}
     </dl>

@@ -12,6 +12,11 @@ export const DECISION_TONE = {
   pending: 'pending',
 } as const satisfies Record<DecisionStatusT, BadgeToneT>
 
+export const SETTLED_DECISION_TONE = {
+  ...DECISION_TONE,
+  rejected: 'muted',
+} as const satisfies Record<DecisionStatusT, BadgeToneT>
+
 const PARTS = [
   { key: 'accepted', label: 'decisionAccepted' },
   { key: 'rejected', label: 'decisionRejected' },

@@ -1,5 +1,4 @@
 import { ForgotPasswordForm } from './forgot-password-form'
-import { AuthLink } from '@/components/ui/auth-link'
 import { AuthPageLayout } from '@/components/ui/auth-page-layout'
 
 export default function ForgotPasswordPage() {
@@ -7,11 +6,9 @@ export default function ForgotPasswordPage() {
     <AuthPageLayout
       title="Resetowanie hasła"
       description="Podaj swój adres email, a wyślemy Ci link do zresetowania hasła."
+      backHref="/zaloguj"
     >
       <ForgotPasswordForm />
-      <AuthLink href="/zaloguj" className="mt-4 block">
-        Powrót do logowania
-      </AuthLink>
     </AuthPageLayout>
   )
 }

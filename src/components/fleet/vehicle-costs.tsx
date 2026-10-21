@@ -66,7 +66,7 @@ export function VehicleCosts({
       </div>
 
       <div>
-        <h3 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>Szczegóły</h3>
+        <h2 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>Szczegóły</h2>
 
         <SummaryTable cols={COLS} className="w-fit">
           <SummaryHeaderCell variant="label">Data</SummaryHeaderCell>

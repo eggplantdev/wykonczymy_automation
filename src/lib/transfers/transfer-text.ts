@@ -8,6 +8,7 @@ import {
 } from '@/lib/i18n/translations'
 import type { PayoutStatusT } from '@/lib/constants/payout-status'
 import type { TransferRowT } from '@/types/transfers'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 type TransfersTranslatorT = TranslatorT<'transfers'>
 
@@ -42,14 +43,16 @@ export function transferVatPlaneText(
   { vatPlane }: TransferRowT,
   { t }: TransfersTranslatorT = POLISH_TRANSFERS,
 ): string {
-  return vatPlane ? t(`plane_${vatPlane}` satisfies MessageKeyT<'transfers'>) : '—'
+  return vatPlane ? t(`plane_${vatPlane}` satisfies MessageKeyT<'transfers'>) : EMPTY_VALUE
 }
 
 export function transferPaymentMethodText(
   { paymentMethod }: TransferRowT,
   { t }: TransfersTranslatorT = POLISH_TRANSFERS,
 ): string {
-  return paymentMethod ? t(`payment_${paymentMethod}` satisfies MessageKeyT<'transfers'>) : '—'
+  return paymentMethod
+    ? t(`payment_${paymentMethod}` satisfies MessageKeyT<'transfers'>)
+    : EMPTY_VALUE
 }
 
 export function transferPayoutStatusText(
@@ -57,7 +60,7 @@ export function transferPayoutStatusText(
   translator: TransfersTranslatorT = POLISH_TRANSFERS,
 ): string {
   if (payoutStatus) return payoutStatusLabel(payoutStatus, cancelled, translator)
-  return type === 'PAYOUT' ? '—' : ''
+  return type === 'PAYOUT' ? EMPTY_VALUE : ''
 }
 
 export function transferOrderStatusText(

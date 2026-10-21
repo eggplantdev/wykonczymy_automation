@@ -53,7 +53,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
   if (!canViewRegister(user.role, register.type)) notFound()
 
-  const ownerName = register.ownerId ? (findWorkerRef(refData, register.ownerId)?.name ?? '—') : '—'
+  const ownerName = register.ownerId ? findWorkerRef(refData, register.ownerId)?.name : undefined
 
   const isOwnerLocked =
     (await cashRegisterDeleteBlocker(await getPayload({ config }), registerId)) !== undefined

@@ -22,7 +22,7 @@ import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
 import { Description } from '@/components/ui/description'
 
 type PropsT = {
-  trigger?: ReactNode
+  trigger: ReactNode
 }
 
 export function AddSheetDialog({ trigger }: PropsT) {
@@ -60,7 +60,7 @@ export function AddSheetDialog({ trigger }: PropsT) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger ?? <Button size="sm">Dodaj kosztorys</Button>}</DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-dialog-sm">
         <DialogHeader
           title="Nowy kosztorys"

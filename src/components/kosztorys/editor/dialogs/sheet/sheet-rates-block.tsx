@@ -20,6 +20,7 @@ import type {
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { Description } from '@/components/ui/description'
+import { EmptyValue } from '@/components/ui/empty-value'
 
 type PropsT = {
   mode: RatesReportModeT
@@ -248,7 +249,7 @@ const TONE_CLASS: Record<RateToneT, string> = {
 }
 
 function RateCell({ rate, note, tone }: { rate?: number; note?: string; tone?: RateToneT }) {
-  if (rate === undefined) return <span className="text-muted-foreground">—</span>
+  if (rate === undefined) return <EmptyValue />
   const toneClass = tone ? TONE_CLASS[tone] : undefined
   return (
     <>

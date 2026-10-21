@@ -2,6 +2,7 @@
 
 import { type ReactNode, useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
+import { Description } from '@/components/ui/description'
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,7 @@ type PropsT = {
   sheetId: number
   sheetName: string
   availableInvestments: InvestmentOptionT[]
-  trigger?: ReactNode
+  trigger: ReactNode
 }
 
 export function LinkSheetToInvestmentDialog({
@@ -48,13 +49,7 @@ export function LinkSheetToInvestmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button size="sm" variant="outline">
-            Dodaj kosztorys
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-dialog-sm">
         <DialogHeader
           title="Dodaj kosztorys do inwestycji"
@@ -63,9 +58,9 @@ export function LinkSheetToInvestmentDialog({
 
         <div className="space-y-2 text-sm">
           {availableInvestments.length === 0 ? (
-            <p className="text-muted-foreground">
+            <Description withIcon={false}>
               Brak inwestycji bez kosztorysu. Dodaj inwestycję albo odepnij istniejący kosztorys.
-            </p>
+            </Description>
           ) : (
             <SimpleSelect
               value={selectedId}
