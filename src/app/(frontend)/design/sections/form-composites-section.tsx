@@ -11,11 +11,11 @@ import {
   AmountField,
   DateField,
   DescriptionField,
-  EmptyFieldMessage,
   EntityComboboxField,
   PaymentMethodField,
   SourceRegisterField,
 } from '@/components/forms/form-fields'
+import { EmptyFieldMessage } from '@/components/forms/form-fields/empty-field-message'
 import {
   EquipmentItemFields,
   EquipmentNoteField,
