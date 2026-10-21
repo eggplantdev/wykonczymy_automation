@@ -48,6 +48,7 @@ type ArgsT = {
   pushReversible: UndoBurstsT['pushReversible']
   dropHeight: (...keys: string[]) => void
   unfoldSection: (sectionId: number) => void
+  holdNewRow: (rowId: number) => void
 }
 
 export function useSectionCrud({
@@ -67,6 +68,7 @@ export function useSectionCrud({
   pushReversible,
   dropHeight,
   unfoldSection,
+  holdNewRow,
 }: ArgsT) {
   const { setRows, rowsRef, prevById, patchRows } = editorRows
   const [sections, setSections] = useState<SectionMetaT[]>(() => treeToSections(tree))
@@ -142,6 +144,7 @@ export function useSectionCrud({
     )
     if (placement === 'reseed') return recoverStaleTree()
     const appended = rowsFromSections([slice])
+    for (const row of appended) holdNewRow(row.id)
     if (placement === 'prepend') {
       const [meta] = treeToSections({ sections: [slice] })
       commitSections(insertSection(sectionsRef.current, meta, null))

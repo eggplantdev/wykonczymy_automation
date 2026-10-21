@@ -259,6 +259,18 @@ export function useKosztorysEditor({
     handleApplyPercentDiscount,
   } = useKosztorysSettings({ investmentId, tree, rowsRef, patchRows, pushReversible })
 
+  const latchedConditions = useMemo(
+    () => engagedLatchingIds(engagedConditionIds),
+    [engagedConditionIds],
+  )
+  const { latch, refresh: refreshProblemRows } = useConditionRowLatch(
+    latchedConditions,
+    latchedConditions.size > 0,
+  )
+  // The latch only takes rows once they render, and a new praca with no przedmiar and no etapy never
+  // would under the usual filters.
+  const holdNewRow = (rowId: number) => latch?.ids.add(rowId)
+
   const sectionCrud = useSectionCrud({
     investmentId,
     tree,
@@ -276,6 +288,7 @@ export function useKosztorysEditor({
     pushReversible,
     dropHeight,
     unfoldSection,
+    holdNewRow,
   })
   const {
     sections,
@@ -308,6 +321,7 @@ export function useKosztorysEditor({
     pruneByIds,
     dropHeight,
     unfoldSection,
+    holdNewRow,
   })
   const { handleApplyCatalogueToItems, handleAcceptCatalogueName } = useCatalogueOps({
     investmentId,
@@ -537,14 +551,6 @@ export function useKosztorysEditor({
     [preview, rows, conditionCtx],
   )
 
-  const latchedConditions = useMemo(
-    () => engagedLatchingIds(engagedConditionIds),
-    [engagedConditionIds],
-  )
-  const { latch, refresh: refreshProblemRows } = useConditionRowLatch(
-    latchedConditions,
-    latchedConditions.size > 0,
-  )
   const viewRows = useMemo(() => {
     const next = buildViewRows({
       rows,

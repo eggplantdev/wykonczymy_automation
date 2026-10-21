@@ -1320,6 +1320,14 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [ ] `/design/audyt`: spis treści i wszystkie grupy domyślnie zwinięte; klik w spisie rozwija
       i przewija do grupy.
 
+## 2026-10-21 — new-item-stays-visible — nowa praca nie znika pod filtrami
+
+- [ ] Kosztorys → Filtry: „z przedmiarem lub wykonaną pracą” → „Nowa praca” w sekcji, bez ilości:
+      praca zostaje widoczna w siatce; wpisz Przedmiar — wiersz dalej jest.
+- [ ] Ten sam filtr → dodaj pracę z katalogu prac: dodane prace bez ilości zostają widoczne.
+- [ ] Nowa praca dalej pusta → otwórz menu „Filtry” albo przełącz dowolny filtr: praca znika
+      (filtry stosują się na nowo).
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

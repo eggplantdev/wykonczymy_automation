@@ -43,6 +43,7 @@ type ArgsT = {
   pruneByIds: UndoRedoApiT['pruneByIds']
   dropHeight: (...keys: string[]) => void
   unfoldSection: (sectionId: number) => void
+  holdNewRow: (rowId: number) => void
 }
 
 export function useItemOps({
@@ -59,6 +60,7 @@ export function useItemOps({
   pruneByIds,
   dropHeight,
   unfoldSection,
+  holdNewRow,
 }: ArgsT) {
   const { setRows, rowsRef, prevById } = editorRows
   const { sectionMeta, sectionsRef, rowsFromSections } = sectionCrud
@@ -77,6 +79,7 @@ export function useItemOps({
   }
 
   function placeNewItem(item: KosztorysItemT, placement: NewItemPlacementT) {
+    holdNewRow(item.id)
     const meta = sectionMeta(item.sectionId)
     const [row] = rowsFromSections([
       {
