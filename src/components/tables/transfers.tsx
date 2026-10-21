@@ -19,7 +19,6 @@ import {
   type RoleT,
 } from '@/lib/auth/roles'
 import { isCancellationType, billsNetAmount, transferTextClass } from '@/lib/constants/transfers'
-import { EMPTY_RELATION_NAME } from '@/lib/utils/get-relation-name'
 import { POLISH_TRANSFERS, type TranslatorT } from '@/lib/i18n/translations'
 import { INVESTMENT_LOCKED_MESSAGE, isBookableInvestment } from '@/lib/constants/investment-lock'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
@@ -32,6 +31,9 @@ import {
   transferVatPlaneText,
 } from '@/lib/transfers/transfer-text'
 import type { TransferRowT } from '@/types/transfers'
+import { actionsColumn } from '@/components/tables/columns/actions-column'
+import { dateCell } from '@/components/tables/columns/date-cell'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<TransferRowT>()
 
@@ -40,9 +42,7 @@ const col = createColumnHelper<TransferRowT>()
 const MANAGEMENT_LINK_COLUMNS = new Set(['sourceRegister', 'targetRegister', 'investment'])
 
 const relationLink = (name: string, href: string, id: number | null, isTrashed = false) => (
-  <OptionalLink
-    href={name !== EMPTY_RELATION_NAME && id && !isTrashed ? `${href}/${id}` : undefined}
-  >
+  <OptionalLink href={name !== EMPTY_VALUE && id && !isTrashed ? `${href}/${id}` : undefined}>
     {name}
   </OptionalLink>
 )
@@ -64,7 +64,7 @@ const buildColumns = (
       id: 'date',
       header: t('colDate'),
       meta: { printValue: (row) => formatPLDate(row.date) },
-      cell: (info) => formatPLDate(info.getValue()),
+      cell: dateCell,
     }),
     col.accessor('amount', {
       id: 'amount',
@@ -284,52 +284,46 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   const canFlipOrder = (row: TransferRowT) =>
     currentUserRole !== undefined && isManagementRole(currentUserRole) && !isOnLockedInvestment(row)
 
-  const actionsColumn = col.display({
-    id: 'actions',
-    header: translator.t('colActions'),
-    meta: { align: 'right' },
-    cell: (info) => {
-      const row = info.row.original
-      if (row.cancelled || isCancellationType(row.type)) return null
+  const rowActionsColumn = actionsColumn<TransferRowT>((row) => {
+    if (row.cancelled || isCancellationType(row.type)) return null
 
-      // Courtesy, not a gate — the collection hook refuses either write regardless.
-      const lockedInvestment = isOnLockedInvestment(row)
+    // Courtesy, not a gate — the collection hook refuses either write regardless.
+    const lockedInvestment = isOnLockedInvestment(row)
 
-      const actor =
-        currentUserRole && currentUserId !== undefined
-          ? {
-              role: currentUserRole,
-              userId: currentUserId,
-              transferType: row.type,
-              createdById: row.createdById,
-            }
-          : undefined
-      const canEdit = actor !== undefined && canMutateTransfer(actor)
-      const canCancel =
-        actor !== undefined && canCancelTransfer({ ...actor, payoutStatus: row.payoutStatus })
+    const actor =
+      currentUserRole && currentUserId !== undefined
+        ? {
+            role: currentUserRole,
+            userId: currentUserId,
+            transferType: row.type,
+            createdById: row.createdById,
+          }
+        : undefined
+    const canEdit = actor !== undefined && canMutateTransfer(actor)
+    const canCancel =
+      actor !== undefined && canCancelTransfer({ ...actor, payoutStatus: row.payoutStatus })
 
-      return (
-        <div className="flex items-center justify-end gap-1">
-          {referenceData && (
-            <EditTransferDialog
-              row={row}
-              referenceData={referenceData}
-              canEdit={canEdit && !lockedInvestment}
-              disabledReason={lockedInvestment ? INVESTMENT_LOCKED_MESSAGE : undefined}
-            />
-          )}
-          {!lockedInvestment && canCancel && <CancelTransferButton transactionId={row.id} />}
-        </div>
-      )
-    },
-  })
+    return (
+      <>
+        {referenceData && (
+          <EditTransferDialog
+            row={row}
+            referenceData={referenceData}
+            canEdit={canEdit && !lockedInvestment}
+            disabledReason={lockedInvestment ? INVESTMENT_LOCKED_MESSAGE : undefined}
+          />
+        )}
+        {!lockedInvestment && canCancel && <CancelTransferButton transactionId={row.id} />}
+      </>
+    )
+  }, translator.t('colActions'))
 
   // Sortability is derived, never declared per column: a column showing a name from another table
   // carries only the id in the row, and the name is joined in after the page is fetched — so the
   // database has nothing to order by and the click would silently sort one page.
   const columns: ColumnDef<TransferRowT, unknown>[] = [
     ...buildColumns(translator, uncoloredAmounts, canFlipOrder),
-    actionsColumn,
+    rowActionsColumn,
   ]
     .map((column) =>
       transferSort.isSortable(column.id!)

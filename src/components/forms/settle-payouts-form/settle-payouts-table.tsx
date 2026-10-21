@@ -21,9 +21,10 @@ import {
   type SettleRowT,
 } from '@/lib/kosztorys/worker-payout-pairs'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import { formatPLN } from '@/lib/utils/format-currency'
+import { formatPLN, formatPLNOrDash } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { amountOf, isValidAmount, type RowValueT } from './row-value'
+import { EmptyValue } from '@/components/ui/empty-value'
 
 type SettleTableContextT = {
   values: RowValueT[]
@@ -139,8 +140,7 @@ function AfterPayoutCell({ row, index }: { row: SettleRowT; index: number }) {
       </Button>
     )
   }
-  if (!value.ticked || !isValidAmount(value))
-    return <span className="text-muted-foreground">—</span>
+  if (!value.ticked || !isValidAmount(value)) return <EmptyValue />
 
   return <RemainderAmount value={roundToCents(row.remaining - amountOf(value))} />
 }
@@ -152,8 +152,6 @@ function RemainderAmount({ value }: { value: number }) {
 const col = createColumnHelper<SettleRowT>()
 const AMOUNT_COLUMN_ID = 'amount'
 const BONUS_COLUMN_ID = 'bonus'
-
-const money = (value: number) => <span className="whitespace-nowrap">{formatPLN(value)}</span>
 
 const COLUMNS = [
   col.display({
@@ -168,18 +166,18 @@ const COLUMNS = [
   col.accessor('due', {
     header: 'Wykonane',
     meta: { align: 'right' },
-    cell: (info) => money(info.getValue()),
+    cell: (info) => formatPLNOrDash(info.getValue()),
   }),
   col.accessor('bonus', {
     id: BONUS_COLUMN_ID,
     header: 'Premia',
     meta: { align: 'right' },
-    cell: (info) => money(info.getValue()),
+    cell: (info) => formatPLNOrDash(info.getValue()),
   }),
   col.accessor('paid', {
     header: 'Wypłacone',
     meta: { align: 'right' },
-    cell: (info) => money(info.getValue()),
+    cell: (info) => formatPLNOrDash(info.getValue()),
   }),
   col.accessor('remaining', {
     header: 'Pozostało',

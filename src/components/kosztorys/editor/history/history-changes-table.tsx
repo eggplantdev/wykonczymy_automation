@@ -35,5 +35,5 @@ const CHANGE_COLUMNS: ColumnDef<ChangeRowT>[] = [
 ]
 
 export function HistoryChangesTable({ rows }: { rows: ChangeRowT[] }) {
-  return <DataTable data={rows} columns={CHANGE_COLUMNS} className="w-full" />
+  return <DataTable data={rows} columns={CHANGE_COLUMNS} />
 }

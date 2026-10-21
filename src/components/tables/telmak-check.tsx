@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button'
 import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { useInvoiceUpload } from '@/hooks/use-invoice-upload'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
-import { formatPLDate } from '@/lib/utils/format-date'
+import { dateCell } from '@/components/tables/columns/date-cell'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { cn } from '@/lib/utils/cn'
 import type { TelmakStatusT } from '@/lib/telmak/compare-telmak'
 import type { TelmakCheckRowT } from '@/lib/telmak/check-row'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const STATUS_LABELS: Record<TelmakStatusT, string> = {
   unreadable: 'Nieznany format',
@@ -50,10 +51,7 @@ export function getTelmakCheckColumns(onAttached: () => void) {
       header: 'Dokument',
       cell: (info) => <span className="whitespace-nowrap">{info.getValue()}</span>,
     }),
-    col.accessor('issueDate', {
-      header: 'Data wyst.',
-      cell: (info) => (info.getValue() ? formatPLDate(info.getValue()!) : '—'),
-    }),
+    col.accessor('issueDate', { header: 'Data wyst.', cell: dateCell }),
     col.accessor('docAmount', {
       header: 'Faktura',
       meta: { align: 'right' },
@@ -66,7 +64,7 @@ export function getTelmakCheckColumns(onAttached: () => void) {
     }),
     col.accessor('investmentName', {
       header: 'Inwestycja',
-      cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? '—'}</span>,
+      cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? EMPTY_VALUE}</span>,
     }),
     col.accessor('notes', { header: 'Uwagi', meta: { minWidth: 'min-w-64' } }),
     col.display({

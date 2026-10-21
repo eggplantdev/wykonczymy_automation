@@ -29,6 +29,7 @@ import type {
   NearDuplicateT,
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
+import { EmptyValue } from '@/components/ui/empty-value'
 
 const col = createColumnHelper<WorkCatalogueItemT>()
 
@@ -50,7 +51,7 @@ const shareOf = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
 
 const share = (value: number | null, overCeiling: boolean) =>
   value === null ? (
-    <span className="text-muted-foreground">—</span>
+    <EmptyValue />
   ) : (
     <span className={cn('tabular-nums', overCeiling && FLAGGED_TONE)}>{formatPercent(value)}</span>
   )

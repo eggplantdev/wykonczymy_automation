@@ -8,7 +8,7 @@ import {
 import { cn } from '@/lib/utils/cn'
 import { SECTION_TITLE_CLASS } from '@/components/ui/section-header'
 
-type ToolbarSearchT = {
+export type ToolbarSearchT = {
   value: string
   onChange: (value: string) => void
   placeholder?: string

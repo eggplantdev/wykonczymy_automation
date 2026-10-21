@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { FileInput } from '@/components/ui/file-input'
 import { InlineLoading } from '@/components/ui/loader/inline-loading'
 import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
+import { Description } from '@/components/ui/description'
 import { DateRangePicker } from '@/components/filters/date-range-picker'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { getTransferColumns, transferRowClassName } from '@/components/tables/transfers'
@@ -152,10 +153,10 @@ export function TelmakCheckDialog({ registerId }: TelmakCheckDialogPropsT) {
           <section className="flex flex-col gap-3">
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium">Wybierz zakres dat wystawienia faktur</span>
-              <span className="text-muted-foreground text-sm">
+              <Description withIcon={false}>
                 Puste ustawi się samo z dat w paczce. Transakcje z kasy w tym zakresie, których nie
                 ma w paczce, pokażą się jako „Brak faktury w paczce”.
-              </span>
+              </Description>
             </div>
             <DateRangePicker
               stacked

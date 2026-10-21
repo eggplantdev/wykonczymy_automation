@@ -17,6 +17,9 @@ import { cn } from '@/lib/utils/cn'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashWorkerAction } from '@/lib/actions/worker-trash'
 import { describeWorkerTrash } from '@/lib/workers/describe-trash'
+import { actionsColumn } from '@/components/tables/columns/actions-column'
+import { EmptyValue } from '@/components/ui/empty-value'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<UserRowT>()
 
@@ -45,7 +48,7 @@ function PayoutRemainingCell({
   view: WorkerColumnFiguresT | undefined
   onSettle: () => void
 }) {
-  if (!view) return <span className="text-muted-foreground">—</span>
+  if (!view) return <EmptyValue />
   const lines = PAYOUT_LINES.map((line) => {
     const bucket = view[line.bucket]
     const count = line.kind === 'owed' ? bucket.owedCount : bucket.overpaidCount
@@ -144,7 +147,7 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
     col.accessor('defaultCashRegisterName', {
       id: 'defaultCashRegister',
       header: 'Domyślna kasa',
-      cell: (info) => info.getValue() ?? '—',
+      cell: (info) => info.getValue() ?? EMPTY_VALUE,
     }),
     col.accessor((row) => row.registerNames.length, {
       id: 'registers',
@@ -152,31 +155,23 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
       meta: { align: 'right' },
       cell: (info) =>
         info.getValue() === 0 ? (
-          '—'
+          EMPTY_VALUE
         ) : (
           <SimpleTooltip content={info.row.original.registerNames.join(', ')}>
             <span>{info.getValue()}</span>
           </SimpleTooltip>
         ),
     }),
-    col.display({
-      id: 'actions',
-      header: 'Akcje',
-      meta: { align: 'right' },
-      cell: (info) =>
-        info.row.original.canManage && (
-          <div className="flex items-center justify-end gap-1">
-            <TrashRowButton
-              label="Usuń pracownika"
-              description={describeWorkerTrash(
-                info.row.original.name,
-                info.row.original.registerNames,
-              )}
-              trash={() => trashWorkerAction(info.row.original.id)}
-              trashed="Pracownik przeniesiony do kosza."
-            />
-          </div>
+    actionsColumn<UserRowT>(
+      (worker) =>
+        worker.canManage && (
+          <TrashRowButton
+            label="Usuń pracownika"
+            description={describeWorkerTrash(worker.name, worker.registerNames)}
+            trash={() => trashWorkerAction(worker.id)}
+            trashed="Pracownik przeniesiony do kosza."
+          />
         ),
-    }),
+    ),
   ]
 }

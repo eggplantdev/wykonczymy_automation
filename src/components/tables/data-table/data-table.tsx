@@ -20,6 +20,8 @@ import { TableHeader } from './table-header'
 import { isTableTextSize, TABLE_TEXT_SIZE, type TableTextSizeT } from './table-text-size'
 import { TableFooter } from './table-footer'
 import { EmptyRow } from './empty-row'
+import { DataTableToolbar, type ToolbarSearchT } from './data-table-toolbar'
+import { ColumnToggle } from './column-toggle'
 import {
   readOrder,
   readTextSize,
@@ -44,6 +46,11 @@ export type DataTableToolbarContextT<TData> = {
   setTextSize: (size: TableTextSizeT) => void
 }
 
+type ColumnToggleOptionsT<TData> = {
+  contentClassName?: string
+  sections?: (table: Table<TData>, columnVisibility: VisibilityState) => React.ReactNode
+}
+
 type DataTablePropsT<TData> = {
   data: TData[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,6 +70,13 @@ type DataTablePropsT<TData> = {
   getRowClassName?: (row: TData) => string
   footer?: (visibleColumnIds: string[]) => React.ReactNode
   toolbar?: (ctx: DataTableToolbarContextT<TData>) => React.ReactNode
+  title?: React.ReactNode
+  search?: ToolbarSearchT
+  filters?: React.ReactNode
+  filterChips?: React.ReactNode
+  actions?: React.ReactNode | ((table: Table<TData>) => React.ReactNode)
+  columnToggle?: boolean | ColumnToggleOptionsT<TData>
+  toolbarClassName?: string
   aboveToolbar?: React.ReactNode
   belowToolbar?: React.ReactNode
   renderRows?: (rows: Row<TData>[]) => React.ReactNode
@@ -86,6 +100,13 @@ export function DataTable<TData>({
   getRowClassName,
   footer,
   toolbar,
+  title,
+  search,
+  filters,
+  filterChips,
+  actions,
+  columnToggle,
+  toolbarClassName,
   aboveToolbar,
   belowToolbar,
   renderRows,
@@ -191,19 +212,42 @@ export function DataTable<TData>({
   const visibleColCount = visibleLeafColumns.length
   const visibleColumnIdList = visibleLeafColumns.map((column) => column.id)
 
+  const toolbarContext: DataTableToolbarContextT<TData> = {
+    table,
+    columnVisibility,
+    ranks,
+    baseRanks: baseRanksFromKeys(rankedColumnIds),
+    setRank,
+    resetOrder,
+    textSize,
+    setTextSize,
+  }
+  const hasToolbarSlots = [title, search, filters, filterChips, actions, columnToggle].some(Boolean)
+  const toggleOptions = typeof columnToggle === 'object' ? columnToggle : {}
+
   return (
     <div className={cn('space-y-2 max-sm:space-y-6', className)}>
       {aboveToolbar && <div className="max-sm:-mt-4">{aboveToolbar}</div>}
-      {toolbar?.({
-        table,
-        columnVisibility,
-        ranks,
-        baseRanks: baseRanksFromKeys(rankedColumnIds),
-        setRank,
-        resetOrder,
-        textSize,
-        setTextSize,
-      })}
+      {toolbar?.(toolbarContext)}
+      {hasToolbarSlots && (
+        <DataTableToolbar
+          className={toolbarClassName}
+          title={title}
+          search={search}
+          filters={filters}
+          filterChips={filterChips}
+          actions={typeof actions === 'function' ? actions(table) : actions}
+          columns={
+            columnToggle && (
+              <ColumnToggle
+                {...toolbarContext}
+                contentClassName={toggleOptions.contentClassName}
+                sections={toggleOptions.sections?.(table, columnVisibility)}
+              />
+            )
+          }
+        />
+      )}
       {belowToolbar}
       {renderRows ? (
         renderRows(rows)

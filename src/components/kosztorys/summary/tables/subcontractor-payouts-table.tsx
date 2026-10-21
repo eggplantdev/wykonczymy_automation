@@ -8,6 +8,7 @@ import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
 import { UNASSIGNED_WORKER_NAME } from '@/lib/kosztorys/payouts-by-worker'
 import { workerKey } from '@/lib/kosztorys/worker-key'
 import type { PayoutTransactionRowT, SubcontractorPayoutRowT } from '@/types/transfers'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 type PayoutTableRowT = {
   workerId: number | null
@@ -36,7 +37,7 @@ const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
     size: 320,
     enableSorting: false,
     cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue<string | null>() || '—'}</span>
+      <span className="text-muted-foreground">{getValue<string | null>() || EMPTY_VALUE}</span>
     ),
   },
   {

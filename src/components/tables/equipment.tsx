@@ -14,6 +14,8 @@ import type { DayT } from '@/lib/utils/days'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashEquipmentAction } from '@/lib/actions/equipment-trash'
 import { describeEquipmentTrash } from '@/lib/equipment/describe-trash'
+import { actionsColumn } from '@/components/tables/columns/actions-column'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<EquipmentRowT>()
 
@@ -37,12 +39,14 @@ export function getEquipmentColumns({ today, warehouses }: EquipmentColumnsArgsT
     col.accessor(makeModel, {
       id: 'makeModel',
       header: 'Marka / model',
-      cell: (info) => <span>{info.getValue() || '—'}</span>,
+      cell: (info) => info.getValue() || EMPTY_VALUE,
     }),
     col.accessor('serialNumber', {
       id: 'serialNumber',
       header: 'Nr seryjny',
-      cell: (info) => <span className="text-muted-foreground">{info.getValue() || '—'}</span>,
+      cell: (info) => (
+        <span className="text-muted-foreground">{info.getValue() || EMPTY_VALUE}</span>
+      ),
     }),
     col.accessor((row) => (row.location.kind === 'holder' ? row.location.name : ''), {
       id: 'holder',
@@ -75,7 +79,7 @@ export function getEquipmentColumns({ today, warehouses }: EquipmentColumnsArgsT
     col.accessor('investmentName', {
       id: 'investment',
       header: 'Inwestycja',
-      cell: (info) => <span>{info.getValue() || '—'}</span>,
+      cell: (info) => info.getValue() || EMPTY_VALUE,
     }),
     col.accessor((row) => warrantyDaysLeft(row.warrantyUntil, today) ?? undefined, {
       id: 'warranty',
@@ -95,23 +99,18 @@ export function getEquipmentColumns({ today, warehouses }: EquipmentColumnsArgsT
       header: 'Status',
       cell: (info) => <EquipmentStatusBadge status={info.getValue()} />,
     }),
-    col.display({
-      id: 'actions',
-      header: 'Akcje',
-      meta: { align: 'right' },
-      // The row's own click is unaffected — `DataTableRow` ignores a click that landed on a button.
-      cell: (info) => (
-        <div className="flex items-center justify-end gap-1">
-          <TransferEquipmentDialog equipment={info.row.original} warehouses={warehouses} />
-          <EditEquipmentDialog equipment={info.row.original} />
-          <TrashRowButton
-            label="Usuń sprzęt"
-            description={describeEquipmentTrash(info.row.original)}
-            trash={() => trashEquipmentAction(info.row.original.id)}
-            trashed="Sprzęt przeniesiony do kosza."
-          />
-        </div>
-      ),
-    }),
+    // The row's own click is unaffected — `DataTableRow` ignores a click that landed on a button.
+    actionsColumn<EquipmentRowT>((equipment) => (
+      <>
+        <TransferEquipmentDialog equipment={equipment} warehouses={warehouses} />
+        <EditEquipmentDialog equipment={equipment} />
+        <TrashRowButton
+          label="Usuń sprzęt"
+          description={describeEquipmentTrash(equipment)}
+          trash={() => trashEquipmentAction(equipment.id)}
+          trashed="Sprzęt przeniesiony do kosza."
+        />
+      </>
+    )),
   ]
 }

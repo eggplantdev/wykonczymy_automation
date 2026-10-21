@@ -2,7 +2,7 @@
 
 import { createColumnHelper, type CellContext } from '@tanstack/react-table'
 import { pluralize } from '@/lib/utils/polish-plural'
-import { formatPLN } from '@/lib/utils/format-currency'
+import { formatPLN, formatPLNOrDash } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
@@ -30,6 +30,8 @@ import { SheetButton } from '@/components/investments/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import { AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 import { AiStageSelect } from '@/components/investments/ai-stage-select'
+import { actionsColumn } from '@/components/tables/columns/actions-column'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<InvestmentRowT>()
 
@@ -204,7 +206,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
       id: 'laborCostsFromTransactions',
       header: 'Robocizna v1',
       meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.laborCostsFromTransactions },
-      cell: (info) => formatPLN(info.getValue()),
+      cell: (info) => formatPLNOrDash(info.getValue()),
     }),
     col.accessor('totalLaborCosts', {
       id: 'laborCostsFromKosztorys',
@@ -243,7 +245,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
       id: 'totalSettled',
       header: 'Wydatki wliczone w robociznę',
       meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.totalSettled },
-      cell: (info) => formatPLN(info.getValue()),
+      cell: (info) => formatPLNOrDash(info.getValue()),
     }),
     ...(isAdminOrOwner
       ? [
@@ -251,7 +253,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
             id: 'totalPayouts',
             header: 'Wypłaty',
             meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.totalPayouts },
-            cell: (info) => formatPLN(info.getValue()),
+            cell: (info) => formatPLNOrDash(info.getValue()),
           }),
         ]
       : []),
@@ -286,7 +288,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
       id: 'address',
       header: 'Adres',
       meta: { minWidth: 'min-w-56' },
-      cell: (info) => info.getValue() || '—',
+      cell: (info) => info.getValue() || EMPTY_VALUE,
     }),
     col.accessor('phone', {
       id: 'phone',
@@ -302,12 +304,12 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
     col.accessor('contactPerson', {
       id: 'contactPerson',
       header: 'Osoba kontaktowa',
-      cell: (info) => info.getValue() || '—',
+      cell: (info) => info.getValue() || EMPTY_VALUE,
     }),
     col.accessor('reviewRequested', {
       id: 'reviewRequested',
       header: 'Opinia',
-      cell: (info) => (info.getValue() ? 'Wysłano' : '—'),
+      cell: (info) => (info.getValue() ? 'Wysłano' : EMPTY_VALUE),
     }),
     col.accessor('status', {
       id: 'status',
@@ -320,26 +322,19 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
         </div>
       ),
     }),
-    col.display({
-      id: 'actions',
-      header: 'Akcje',
-      meta: { align: 'right' },
-      cell: (info) => (
-        <div className="flex items-center justify-end gap-1">
-          {isOfferedForBooking(info.row.original) && (
-            <RowActionButton
-              icon={Truck}
-              label={ORDER_ACTION_LABEL}
-              onClick={() => onOrder(info.row.original)}
-            />
-          )}
-          {isLockedStatus(info.row.original.status) && (
-            <RequestReviewButton investment={info.row.original} />
-          )}
-          <EditInvestmentDialog investment={info.row.original} showSiteManager />
-          <TrashInvestmentButton investment={info.row.original} />
-        </div>
-      ),
-    }),
+    actionsColumn<InvestmentRowT>((investment) => (
+      <>
+        {isOfferedForBooking(investment) && (
+          <RowActionButton
+            icon={Truck}
+            label={ORDER_ACTION_LABEL}
+            onClick={() => onOrder(investment)}
+          />
+        )}
+        {isLockedStatus(investment.status) && <RequestReviewButton investment={investment} />}
+        <EditInvestmentDialog investment={investment} showSiteManager />
+        <TrashInvestmentButton investment={investment} />
+      </>
+    )),
   ]
 }

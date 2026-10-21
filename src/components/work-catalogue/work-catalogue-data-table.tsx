@@ -3,8 +3,6 @@
 import { useDeferredValue, useMemo } from 'react'
 import { Ruler, Tags } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
-import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { cn } from '@/lib/utils/cn'
 import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
@@ -188,72 +186,61 @@ export function WorkCatalogueDataTable({ data, usage }: PropsT) {
             Widoczne prace {filteredData.length} / {data.length}
           </Description>
         }
-        toolbar={({ table, columnVisibility: cv, ...order }) => (
-          <DataTableToolbar
-            columns={
-              <ColumnToggle
-                table={table}
-                columnVisibility={cv}
-                contentClassName="w-112"
-                {...order}
-              />
-            }
-            filterChips={
-              <ActiveFiltersBar chips={chips} onRemove={removeChip} onClearAll={resetFilters} />
-            }
-            search={{
-              value: searchTerm,
-              onChange: setSearchTerm,
-              placeholder: 'Szukaj pracy...',
-            }}
-            filters={
-              <>
-                <FilterMultiSelect
-                  label="Kategoria"
-                  options={categoryOptions}
-                  values={categories}
-                  onValuesChange={setCategories}
-                  icon={Tags}
-                  searchable
-                  triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-                  contentClassName="w-112"
-                />
-                <FilterMultiSelect
-                  label="j.m."
-                  options={unitOptions}
-                  values={units}
-                  onValuesChange={setUnits}
-                  icon={Ruler}
-                  searchable
-                  triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-                />
-                <CatalogueFiltersMenu
-                  toggles={filterToggles}
-                  onToggle={toggleCondition}
-                  onClear={() =>
-                    setConditions(
-                      filterToggles.map((toggle) => toggle.id),
-                      false,
-                    )
-                  }
-                />
-                <CatalogueProblemsMenu
-                  toggles={problemToggles}
-                  onSelect={(id) => toggleExclusive(id, CATALOGUE_PROBLEM_IDS)}
-                />
-                {/* Always mounted: toggling it would resize the flex row and nudge the buttons
-                  sideways on every keystroke. */}
-                <GradientSpinner className={cn('max-sm:hidden', !busy && 'invisible')} />
-              </>
-            }
-            actions={
-              <>
-                <FillCatalogueTranslationsButton count={countNeedingTranslation(data)} />
-                <AddCatalogueItemDialog categorySuggestions={categorySuggestions} />
-              </>
-            }
-          />
-        )}
+        columnToggle={{ contentClassName: 'w-112' }}
+        filterChips={
+          <ActiveFiltersBar chips={chips} onRemove={removeChip} onClearAll={resetFilters} />
+        }
+        search={{
+          value: searchTerm,
+          onChange: setSearchTerm,
+          placeholder: 'Szukaj pracy...',
+        }}
+        filters={
+          <>
+            <FilterMultiSelect
+              label="Kategoria"
+              options={categoryOptions}
+              values={categories}
+              onValuesChange={setCategories}
+              icon={Tags}
+              searchable
+              triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+              contentClassName="w-112"
+            />
+            <FilterMultiSelect
+              label="j.m."
+              options={unitOptions}
+              values={units}
+              onValuesChange={setUnits}
+              icon={Ruler}
+              searchable
+              triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+            />
+            <CatalogueFiltersMenu
+              toggles={filterToggles}
+              onToggle={toggleCondition}
+              onClear={() =>
+                setConditions(
+                  filterToggles.map((toggle) => toggle.id),
+                  false,
+                )
+              }
+            />
+            <CatalogueProblemsMenu
+              toggles={problemToggles}
+              onSelect={(id) => toggleExclusive(id, CATALOGUE_PROBLEM_IDS)}
+            />
+            {/* Always mounted: toggling it would resize the flex row and nudge the buttons
+              sideways on every keystroke. */}
+            <GradientSpinner className={cn('max-sm:hidden', !busy && 'invisible')} />
+          </>
+        }
+        actions={
+          <>
+            <FillCatalogueTranslationsButton count={countNeedingTranslation(data)} />
+            <AddCatalogueItemDialog categorySuggestions={categorySuggestions} />
+          </>
+        }
       />
       <UncataloguedUsageList groups={usage.uncatalogued} />
     </>

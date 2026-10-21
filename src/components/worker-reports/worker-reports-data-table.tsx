@@ -3,7 +3,6 @@
 import { useSearchParams } from 'next/navigation'
 import { QueueFilters } from '@/components/filters/queue-filters'
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { useWorkerReportColumns } from '@/components/tables/worker-reports'
 import { PaginationFooter } from '@/components/ui/pagination/pagination-footer'
 import { ScanReportButton } from '@/components/worker-reports/scan-report-button'
@@ -64,7 +63,7 @@ export function WorkerReportsDataTable({ data, paginationMeta, investments, work
         data={data}
         columns={columns}
         storageKey="worker-reports"
-        toolbar={() => <DataTableToolbar actions={<ScanReportButton />} />}
+        actions={<ScanReportButton />}
         sorting={sortParamToSortingState(
           workerReportSort.valid(searchParams.get('sort') ?? undefined),
         )}

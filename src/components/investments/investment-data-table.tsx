@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
-import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { StatusFilter } from '@/components/investments/status-filter'
 import { getInvestmentColumns, V1_COLUMN_IDS, V2_COLUMN_IDS } from '@/components/tables/investments'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
@@ -92,57 +90,46 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
         storageKey="investments"
         initialSorting={INITIAL_SORTING}
         getRowClassName={(row) => (isClosedStatus(row.status) ? 'opacity-50' : '')}
-        toolbar={({ table, columnVisibility: cv, ...order }) => {
-          return (
-            <DataTableToolbar
-              search={{ value: searchTerm, onChange: setSearchTerm }}
-              filters={
-                <>
-                  <StatusFilter
-                    selectedStatuses={selectedStatuses}
-                    onToggle={toggleStatus}
-                    onClear={clearStatuses}
-                    triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-                  />
-                  <FilterMultiSelect
-                    label="Analiza AI"
-                    options={AI_PROGRESS_OPTIONS}
-                    values={aiSteps}
-                    onValuesChange={setAiSteps}
-                    icon={Sparkles}
-                    triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-                  />
-                </>
-              }
-              columns={
-                <ColumnToggle
-                  table={table}
-                  columnVisibility={cv}
-                  {...order}
-                  sections={
-                    <>
-                      <DropdownMenuLabel>Warstwy</DropdownMenuLabel>
-                      {LAYERS.map(({ label, columnIds }) => (
-                        <DropdownMenuCheckboxRow
-                          key={label}
-                          checked={columnIds.every((id) => cv[id] !== false)}
-                          onCheckedChange={(next) =>
-                            table.setColumnVisibility((prev) => ({
-                              ...prev,
-                              ...Object.fromEntries(columnIds.map((id) => [id, next === true])),
-                            }))
-                          }
-                          label={label}
-                        />
-                      ))}
-                    </>
-                  }
-                />
-              }
-              actions={<AddInvestmentDialog presets={presets} />}
+        search={{ value: searchTerm, onChange: setSearchTerm }}
+        filters={
+          <>
+            <StatusFilter
+              selectedStatuses={selectedStatuses}
+              onToggle={toggleStatus}
+              onClear={clearStatuses}
+              triggerClassName={GRID_FILTER_TRIGGER_CLASS}
             />
-          )
+            <FilterMultiSelect
+              label="Analiza AI"
+              options={AI_PROGRESS_OPTIONS}
+              values={aiSteps}
+              onValuesChange={setAiSteps}
+              icon={Sparkles}
+              triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+            />
+          </>
+        }
+        columnToggle={{
+          sections: (table, columnVisibility) => (
+            <>
+              <DropdownMenuLabel>Warstwy</DropdownMenuLabel>
+              {LAYERS.map(({ label, columnIds }) => (
+                <DropdownMenuCheckboxRow
+                  key={label}
+                  checked={columnIds.every((id) => columnVisibility[id] !== false)}
+                  onCheckedChange={(next) =>
+                    table.setColumnVisibility((prev) => ({
+                      ...prev,
+                      ...Object.fromEntries(columnIds.map((id) => [id, next === true])),
+                    }))
+                  }
+                  label={label}
+                />
+              ))}
+            </>
+          ),
         }}
+        actions={<AddInvestmentDialog presets={presets} />}
       />
       <SettlePayoutsDialog target={settleTarget} onClose={() => setSettleTarget(null)} />
       {orderTarget && referenceData && orderSettings && (

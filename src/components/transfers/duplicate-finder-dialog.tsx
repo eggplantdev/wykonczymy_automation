@@ -104,10 +104,10 @@ export function DuplicateFinderDialog({ findGroups }: DuplicateFinderDialogProps
           <DialogHeader title="Szukaj duplikatów" />
 
           <section className="flex flex-col gap-3">
-            <span className="text-muted-foreground text-sm">
+            <Description withIcon={false}>
               Sprawdza wydatki z zakresu i z filtrów tabeli oraz paragony z nierozpatrzonych
               zgłoszeń — każdy z wydatkami całej firmy, z dowolnego okresu.
-            </span>
+            </Description>
             <div className="flex flex-wrap items-end gap-4">
               <DateRangePicker value={range} onChange={changeRange} stacked />
               <Button
@@ -119,9 +119,9 @@ export function DuplicateFinderDialog({ findGroups }: DuplicateFinderDialogProps
               </Button>
             </div>
             {!isAllTime(range) && !isComplete && (
-              <span className="text-muted-foreground text-sm">
+              <Description withIcon={false}>
                 Wybierz obie daty albo wyczyść zakres, żeby sprawdzić cały okres.
-              </span>
+              </Description>
             )}
             {isInverted && <Description tone="error">Nieprawidłowy zakres dat</Description>}
           </section>

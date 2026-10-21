@@ -13,9 +13,11 @@ import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDateTime } from '@/lib/utils/format-date'
+import { formatDecision } from '@/lib/utils/format-decision'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
 import { expenseDraftSort } from '@/lib/worker-expenses/sortable-columns'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<ExpenseDraftRowT>()
 
@@ -33,7 +35,7 @@ type OptionsT = {
 // A history row stands for one paragon, so it carries at most one transakcja.
 function TransferCell({ draft, isLinked }: { draft: ExpenseDraftRowT; isLinked: boolean }) {
   const [transfer] = draft.transfers
-  if (!transfer) return '—'
+  if (!transfer) return EMPTY_VALUE
   const href =
     isLinked && transfer.investmentId !== null
       ? investmentTransfersHref(transfer.investmentId, {
@@ -147,7 +149,7 @@ export function useExpenseDraftColumns({
       header: t('note'),
       enableSorting: false,
       meta: { minWidth: 'min-w-64' },
-      cell: (info) => <span className="break-words">{info.getValue() ?? '—'}</span>,
+      cell: (info) => <span className="break-words">{info.getValue() ?? EMPTY_VALUE}</span>,
     }),
     ...(isPendingQueue
       ? [
@@ -156,7 +158,7 @@ export function useExpenseDraftColumns({
             header: t('receipts'),
             meta: { minWidth: 'min-w-48' },
             cell: ({ row: { original: draft } }) =>
-              draft.progress ? <DecisionProgressBadge {...draft.progress} /> : '—',
+              draft.progress ? <DecisionProgressBadge {...draft.progress} /> : EMPTY_VALUE,
           }),
         ]
       : [
@@ -186,10 +188,8 @@ export function useExpenseDraftColumns({
             meta: { minWidth: 'min-w-56' },
             cell: ({ row: { original: draft } }) =>
               draft.decidedAt
-                ? [formatPLDateTime(draft.decidedAt, locale), draft.decidedByName]
-                    .filter(Boolean)
-                    .join(' · ')
-                : '—',
+                ? formatDecision(draft.decidedAt, draft.decidedByName, locale)
+                : EMPTY_VALUE,
           }),
           col.accessor('transfers', {
             header: t('transfers'),

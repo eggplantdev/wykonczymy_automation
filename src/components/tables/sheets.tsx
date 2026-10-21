@@ -82,9 +82,9 @@ export function getInvestmentWithoutSheetColumns() {
       cell: (info) => {
         const row = info.row.original
         return (
-          <OptionalLink href={`/inwestycje/${row.investmentId}`} className="font-medium">
-            {info.getValue()}
-          </OptionalLink>
+          <span className="font-medium">
+            <OptionalLink href={`/inwestycje/${row.investmentId}`}>{info.getValue()}</OptionalLink>
+          </span>
         )
       },
     }),

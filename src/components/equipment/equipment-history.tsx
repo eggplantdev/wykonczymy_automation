@@ -9,6 +9,7 @@ import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { targetLabel } from '@/lib/equipment/rows'
 import type { EquipmentEventRowT } from '@/lib/equipment/types'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<EquipmentEventRowT>()
 
@@ -25,18 +26,18 @@ const COLUMNS = [
   col.accessor('investmentName', {
     id: 'investment',
     header: 'Inwestycja',
-    cell: (info) => <span>{info.getValue() || '—'}</span>,
+    cell: (info) => info.getValue() || EMPTY_VALUE,
   }),
   col.accessor('note', {
     id: 'note',
     header: 'Notatka',
     enableSorting: false,
-    cell: (info) => <span className="text-muted-foreground">{info.getValue() || '—'}</span>,
+    cell: (info) => <span className="text-muted-foreground">{info.getValue() || EMPTY_VALUE}</span>,
   }),
   col.accessor('createdByName', {
     id: 'createdBy',
     header: 'Wpisał',
-    cell: (info) => <span className="text-muted-foreground">{info.getValue() || '—'}</span>,
+    cell: (info) => <span className="text-muted-foreground">{info.getValue() || EMPTY_VALUE}</span>,
   }),
   col.accessor((row) => row.cost ?? undefined, {
     id: 'cost',

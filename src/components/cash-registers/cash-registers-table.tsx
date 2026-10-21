@@ -1,12 +1,10 @@
 'use client'
 
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import { Tags, User } from 'lucide-react'
-import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { getCashRegisterColumns } from '@/components/tables/cash-registers'
 import { REGISTER_TYPES, REGISTER_TYPE_LABELS } from '@/lib/cash-registers/register-types'
 import { RegisterBalanceChart } from '@/components/cash-registers/register-balance-chart'
@@ -28,7 +26,6 @@ const getCashRegisterSearchText = (row: CashRegisterRowT) => `${row.name} ${row.
 
 type CashRegistersTablePropsT = {
   data: CashRegisterRowT[]
-  className?: string
 }
 
 const TYPE_OPTIONS = REGISTER_TYPES.map((value) => ({
@@ -36,7 +33,7 @@ const TYPE_OPTIONS = REGISTER_TYPES.map((value) => ({
   label: REGISTER_TYPE_LABELS[value],
 }))
 
-export function CashRegistersTable({ data, className }: CashRegistersTablePropsT) {
+export function CashRegistersTable({ data }: CashRegistersTablePropsT) {
   const currentUser = useCurrentUser()
   const { optimisticData, handleToggle } = useOptimisticToggle(
     data,
@@ -77,46 +74,41 @@ export function CashRegistersTable({ data, className }: CashRegistersTablePropsT
     <>
       <RegisterBalanceChart data={filteredData} />
       <DataTable
-        className={className}
         data={filteredData}
         columns={columns}
         storageKey="cashRegisters"
         getRowHref={(row) => `/kasa/${row.id}`}
         getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
-        toolbar={({ table, columnVisibility: cv, ...order }) => (
-          <DataTableToolbar
-            search={{ value: searchTerm, onChange: setSearchTerm }}
-            filters={
-              <>
-                <FilterMultiSelect
-                  label="Typ"
-                  options={TYPE_OPTIONS}
-                  values={typeValues}
-                  onValuesChange={setTypeValues}
-                  icon={Tags}
-                  triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-                />
-                <FilterMultiSelect
-                  label="Właściciel"
-                  options={ownerOptions}
-                  values={ownerValues}
-                  onValuesChange={setOwnerValues}
-                  icon={User}
-                  searchable
-                  triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-                />
-                <ActiveFilterButton
-                  isActive={showOnlyActive}
-                  onChange={setShowOnlyActive}
-                  activeLabel="Aktywne"
-                  allLabel="Wszystkie"
-                />
-              </>
-            }
-            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-            actions={<AddCashRegisterDialog />}
-          />
-        )}
+        search={{ value: searchTerm, onChange: setSearchTerm }}
+        filters={
+          <>
+            <FilterMultiSelect
+              label="Typ"
+              options={TYPE_OPTIONS}
+              values={typeValues}
+              onValuesChange={setTypeValues}
+              icon={Tags}
+              triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+            />
+            <FilterMultiSelect
+              label="Właściciel"
+              options={ownerOptions}
+              values={ownerValues}
+              onValuesChange={setOwnerValues}
+              icon={User}
+              searchable
+              triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+            />
+            <ActiveFilterButton
+              isActive={showOnlyActive}
+              onChange={setShowOnlyActive}
+              activeLabel="Aktywne"
+              allLabel="Wszystkie"
+            />
+          </>
+        }
+        columnToggle
+        actions={<AddCashRegisterDialog />}
       />
     </>
   )
