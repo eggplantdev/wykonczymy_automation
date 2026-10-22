@@ -64,7 +64,7 @@ export function getTelmakCheckColumns(onAttached: () => void) {
     }),
     col.accessor('investmentName', {
       header: 'Inwestycja',
-      cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? EMPTY_VALUE}</span>,
+      cell: (info) => <span className="whitespace-nowrap">{info.getValue() || EMPTY_VALUE}</span>,
     }),
     col.accessor('notes', { header: 'Uwagi', meta: { minWidth: 'min-w-64' } }),
     col.display({

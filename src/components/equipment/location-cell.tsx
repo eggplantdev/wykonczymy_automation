@@ -1,4 +1,4 @@
-import { EmptyValue } from '@/components/ui/empty-value'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { targetLabel } from '@/lib/equipment/rows'
 import type { EquipmentLocationT } from '@/lib/equipment/types'
@@ -17,7 +17,7 @@ const onAxis = (location: EquipmentLocationT, axis?: LocationAxisT) =>
 
 export function LocationCell({ location, locatedAt, live, axis }: LocationCellPropsT) {
   if (!onAxis(location, axis) || (location.kind === 'unknown' && !live)) {
-    return <EmptyValue size="xs" />
+    return EMPTY_VALUE
   }
 
   if (location.kind === 'unknown') {

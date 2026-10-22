@@ -36,9 +36,7 @@ const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
     header: 'Opis',
     size: 320,
     enableSorting: false,
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue<string | null>() || EMPTY_VALUE}</span>
-    ),
+    cell: ({ getValue }) => getValue<string | null>() || EMPTY_VALUE,
   },
   {
     accessorKey: 'amount',

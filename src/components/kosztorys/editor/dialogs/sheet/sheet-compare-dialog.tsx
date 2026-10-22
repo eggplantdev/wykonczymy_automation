@@ -191,13 +191,7 @@ function SheetFooterBlock({ footer }: { footer: readonly FooterComparisonT[] }) 
             key={total.key}
             label={total.label}
             sheet={formatPLN(total.sheetValue)}
-            app={
-              total.appValue === null ? (
-                <span className="text-muted-foreground">nie policzyliśmy</span>
-              ) : (
-                formatPLN(total.appValue)
-              )
-            }
+            app={total.appValue === null ? 'nie policzyliśmy' : formatPLN(total.appValue)}
             delta={total.matches || total.delta === null ? null : formatPLN(total.delta)}
           />
         ))}

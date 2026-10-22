@@ -17,15 +17,15 @@ type DeadlineCellPropsT = {
  */
 export function DeadlineCell({ deadline, muted }: DeadlineCellPropsT) {
   if (deadline.exempt) {
-    return <span className="text-muted-foreground text-xs">bezterminowo</span>
+    return <span className="text-xs">bezterminowo</span>
   }
 
   if (!deadline.hasEvent) {
-    return <span className="text-muted-foreground text-xs">brak danych</span>
+    return <span className="text-xs">brak danych</span>
   }
 
   if (!deadline.nextDueAt || deadline.daysLeft === null) {
-    return <span className="text-muted-foreground text-xs">bez terminu</span>
+    return <span className="text-xs">bez terminu</span>
   }
 
   const urgent = !muted && deadline.bucket === OVERDUE

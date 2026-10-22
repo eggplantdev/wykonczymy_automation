@@ -206,11 +206,12 @@ const buildColumns = (
       header: t('colPayoutDecidedAt'),
       meta: {
         minWidth: 'min-w-40',
-        printValue: (row) => (row.payoutDecidedAt ? formatPLDateTime(row.payoutDecidedAt) : ''),
+        printValue: (row) =>
+          row.payoutDecidedAt ? formatPLDateTime(row.payoutDecidedAt) : EMPTY_VALUE,
       },
       cell: (info) => {
         const decidedAt = info.getValue()
-        return decidedAt ? formatPLDateTime(decidedAt) : ''
+        return decidedAt ? formatPLDateTime(decidedAt) : EMPTY_VALUE
       },
     }),
     col.accessor('payoutRejectionReason', {

@@ -149,7 +149,7 @@ export function useExpenseDraftColumns({
       header: t('note'),
       enableSorting: false,
       meta: { minWidth: 'min-w-64' },
-      cell: (info) => <span className="break-words">{info.getValue() ?? EMPTY_VALUE}</span>,
+      cell: (info) => <span className="break-words">{info.getValue() || EMPTY_VALUE}</span>,
     }),
     ...(isPendingQueue
       ? [

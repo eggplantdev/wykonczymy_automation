@@ -52,12 +52,12 @@ export const V2_COLUMN_IDS = [
 // Off `hasKosztorys` rather than `totalLaborCosts !== 0`, which cannot tell the two apart: a rozpiska
 // entered in full but not yet started sums to zero.
 function NoKosztorys() {
-  return <span className="text-muted-foreground text-xs">brak kosztorysu</span>
+  return <span className="text-xs">brak kosztorysu</span>
 }
 
 // A row with an unsettled etap has no amount at all — zero would read as a real figure.
 function UnsettledStages() {
-  return <span className="text-muted-foreground text-xs">ustaw etapy</span>
+  return <span className="text-xs">ustaw etapy</span>
 }
 
 function withheldFigureCell(info: CellContext<InvestmentRowT, number | undefined>) {

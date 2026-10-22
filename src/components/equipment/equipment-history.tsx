@@ -32,12 +32,12 @@ const COLUMNS = [
     id: 'note',
     header: 'Notatka',
     enableSorting: false,
-    cell: (info) => <span className="text-muted-foreground">{info.getValue() || EMPTY_VALUE}</span>,
+    cell: (info) => info.getValue() || EMPTY_VALUE,
   }),
   col.accessor('createdByName', {
     id: 'createdBy',
     header: 'Wpisał',
-    cell: (info) => <span className="text-muted-foreground">{info.getValue() || EMPTY_VALUE}</span>,
+    cell: (info) => info.getValue() || EMPTY_VALUE,
   }),
   col.accessor((row) => row.cost ?? undefined, {
     id: 'cost',

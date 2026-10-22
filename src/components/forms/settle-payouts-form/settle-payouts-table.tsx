@@ -24,7 +24,7 @@ import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { formatPLN, formatPLNOrDash } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { amountOf, isValidAmount, type RowValueT } from './row-value'
-import { EmptyValue } from '@/components/ui/empty-value'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 type SettleTableContextT = {
   values: RowValueT[]
@@ -46,10 +46,10 @@ function useSettleTable() {
   return context
 }
 
-const EMPTY_VALUE: RowValueT = { ticked: false, amount: '' }
+const EMPTY_ROW_VALUE: RowValueT = { ticked: false, amount: '' }
 
 function useRowValue(index: number) {
-  return useSettleTable().values[index] ?? EMPTY_VALUE
+  return useSettleTable().values[index] ?? EMPTY_ROW_VALUE
 }
 
 const BLOCKED_TAG: Record<Exclude<BlockedStateT, 'locked'>, string> = {
@@ -140,7 +140,7 @@ function AfterPayoutCell({ row, index }: { row: SettleRowT; index: number }) {
       </Button>
     )
   }
-  if (!value.ticked || !isValidAmount(value)) return <EmptyValue />
+  if (!value.ticked || !isValidAmount(value)) return EMPTY_VALUE
 
   return <RemainderAmount value={roundToCents(row.remaining - amountOf(value))} />
 }

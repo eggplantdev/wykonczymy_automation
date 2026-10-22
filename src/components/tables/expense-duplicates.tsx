@@ -109,17 +109,17 @@ export function getExpenseDuplicateColumns<R extends DuplicateMatchT>({
     col.accessor((row) => row.investmentName, {
       id: 'investmentName',
       header: 'Inwestycja',
-      cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? EMPTY_VALUE}</span>,
+      cell: (info) => <span className="whitespace-nowrap">{info.getValue() || EMPTY_VALUE}</span>,
     }),
     col.accessor((row) => row.submitterName, {
       id: 'submitterName',
       header: 'Kto',
-      cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? EMPTY_VALUE}</span>,
+      cell: (info) => <span className="whitespace-nowrap">{info.getValue() || EMPTY_VALUE}</span>,
     }),
     col.accessor((row) => row.registerName, {
       id: 'registerName',
       header: 'Kasa',
-      cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? EMPTY_VALUE}</span>,
+      cell: (info) => <span className="whitespace-nowrap">{info.getValue() || EMPTY_VALUE}</span>,
     }),
     col.accessor((row) => row.documentNumber ?? firstNoteLine(row.invoiceNote) ?? EMPTY_VALUE, {
       id: 'document',

@@ -18,7 +18,6 @@ import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashWorkerAction } from '@/lib/actions/worker-trash'
 import { describeWorkerTrash } from '@/lib/workers/describe-trash'
 import { actionsColumn } from '@/components/tables/columns/actions-column'
-import { EmptyValue } from '@/components/ui/empty-value'
 import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<UserRowT>()
@@ -48,7 +47,7 @@ function PayoutRemainingCell({
   view: WorkerColumnFiguresT | undefined
   onSettle: () => void
 }) {
-  if (!view) return <EmptyValue />
+  if (!view) return EMPTY_VALUE
   const lines = PAYOUT_LINES.map((line) => {
     const bucket = view[line.bucket]
     const count = line.kind === 'owed' ? bucket.owedCount : bucket.overpaidCount

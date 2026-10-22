@@ -1328,6 +1328,21 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [ ] Nowa praca dalej pusta → otwórz menu „Filtry” albo przełącz dowolny filtr: praca znika
       (filtry stosują się na nowo).
 
+## 2026-10-22 — ds-audit-a01 — pusta wartość „—” w kolorze tekstu
+
+- [ ] Katalog prac, Konta, Sprzęt (lokalizacja, gwarancja, nr seryjny), Flota (terminy): pusta
+      wartość to „—” w kolorze tekstu obok, nie szara; nr seryjny i historia sprzętu też nie szare.
+- [ ] Inwestycje: „brak kosztorysu” / „ustaw etapy” i we Flocie „brak danych” / „bez terminu” /
+      „bezterminowo” w kolorze tekstu, dalej małą czcionką.
+- [ ] Rozliczenie wypłat: wiersz bez zaznaczenia pokazuje „—” w kolorze tekstu; zaznaczanie i kwoty
+      działają jak wcześniej.
+- [ ] Transakcje → kolumna daty decyzji wypłaty: brak decyzji to „—” (na wydruku też), nie pusta
+      komórka.
+- [ ] Duplikaty wydatków, odrzucone paragony, szkice wydatków: brak inwestycji / osoby / kasy /
+      notatki to „—”, nie pusta komórka.
+- [ ] Kosztorys → „Porównaj z arkuszem” i import z arkusza: „nie policzyliśmy” / „nie znaleziono”
+      w kolorze tekstu.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

@@ -64,7 +64,7 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptConfir
         <OptionalLink
           href={receipt.investmentId === null ? undefined : `/inwestycje/${receipt.investmentId}`}
         >
-          {receipt.investmentName ?? EMPTY_VALUE}
+          {receipt.investmentName || EMPTY_VALUE}
         </OptionalLink>
       ),
     }),
@@ -80,7 +80,7 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptConfir
               : `/kasa/${receipt.registerId}`
           }
         >
-          {receipt.registerName ?? EMPTY_VALUE}
+          {receipt.registerName || EMPTY_VALUE}
         </OptionalLink>
       ),
     }),

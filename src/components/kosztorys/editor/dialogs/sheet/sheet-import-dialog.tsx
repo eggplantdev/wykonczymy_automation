@@ -363,20 +363,8 @@ function TotalsBlock({
           <ComparisonRow
             key={total.key}
             label={total.label}
-            sheet={
-              total.sheetValue === null ? (
-                <span className="text-muted-foreground">nie znaleziono</span>
-              ) : (
-                formatPLN(total.sheetValue)
-              )
-            }
-            app={
-              total.appValue === null ? (
-                <span className="text-muted-foreground">nie policzyliśmy</span>
-              ) : (
-                formatPLN(total.appValue)
-              )
-            }
+            sheet={total.sheetValue === null ? 'nie znaleziono' : formatPLN(total.sheetValue)}
+            app={total.appValue === null ? 'nie policzyliśmy' : formatPLN(total.appValue)}
             delta={total.delta === null || total.matches ? null : formatPLN(total.delta)}
           />
         ))}

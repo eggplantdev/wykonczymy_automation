@@ -33,7 +33,7 @@ import { formatFormRef } from '@/lib/kosztorys/worker-report/check-digit'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import type { ReportLineT } from '@/lib/kosztorys/worker-report/types'
 import { cn } from '@/lib/utils/cn'
-import { EmptyValue } from '@/components/ui/empty-value'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 export type ReviewRowT = Omit<ReportLineT, 'sectionName'> & {
   sectionName: string
@@ -482,11 +482,9 @@ const plannedColumn = col.accessor((row) => row.figures?.currentPlannedQty ?? 0,
   meta: { align: 'center', vertical: true },
   cell: ({ row }) =>
     row.original.figures &&
-    (row.original.figures.currentPlannedQty > 0 ? (
-      formatQty(row.original.figures.currentPlannedQty)
-    ) : (
-      <EmptyValue />
-    )),
+    (row.original.figures.currentPlannedQty > 0
+      ? formatQty(row.original.figures.currentPlannedQty)
+      : EMPTY_VALUE),
 })
 const STAGE_QTY_SUM_LABEL = 'Pomiar z natury'
 const stageQtySumColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {

@@ -44,9 +44,7 @@ export function getEquipmentColumns({ today, warehouses }: EquipmentColumnsArgsT
     col.accessor('serialNumber', {
       id: 'serialNumber',
       header: 'Nr seryjny',
-      cell: (info) => (
-        <span className="text-muted-foreground">{info.getValue() || EMPTY_VALUE}</span>
-      ),
+      cell: (info) => info.getValue() || EMPTY_VALUE,
     }),
     col.accessor((row) => (row.location.kind === 'holder' ? row.location.name : ''), {
       id: 'holder',

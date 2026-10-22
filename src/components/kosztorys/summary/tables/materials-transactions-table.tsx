@@ -24,7 +24,7 @@ import {
 } from '@/lib/kosztorys/expense-datasets'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { MaterialTransactionRowT } from '@/types/transfers'
-import { EmptyValue } from '@/components/ui/empty-value'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 type PropsT = {
   investmentId: number
@@ -69,7 +69,7 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
     enableSorting: false,
     cell: ({ getValue }) => {
       const description = getValue<string | null>()
-      if (!description) return <EmptyValue />
+      if (!description) return EMPTY_VALUE
       return (
         <SimpleTooltip content={description}>
           <span className="text-muted-foreground block max-w-64 cursor-help truncate">
@@ -87,7 +87,7 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
     cell: ({ getValue }) => {
       const note = getValue<string | null>()
       const firstLine = firstNoteLine(note)
-      if (!firstLine || !note) return <EmptyValue />
+      if (!firstLine || !note) return EMPTY_VALUE
       // DataTable's row-link handler skips clicks landing on a button,
       // so reading the note doesn't navigate away.
       return (
