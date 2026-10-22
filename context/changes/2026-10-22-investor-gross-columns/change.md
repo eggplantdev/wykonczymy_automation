@@ -1,7 +1,7 @@
 ---
 change_id: investor-gross-columns
 title: Let the owner opt brutto columns into the investor's document
-status: implementing
+status: implemented
 created: 2026-10-22
 updated: 2026-10-22
 archived_at: null

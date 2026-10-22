@@ -241,9 +241,9 @@ Run once, after the final phase.
 
 #### Automated
 
-- [ ] 2.1 Money-family spec passes
-- [ ] 2.2 Client-view specs pass
-- [ ] 2.3 Settlement-columns spec passes
-- [ ] 2.4 Offer print spec passes
-- [ ] 2.5 Preview-columns spec passes
-- [ ] 2.6 Dialog spec passes
+- [x] 2.1 Money-family spec passes — 8f32b2f4b
+- [x] 2.2 Client-view specs pass — 8f32b2f4b
+- [x] 2.3 Settlement-columns spec passes — 8f32b2f4b
+- [x] 2.4 Offer print spec passes — 8f32b2f4b
+- [x] 2.5 Preview-columns spec passes — 8f32b2f4b
+- [x] 2.6 Dialog spec passes — 8f32b2f4b
