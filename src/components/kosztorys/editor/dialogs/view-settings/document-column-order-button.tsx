@@ -20,6 +20,9 @@ type PropsT<T extends ValueT> = {
   value: T
   onChange: (value: T) => void
   resetRanks: ColumnRanksT
+  // Ranks are still computed over every key — a drag ranked against a shorter list lands beside the
+  // wrong neighbours once the omitted keys come back.
+  isListed?: (key: string) => boolean
   disabled?: boolean
 }
 
@@ -29,12 +32,14 @@ export function DocumentColumnOrderButton<T extends ValueT>({
   value,
   onChange,
   resetRanks,
+  isListed,
   disabled,
 }: PropsT<T>) {
   const [open, setOpen] = useState(false)
   const hidden = new Set(value.hiddenColumns)
   const ordered = orderDocumentKeys(keys, value.columnRanks)
-  const items = unpinned(ordered).map((key) => ({
+  const listed = isListed ? unpinned(ordered).filter(isListed) : unpinned(ordered)
+  const items = listed.map((key) => ({
     id: key,
     label: labelFor(key) ?? key,
     visible: !hidden.has(key),
