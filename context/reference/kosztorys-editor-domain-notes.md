@@ -382,7 +382,7 @@ Reguły, które trzymają to razem:
   inwestycji wygrywa w całości — więc pokazuje kolejność wbudowaną, nie kolejność firmy, dopóki
   właściciel nie kliknie „Przywróć domyślną kolejność".
 - **Kolumny brutto są na dokumencie inwestora opcją, domyślnie wyłączoną** (właściciel, 2026-10-22;
-  odwraca decyzję z 2026-09-28). W ustawieniach przełącznik „Netto | Brutto" zmienia tylko, którą
+  odwraca decyzję z 2026-09-28) — także w inwestycji rozliczanej brutto. W ustawieniach przełącznik „Netto | Brutto" zmienia tylko, którą
   listę kolumn kwotowych widać; zaznaczenia netto i brutto są niezależne, a „Cena j.m." ma swój
   bliźniak „Cena j.m. brutto". Kolumna brutto chowa się przed pierwszym wpisem w etapie tak samo jak jej
   netto. **PDF zostaje netto** — kolumna brutto nie ma wpisu na wydruku.
