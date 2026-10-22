@@ -95,13 +95,14 @@ function projection(
   }
 }
 
-const html = (data = projection()) =>
+const html = (data = projection(), ownWorkOnly = false) =>
   buildWorkerPrintHtml({
     data,
     logoUrl: '/logo.png',
     fillByColorKey: new Map(),
     locale: 'pl',
     sectionTranslations: {},
+    ownWorkOnly,
   })
 
 const headersOf = (out: string) =>
@@ -354,6 +355,90 @@ describe('buildWorkerPrintHtml', () => {
   })
 })
 
+describe('buildWorkerPrintHtml — „Tylko pozycje z wykonaną pracą”', () => {
+  const onlyTynkDone = treeWith([{ itemId: 1, stageId: 100, qtyDone: 2 }])
+  const printed = (tree: typeof onlyTynkDone, ownWorkOnly = true) =>
+    html(projection({ hidePlannedOnceExecuted: false }, [], tree), ownWorkOnly)
+
+  it('prints only the pozycje his etapy executed', () => {
+    const out = printed(onlyTynkDone)
+
+    expect(out).toContain('>Tynk<')
+    expect(out).not.toContain('>Gładź<')
+    expect(printed(onlyTynkDone, false)).toContain('>Gładź<')
+  })
+
+  it('totals the section and the kosztorys over the printed pozycje alone', () => {
+    const out = printed(onlyTynkDone)
+
+    expect(totalUnder(out, PLANNED_NET_HEADER)).toBe(formatPLN(5 * RATE))
+    expect(totalUnder(out, PLANNED_NET_HEADER, 'grand-total')).toBe(formatPLN(5 * RATE))
+  })
+
+  it('drops a section none of whose pozycje he worked on', () => {
+    const withKitchen = makeTree({
+      ...onlyTynkDone,
+      sections: [
+        ...onlyTynkDone.sections,
+        {
+          id: 11,
+          name: 'Kuchnia',
+          displayOrder: 1,
+          color: null,
+          items: [
+            {
+              ...baseItem,
+              ...rates,
+              id: 4,
+              sectionId: 11,
+              description: 'Płytki',
+              plannedQty: 6,
+              clientPrice: 80,
+            },
+          ],
+        },
+      ],
+    })
+    const out = printed(withKitchen)
+    const unticked = printed(withKitchen, false)
+
+    expect(unticked).toContain('Kuchnia')
+    expect(unticked).toContain('>Płytki<')
+    expect(out).not.toContain('Kuchnia')
+    expect(out).not.toContain('>Płytki<')
+  })
+
+  it('prints no pozycja when his etapy have no entries yet', () => {
+    const out = printed(treeWith([]))
+    const unticked = printed(treeWith([]), false)
+
+    for (const description of ['Tynk', 'Gładź']) {
+      expect(unticked).toContain(`>${description}<`)
+      expect(out).not.toContain(`>${description}<`)
+    }
+  })
+
+  it('keeps a pozycja whose work sits in an etap he shares', () => {
+    const sharedStages: KosztorysStageT[] = [
+      {
+        ...stages[0],
+        split: {
+          mode: 'percent',
+          members: [
+            { workerId: WORKER, value: 40, takesRest: false },
+            { workerId: 9, value: 0, takesRest: true },
+          ],
+        },
+      },
+      stages[1],
+    ]
+    const out = printed({ ...onlyTynkDone, stages: sharedStages })
+
+    expect(out).toContain('>Tynk<')
+    expect(out).not.toContain('>Gładź<')
+  })
+})
+
 describe('buildWorkerPrintHtml in the worker’s language', () => {
   const translatedTree = makeTree({
     ...tree,
@@ -374,6 +459,7 @@ describe('buildWorkerPrintHtml in the worker’s language', () => {
       fillByColorKey: new Map(),
       locale: 'uk',
       sectionTranslations: { łazienka: { uk: 'Ванна кімната', ru: 'Ванная' } },
+      ownWorkOnly: false,
     })
   })
 

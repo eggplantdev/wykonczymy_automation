@@ -15,9 +15,12 @@ import { settleAction } from '@/lib/utils/settle-action'
 
 class ShareLinkError extends Error {}
 
-export type WorkerShareTargetT = {
+export type WorkerTargetT = {
   id: number
   name: string
+}
+
+export type WorkerShareTargetT = WorkerTargetT & {
   blockReason?: string
 }
 
@@ -34,6 +37,12 @@ export type WorkerActionsT = {
   setShareToken: (token: string | null) => void
   shareLoaded: boolean
   requestShare: (target: WorkerShareTargetT) => void
+  printTarget: WorkerTargetT | null
+  printOpen: boolean
+  setPrintOpen: (open: boolean) => void
+  printOwnWorkOnly: boolean
+  setPrintOwnWorkOnly: (ownWorkOnly: boolean) => void
+  requestPrint: (target: WorkerTargetT) => void
   linkHolders: ReadonlySet<number>
   requestLinkHolders: () => void
 }
@@ -46,6 +55,9 @@ export function useWorkerActions(): WorkerActionsT {
   const [shareOpen, setShareOpen] = useState(false)
   const [shareToken, setShareToken] = useState<string | null>(null)
   const [shareLoaded, setShareLoaded] = useState(false)
+  const [printTarget, setPrintTarget] = useState<WorkerTargetT | null>(null)
+  const [printOpen, setPrintOpen] = useState(false)
+  const [printOwnWorkOnly, setPrintOwnWorkOnly] = useState(true)
   const [linkHolders, setLinkHolders] = useState<ReadonlySet<number>>(new Set())
   const settingsRequest = useLatestRequest()
   // Latest-wins: with one dialog serving every worker, a slow read for the first landing after a
@@ -99,6 +111,12 @@ export function useWorkerActions(): WorkerActionsT {
     )
   }
 
+  function requestPrint(target: WorkerTargetT) {
+    setPrintTarget(target)
+    setPrintOwnWorkOnly(true)
+    setPrintOpen(true)
+  }
+
   function requestLinkHolders() {
     const isCurrent = holdersRequest.start()
     void readWorkerShareHolders(investmentId)
@@ -123,6 +141,12 @@ export function useWorkerActions(): WorkerActionsT {
     setShareToken,
     shareLoaded,
     requestShare,
+    printTarget,
+    printOpen,
+    setPrintOpen,
+    printOwnWorkOnly,
+    setPrintOwnWorkOnly,
+    requestPrint,
     linkHolders,
     requestLinkHolders,
   }

@@ -5,6 +5,7 @@ import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/
 import { KosztorysWorkersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-workers-menu'
 import { KosztorysWorkerShareDialog } from '@/components/kosztorys/editor/dialogs/share/kosztorys-worker-share-dialog'
 import { KosztorysWorkerViewDialog } from '@/components/kosztorys/editor/dialogs/view-settings/kosztorys-worker-view-dialog'
+import { KosztorysWorkerPrintDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-worker-print-dialog'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { WORKER_DOCUMENT_COLUMNS, workerColumnLabel } from '@/lib/kosztorys/worker-view/columns'
 import { WORKER_STAGES_COMPLETED_MESSAGE } from '@/lib/kosztorys/worker-view/labels'
@@ -60,6 +61,11 @@ vi.mock('@/lib/actions/kosztorys-worker-share', () => ({
 
 const getWorkerKosztorysPrintData = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/queries/worker-kosztorys-print-endpoint', () => ({ getWorkerKosztorysPrintData }))
+const buildWorkerPrintHtml = vi.hoisted(() => vi.fn(() => '<html></html>'))
+vi.mock('@/lib/kosztorys/print/worker', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/kosztorys/print/worker')>()),
+  buildWorkerPrintHtml,
+}))
 
 const writeText = vi.fn()
 
@@ -81,6 +87,7 @@ function renderMenu() {
       <KosztorysWorkersMenu />
       <KosztorysWorkerShareDialog />
       <KosztorysWorkerViewDialog />
+      <KosztorysWorkerPrintDialog />
     </KosztorysActionsProvider>,
   )
 }
@@ -220,17 +227,65 @@ describe('KosztorysWorkersMenu', () => {
     )
   })
 
-  it('lets a manager print a worker’s PDF, reading that worker’s projection', async () => {
-    const popup = { document: { title: '' }, close: vi.fn() }
-    const open = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
-    renderMenu()
-    await openMenu()
+  describe('the PDF', () => {
+    const popup = {
+      document: { title: '', write: vi.fn(), close: vi.fn(), querySelector: () => null },
+      addEventListener: vi.fn(),
+      print: vi.fn(),
+      close: vi.fn(),
+    }
+    const ownWorkCheckbox = (dialog: HTMLElement) =>
+      within(dialog).getByRole('checkbox', { name: 'Tylko pozycje z wykonaną pracą' })
+    const openPrintDialog = async () => {
+      await openMenu()
+      await userEvent.click(printItems()[0])
+      return screen.findByRole('dialog', { name: 'Drukuj kosztorys — Anna Nowak' })
+    }
+    const printFrom = (dialog: HTMLElement) =>
+      userEvent.click(within(dialog).getByRole('button', { name: 'Drukuj' }))
 
-    await userEvent.click(printItems()[0])
+    beforeEach(() => {
+      vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
+      getWorkerKosztorysPrintData.mockResolvedValue({
+        data: { kind: 'ready' },
+        language: 'pl',
+        sectionTranslations: {},
+      })
+    })
 
-    expect(open).toHaveBeenCalledOnce()
-    expect(getWorkerKosztorysPrintData).toHaveBeenCalledWith(INVESTMENT_ID, 10)
-    open.mockRestore()
+    it('asks first, ticked, and prints only his pozycje off that worker’s projection', async () => {
+      renderMenu()
+      const dialog = await openPrintDialog()
+
+      expect(ownWorkCheckbox(dialog)).toBeChecked()
+      expect(window.open).not.toHaveBeenCalled()
+      await printFrom(dialog)
+
+      expect(window.open).toHaveBeenCalledOnce()
+      expect(getWorkerKosztorysPrintData).toHaveBeenCalledWith(INVESTMENT_ID, 10)
+      await waitFor(() =>
+        expect(buildWorkerPrintHtml).toHaveBeenCalledWith(
+          expect.objectContaining({ ownWorkOnly: true }),
+        ),
+      )
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    })
+
+    it('prints every pozycja once unticked, and opens ticked again next time', async () => {
+      renderMenu()
+      const dialog = await openPrintDialog()
+      await userEvent.click(ownWorkCheckbox(dialog))
+      await printFrom(dialog)
+
+      await waitFor(() =>
+        expect(buildWorkerPrintHtml).toHaveBeenLastCalledWith(
+          expect.objectContaining({ ownWorkOnly: false }),
+        ),
+      )
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+      expect(ownWorkCheckbox(await openPrintDialog())).toBeChecked()
+    })
   })
 
   it('lets a manager edit the view settings', async () => {

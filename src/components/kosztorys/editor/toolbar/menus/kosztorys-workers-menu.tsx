@@ -18,7 +18,10 @@ import {
   WorkerViewSettingsMenuItem,
 } from '@/components/kosztorys/editor/actions/worker-actions'
 import { ScanReportMenuItem } from '@/components/kosztorys/editor/actions/scan-report-action'
-import { WorkerPrintMenuItem } from '@/components/kosztorys/editor/actions/worker-print-action'
+import {
+  WorkerFormMenuItem,
+  WorkerPdfMenuItem,
+} from '@/components/kosztorys/editor/actions/worker-print-action'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { assignedWorkers } from '@/lib/kosztorys/worker-view/assigned-workers'
 import { REPORT_SCOPE_REFUSAL_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
@@ -89,13 +92,9 @@ export function KosztorysWorkersMenu() {
               )}
               <WorkerPreviewMenuItem target={{ id, name }} />
               <WorkerShareMenuItem target={{ id, name, blockReason }} />
-              <WorkerPrintMenuItem
-                workerId={id}
-                disabled={blockReason !== undefined}
-                variant="pdf"
-              />
+              <WorkerPdfMenuItem target={{ id, name }} disabled={blockReason !== undefined} />
               {/* The form is filled in to be scanned, and the scan would be refused. */}
-              <WorkerPrintMenuItem workerId={id} disabled={refusal !== null} variant="form" />
+              <WorkerFormMenuItem workerId={id} disabled={refusal !== null} />
               <DropdownMenuSeparator />
             </Fragment>
           )

@@ -33,6 +33,7 @@ import { KosztorysClientViewDialog } from '@/components/kosztorys/editor/dialogs
 import { KosztorysShareDialog } from '@/components/kosztorys/editor/dialogs/share/kosztorys-share-dialog'
 import { KosztorysWorkerShareDialog } from '@/components/kosztorys/editor/dialogs/share/kosztorys-worker-share-dialog'
 import { KosztorysWorkerViewDialog } from '@/components/kosztorys/editor/dialogs/view-settings/kosztorys-worker-view-dialog'
+import { KosztorysWorkerPrintDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-worker-print-dialog'
 import {
   AcceptanceProtocolDialog,
   type AcceptanceProtocolSourceT,
@@ -148,6 +149,7 @@ export function KosztorysActionsMenu({
       <KosztorysShareDialog />
       <KosztorysWorkerShareDialog />
       <KosztorysWorkerViewDialog />
+      <KosztorysWorkerPrintDialog />
       {protocolSource && <AcceptanceProtocolDialog source={protocolSource} />}
     </>
   )
