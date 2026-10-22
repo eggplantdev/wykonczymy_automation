@@ -3,9 +3,9 @@
 ## Overview
 
 Let the owner opt brutto columns into the investor's document (preview `/podglad-inwestora/[id]` and
-share link `/k/[token]`), off by default. The settings dialog gets a „Kwoty: Netto / Brutto" pair that
-bulk-toggles each money family over the existing hidden-column map; the brutto checkboxes render only
-while „Brutto" is on. The PDF stays netto.
+share link `/k/[token]`), off by default. A „Netto | Brutto" `ToggleGroup` in the settings dialog
+switches which list of money-column checkboxes is shown; netto and brutto checkboxes are independent
+and every brutto one starts unticked. The PDF stays netto.
 
 ## Current State Analysis
 
@@ -23,10 +23,9 @@ while „Brutto" is on. The PDF stays netto.
 ## Desired End State
 
 - An investment whose owner never touched the new control shows exactly the document it shows today.
-- In „Ustawienia podglądu inwestora", ticking „Brutto" reveals the brutto twin of every netto column
-  currently shown and the „Kwoty brutto" group of checkboxes; unticking hides every brutto column and
-  the group. „Netto" works the same way on the netto family, `Cena j.m.` included. Saved per
-  investment and via „Zapisz jako domyślne".
+- In „Ustawienia podglądu inwestora", the „Netto | Brutto" toggle swaps each netto money checkbox
+  for its brutto twin in place (`Cena j.m.` ↔ `Cena j.m. brutto`) and filters the order dialog the
+  same way; it stores nothing itself. Ticks saved per investment and via „Zapisz jako domyślne".
 - Preview and share link render the ticked brutto columns, hidden like their netto twins until the
   first etap entry. The PDF prints no brutto column.
 
@@ -61,10 +60,6 @@ UI over that module. The UI lands first, for review, and the specs follow once i
 
 ## Critical Implementation Details
 
-- **Toggling a family with nothing to mirror.** Turning a family on mirrors the twins of the other
-  family's visible columns; when none is visible (e.g. „Brutto" on while „Netto" is off), it reveals
-  the twins of the netto columns in `DEFAULT_VISIBLE_COLUMNS` instead — otherwise the click changes
-  nothing and the checkbox stays unticked.
 - **Order dialog filter.** Filter only the rendered items; `documentBaseRanks` and `orderDocumentKeys`
   keep running over the full `CLIENT_DOCUMENT_COLUMNS`, or every drag lands against the wrong
   neighbours.
@@ -73,8 +68,8 @@ UI over that module. The UI lands first, for review, and the specs follow once i
 
 ### Overview
 
-The owner can see and click the whole feature: the „Kwoty" pair, the conditional brutto group, the
-order-dialog filter, and the brutto columns rendering in the preview. No specs in this phase — the
+The owner can see and click the whole feature: the „Netto | Brutto" toggle, the swapped checkbox list,
+the order-dialog filter, and the brutto columns rendering in the preview. No specs in this phase — the
 UI shape is still open. Before the first etap entry, brutto columns may still show where netto ones
 hide; Phase 2 closes that.
 
@@ -84,9 +79,8 @@ hide; Phase 2 closes that.
 
 **File**: `src/lib/kosztorys/client-view/columns.ts`
 
-**Intent**: Add the gross keys as a new last group „Kwoty brutto" of `CLIENT_VIEW_GROUPS`, so they
-enter `PREVIEW_VISIBLE_COLUMNS`; slot each into `CLIENT_DOCUMENT_COLUMNS` right after its netto twin.
-Export the twin map and the gross group's keys for the dialog.
+**Intent**: Add the gross keys to `PREVIEW_VISIBLE_COLUMNS` (the groups stay netto); slot each into
+`CLIENT_DOCUMENT_COLUMNS` right after its netto twin. Export the twin map for the dialog.
 
 **Contract**: `CLIENT_GROSS_TWINS: Readonly<Record<string, string>>` — netto key → brutto key, exactly
 `price→priceGross`, `plannedDiscountAmount→plannedDiscountAmountGross`,
@@ -98,28 +92,21 @@ Export the twin map and the gross group's keys for the dialog.
 
 **File**: `src/lib/kosztorys/client-view/money-family.ts` (new)
 
-**Intent**: Derive the „Netto"/„Brutto" checks from a settings value (a family is on iff any of its
-document columns is visible), and apply a family toggle to `hiddenColumns`: off hides the whole family;
-on unhides the twins of the other family's visible columns, falling back to the twins of the default
-netto set (see Critical Implementation Details). Family membership = `COLUMN_MONEY_AXIS` over
-`PREVIEW_VISIBLE_COLUMNS`.
+**Intent**: Map the netto groups to the brutto list and say which keys a family lists.
 
-**Contract**: `moneyFamilyChecks(value: { hiddenColumns: string[] }): { net: boolean; gross: boolean }`,
-`toggleMoneyFamily<T extends { hiddenColumns: string[] }>(value: T, family: 'net' | 'gross'): T` —
-preserves every other field of `T`. Non-money columns (`discountType`, `discountValue`, quantities,
-`%`) are never touched.
+**Contract**: `MoneyFamilyT = 'net' | 'gross'`; `groupsForMoneyFamily(groups, family)` — netto returns
+the groups unchanged, brutto swaps each netto money key for its twin in place;
+`isListedInMoneyFamily(key, family)` — false only for the other family's money keys.
 
-#### 3. Pair section in the form
+#### 3. Toggle in the form
 
 **File**: `src/components/kosztorys/editor/dialogs/view-settings/client-view-settings-form.tsx`
 
-**Intent**: Above the column groups, render a „Kwoty" `FieldSet` with two `CheckboxRow`s („Netto",
-„Brutto") driven by `moneyFamilyChecks` / `toggleMoneyFamily`, with a one-line hint that unticked
-single columns stay hidden. Pass `ViewSettingsFields` the groups without „Kwoty brutto" while brutto
-is off. Rewrite the existing hint so it no longer names „razem netto" only.
+**Intent**: Local `useState<MoneyFamilyT>('net')` drives a `ui/toggle-group` „Netto | Brutto" above the
+order button; `ViewSettingsFields` gets `groupsForMoneyFamily(...)`, the order button `isListed`.
+Rewrite the hint so it no longer names „razem netto" only.
 
-**Contract**: `ViewSettingsFields` and the worker dialog unchanged. Compose `ui/` primitives
-(`FieldSet`, `FieldLegend` with `GROUP_LEGEND_CLASS`, `CheckboxRow`) — no new `ui/` component.
+**Contract**: `ViewSettingsFields` and the worker dialog unchanged; no new `ui/` component.
 
 #### 4. Order dialog filter
 
@@ -135,9 +122,8 @@ ranks keep being computed over the full key list.
 
 #### Manual Verification (the user reviews the UI here):
 
-- Locally (dev DB, owner login), open the kosztorys of an investment with etap entries → „Ustawienia podglądu inwestora": „Netto" ticked, „Brutto" unticked, no brutto checkboxes; tick „Brutto" → group appears with twins of the shown netto columns ticked; save; preview shows them beside their netto twins.
-- Untick „Netto" → save → preview shows only brutto money columns (no „Cena j.m."), descriptions and quantities intact.
-- „Ustaw kolejność kolumn…" lists brutto rows only while „Brutto" is ticked.
+- Locally (dev DB, owner login) → „Ustawienia podglądu inwestora": „Netto" selected, netto checkboxes; „Brutto" swaps in the brutto ones, all unticked; tick one, save; the preview shows it beside its netto twin.
+- „Ustaw kolejność kolumn…" lists the family selected by the toggle.
 
 **Implementation Note**: Stop after this phase and hand the UI to the user. Iterate on its feedback
 without specs, typecheck or lint; start Phase 2 only once the user accepts the UI, and commit the
@@ -170,12 +156,12 @@ entry — `gross`, `discountAmountGross` in the settlement totals; `remainingGro
 
 **Files**:
 
-- `src/__tests__/lib/kosztorys/client-view/money-family.test.ts` (new) — checks derivation; off hides the family only; on mirrors the visible twins; on with nothing to mirror falls back to the default set; `price`↔`priceGross` paired; non-money columns untouched.
+- `src/__tests__/lib/kosztorys/client-view/money-family.test.ts` (new) — netto groups unchanged; brutto swaps twins in place, `price`↔`priceGross` included; non-money keys untouched; `isListedInMoneyFamily` per family.
 - `src/__tests__/lib/kosztorys/client-view/settings.test.ts` — regression guard: default settings, a stored map written before this change (no gross keys) and a legacy array all resolve with every gross key hidden.
 - `src/__tests__/lib/kosztorys/settlement-columns.test.ts` — gross twins in the empty sets.
 - `src/__tests__/lib/kosztorys/print/offer.test.ts` — the „every document key has a print column" case iterates netto keys only, and a new case pins that ticked brutto keys produce no print column.
 - `src/__tests__/components/kosztorys/editor/grid/preview-columns.test.ts` — replace „carries no brutto column" with „brutto stays off the document until ticked" (rendered ids with the default hidden set vs. a set that unhides them); update the przedmiar order case for `priceGross` / `plannedGross` / `currentPlannedGross` beside their twins.
-- `src/__tests__/components/kosztorys/editor/dialogs/view-settings/kosztorys-client-view-dialog.test.tsx` — default settings render „Netto" ticked, „Brutto" unticked, no brutto checkbox; ticking „Brutto" shows the group with the twins of the visible netto columns ticked and saves a map with those keys `false`; unticking „Netto" saves every netto money key `true`, `price` included.
+- `src/__tests__/components/kosztorys/editor/dialogs/view-settings/kosztorys-client-view-dialog.test.tsx` — opens on „Netto" with no brutto checkbox; „Brutto" swaps in brutto checkboxes, all unticked; ticking one saves it visible and leaves netto as it was; the order dialog lists the selected family.
 
 #### 3. Domain notes
 
@@ -249,7 +235,7 @@ Run once, after the final phase.
 
 #### Automated
 
-- [ ] 1.1 No automated check — UI review phase; accepted UI committed
+- [x] 1.1 No automated check — UI review phase; accepted UI committed — 60c67cd26
 
 ### Phase 2: Hardening — Empty Columns, Print Exemption, Specs, Docs
 

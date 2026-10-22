@@ -1,20 +1,24 @@
 import { rowPlannedDiscountForView } from '@/lib/kosztorys/calc'
-import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
+import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // „Pozostało" is not here, because the worker's document keeps it from day one — his whole przedmiar IS outstanding work.
 const SETTLEMENT_TOTAL_COLUMNS = [
   'stageQtySum',
   'net',
+  'gross',
   'donePercent',
   'plannedDonePercent',
   'discountAmount',
+  'discountAmountGross',
 ] as const
 
 const INVESTOR_OFFER_PHASE_COLUMNS = [
   'remaining',
+  'remainingGross',
   'currentPlannedQty',
   'currentPlannedNet',
+  'currentPlannedGross',
 ] as const
 
 // a negative quantity is a correction someone typed, and it is an entry.
@@ -41,6 +45,7 @@ export function emptySettlementColumnIds(
     if (filled.has(stage.id)) continue
     empty.add(stageKey(stage.id))
     empty.add(stageValueNetKey(stage.id))
+    empty.add(stageValueGrossKey(stage.id))
   }
   if (filled.size === 0) for (const id of SETTLEMENT_TOTAL_COLUMNS) empty.add(id)
   return empty
@@ -59,6 +64,9 @@ export function investorEmptyColumnIds(
 ): ReadonlySet<string> {
   const empty = new Set(emptySettlementColumnIds(rows, stages, alsoFilled))
   if (empty.has('stageQtySum')) for (const id of INVESTOR_OFFER_PHASE_COLUMNS) empty.add(id)
-  if (!hasPlannedDiscount(rows)) empty.add('plannedDiscountAmount')
+  if (!hasPlannedDiscount(rows)) {
+    empty.add('plannedDiscountAmount')
+    empty.add('plannedDiscountAmountGross')
+  }
   return empty
 }

@@ -358,14 +358,11 @@ Reguły, które trzymają to razem:
 - **Brak zapisanego zestawu ukrywa zestaw domyślny, nie „nic"** (fail-closed). Przechowywany jest
   zestaw UKRYTY, więc NULL albo nie-tablica czytane jako „nic nie ukryte" serwowałyby całą
   allowlistę, z rabatem włącznie.
-- **Nowa kolumna w allowliście pojawia się zaznaczona wszędzie, gdzie zestaw jest zapisany.**
-  Przechowywany jest zestaw UKRYTY, więc każda inwestycja z zapisaną tablicą `hidden_columns` —
-  i domyślny zestaw firmy w `kosztorys_client_view_defaults` — pokaże ją od razu. Kolumna, która ma
-  być domyślnie odznaczona, potrzebuje migracji danych dopisującej jej id do każdej tablicy
-  `hidden_columns` w obu tabelach; NULL już czyta domyślny zestaw z kodu. Tak weszły
-  `currentPlannedNet` (`20261007_1_add_current_planned_qty`) i `note`
-  (`20261008_1_client_view_note_hidden`). Stary kod jest na nią obojętny — `sanitizeClientViewSettings`
-  odrzuca klucz spoza allowlisty — więc migracja może iść przed wdrożeniem albo po nim.
+- **Nowa kolumna w allowliście startuje ze swoim domyślnym stanem z kodu.** Zapis to mapa
+  `{klucz: ukryta}` z wyborem dla każdej oferowanej kolumny, a klucz, którego mapa nie wymienia,
+  czyta się jako domyślny z kodu (`client-view/settings.ts`, `DEFAULT_VISIBLE_COLUMNS`). Kolumna spoza
+  tego zestawu jest więc odznaczona w każdej zapisanej inwestycji i w domyślnym zestawie firmy — bez
+  migracji. Tak weszły kolumny brutto.
 - **Ukrywanie pustych pozycji to jedna reguła, nie dwie** (`client-empty`, `kind: 'client'`):
   pozycja bez przedmiaru **i** bez wykonanej pracy nie wnosi nic do żadnej z dwóch kwot, które
   klient czyta, więc jej ukrycie nie rusza podsumowania. Każdy z dwóch filtrów osobno byłby
@@ -384,9 +381,11 @@ Reguły, które trzymają to razem:
   stoi w kodzie, a nie na końcu. Oferta zapisana przed tą zmianą ma własny wiersz bez kolejności, a wiersz
   inwestycji wygrywa w całości — więc pokazuje kolejność wbudowaną, nie kolejność firmy, dopóki
   właściciel nie kliknie „Przywróć domyślną kolejność".
-- **Na dokumencie inwestora nie ma żadnej kwoty brutto** (właściciel, 2026-09-28). Oferta jest netto,
-  więc kolumny brutto nie da się nawet zaznaczyć w ustawieniach, a znacznik brutto zapisany wcześniej
-  odpada przy sanityzacji.
+- **Kolumny brutto są na dokumencie inwestora opcją, domyślnie wyłączoną** (właściciel, 2026-10-22;
+  odwraca decyzję z 2026-09-28). W ustawieniach przełącznik „Netto | Brutto" zmienia tylko, którą
+  listę kolumn kwotowych widać; zaznaczenia netto i brutto są niezależne, a „Cena j.m." ma swój
+  bliźniak „Cena j.m. brutto". Kolumna brutto chowa się przed pierwszym wpisem w etapie tak samo jak jej
+  netto. **PDF zostaje netto** — kolumna brutto nie ma wpisu na wydruku.
 
 **Podgląd nie zna trybu rozliczenia** (rozstrzygnięte 2026-08-12). `settlementMode` NIE wraca
 jako bramka prawdy. O ujawnieniu decyduje wyłącznie allowlista (i zapisane ustawienie widoku klienta pod
@@ -1184,6 +1183,10 @@ Owner: ceny i treść prac w szablonach są 1:1 z katalogu prac; zła cena w sza
 - Tłumaczenia w zgłoszeniu pracy dalej czyta kopia w pozycji kosztorysu — link ich nie dotyczy.
 - Istniejące pozycje dostały link jednorazowo, po opisie + j.m. (skrypt jednorazowy, usunięty
   przy tabelach szablonu — żyje w historii git); wiersz szablonu tylko przy zgodności we wszystkich polach katalogu.
+- **Edycja opisu lub j.m. w kosztorysie podpina link, gdy tekst trafia w klucz wpisu** (2026-10-22):
+  komórka, kliknięcie podpowiedzi z katalogu, „Popraw literówki" i jej skrypt masowy. Wypełnia tylko
+  pusty albo martwy link — żywy zostaje. Bez tego poprawiona literówka parowała się wyłącznie po
+  tekście.
 
 ### Szablon ma własne tabele (2026-10-15)
 

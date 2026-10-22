@@ -122,3 +122,56 @@ describe('KosztorysClientViewDialog — kolejność kolumn', () => {
     expect(setClientView).not.toHaveBeenCalled()
   })
 })
+
+describe('KosztorysClientViewDialog — kwoty netto i brutto', () => {
+  beforeEach(() => {
+    saveClientViewSettingsAction.mockResolvedValue({ success: true })
+  })
+
+  it('otwiera się na kwotach netto, bez żadnego pola brutto', () => {
+    const dialog = renderDialog()
+
+    expect(within(dialog).getByRole('radio', { name: 'Netto' })).toBeChecked()
+    expect(within(dialog).getByRole('checkbox', { name: COLUMN_LABELS.price })).toBeChecked()
+    expect(
+      within(dialog).queryByRole('checkbox', { name: COLUMN_LABELS.priceGross }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('„Brutto" zamienia listę na kolumny brutto, wszystkie odznaczone', async () => {
+    const dialog = renderDialog()
+
+    await userEvent.click(within(dialog).getByRole('radio', { name: 'Brutto' }))
+
+    expect(
+      within(dialog).getByRole('checkbox', { name: COLUMN_LABELS.priceGross }),
+    ).not.toBeChecked()
+    expect(within(dialog).getByRole('checkbox', { name: COLUMN_LABELS.gross })).not.toBeChecked()
+    expect(
+      within(dialog).queryByRole('checkbox', { name: COLUMN_LABELS.price }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('zaznaczona kolumna brutto zapisuje się jako widoczna, netto bez zmian', async () => {
+    const dialog = renderDialog()
+
+    await userEvent.click(within(dialog).getByRole('radio', { name: 'Brutto' }))
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: COLUMN_LABELS.priceGross }))
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Zapisz' }))
+
+    const [, saved] = saveClientViewSettingsAction.mock.calls[0]!
+    expect(saved.hiddenColumns).not.toContain('priceGross')
+    expect(saved.hiddenColumns).toContain('gross')
+    expect(saved.hiddenColumns).not.toContain('price')
+  })
+
+  it('okno kolejności przy „Brutto" wymienia brutto zamiast netto', async () => {
+    const dialog = renderDialog()
+
+    await userEvent.click(within(dialog).getByRole('radio', { name: 'Brutto' }))
+    const order = await openOrder(dialog)
+
+    expect(listed(order)).toContain(COLUMN_LABELS.priceGross)
+    expect(listed(order)).not.toContain(COLUMN_LABELS.price)
+  })
+})

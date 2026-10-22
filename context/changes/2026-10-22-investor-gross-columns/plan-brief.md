@@ -18,10 +18,9 @@ map, and a key the map doesn't mention falls back to its code default.
 
 ## Desired End State
 
-„Ustawienia podglądu inwestora" has a „Kwoty: Netto / Brutto" pair. Ticking „Brutto" shows the brutto
-twins of the netto columns currently on and reveals a „Kwoty brutto" checkbox group. Unticking a
-family hides all of its columns. Investments nobody touches look exactly as they do today, and the
-PDF stays netto.
+„Ustawienia podglądu inwestora" has a „Netto | Brutto" toggle that swaps the money checkboxes between
+the two families; brutto ones start unticked and are ticked independently of netto. Investments nobody
+touches look exactly as they do today, and the PDF stays netto.
 
 ## Key Decisions Made
 
@@ -62,10 +61,10 @@ family toggle back onto it. The dialog is a thin UI over that module.
 
 ## Phases at a Glance
 
-| Phase                           | What it delivers                                                                                         | Key risk                                                     |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| 1. Working dialog for UI review | Allowlist, toggle module, „Kwoty" pair, conditional brutto group and order filter, all clickable locally | UI shape still open; no specs until the user accepts it      |
-| 2. Hardening                    | Empty-settlement twins, print exemption, every spec including the regression guard, domain notes         | An existing investment's document changes; the guard pins it |
+| Phase                           | What it delivers                                                                                 | Key risk                                                     |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------- |
+| 1. Working dialog for UI review | Allowlist, family helpers, „Netto                                                                | Brutto" toggle and order filter, all clickable locally       | UI shape still open; no specs until the user accepts it |
+| 2. Hardening                    | Empty-settlement twins, print exemption, every spec including the regression guard, domain notes | An existing investment's document changes; the guard pins it |
 
 **Prerequisites:** none.
 **Estimated effort:** about one session over two phases.

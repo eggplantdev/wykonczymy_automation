@@ -5,13 +5,21 @@ import {
   investorEmptyColumnIds,
   stagesWithEntries,
 } from '@/lib/kosztorys/settlement-columns'
-import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
+import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
 // Kwota rabatu included: it is computed off the executed quantity, so before any work it is 0 zł on
 // every row (owner, 2026-09-28).
-const TOTALS = ['stageQtySum', 'net', 'donePercent', 'plannedDonePercent', 'discountAmount']
-const stageColumns = (id: number) => [stageKey(id), stageValueNetKey(id)]
+const TOTALS = [
+  'stageQtySum',
+  'net',
+  'gross',
+  'donePercent',
+  'plannedDonePercent',
+  'discountAmount',
+  'discountAmountGross',
+]
+const stageColumns = (id: number) => [stageKey(id), stageValueNetKey(id), stageValueGrossKey(id)]
 
 describe('stagesWithEntries', () => {
   it('treats an etap holding only zeros as empty', () => {
@@ -41,7 +49,13 @@ describe('emptySettlementColumnIds', () => {
 })
 
 describe('investorEmptyColumnIds', () => {
-  const OFFER_PHASE = ['remaining', 'currentPlannedQty', 'currentPlannedNet']
+  const OFFER_PHASE = [
+    'remaining',
+    'remainingGross',
+    'currentPlannedQty',
+    'currentPlannedNet',
+    'currentPlannedGross',
+  ]
 
   it('hides „Pozostało" and the Aktualizacja pair while nothing is entered', () => {
     const empty = investorEmptyColumnIds([row()], CTX.stages)
@@ -61,13 +75,16 @@ describe('investorEmptyColumnIds', () => {
   it('drops the rabat on przedmiar when no pozycja has one', () => {
     const empty = investorEmptyColumnIds([row({ [stageKey(1)]: 4 })], CTX.stages)
     expect(empty.has('plannedDiscountAmount')).toBe(true)
+    expect(empty.has('plannedDiscountAmountGross')).toBe(true)
   })
 
   it('shows the rabat on przedmiar before any etap entry — it is an offer figure', () => {
     const discounted = row({ discountType: 'percent', discountValue: 5 })
     const empty = investorEmptyColumnIds([discounted, row({ id: 2 })], CTX.stages)
     expect(empty.has('plannedDiscountAmount')).toBe(false)
+    expect(empty.has('plannedDiscountAmountGross')).toBe(false)
     expect(empty.has('discountAmount')).toBe(true)
+    expect(empty.has('discountAmountGross')).toBe(true)
   })
 })
 
