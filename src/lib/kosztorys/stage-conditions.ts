@@ -56,8 +56,13 @@ export function stagesMatchingEngaged(
   stages: KosztorysStageT[],
   engagedIds: Iterable<string>,
   context: StageContextT = NO_CONTEXT,
+  latchedStageIds?: ReadonlySet<number>,
 ): KosztorysStageT[] {
   const active = [...engagedIds].map((id) => BY_ID.get(id)).filter((c) => c !== undefined)
   if (active.length === 0) return stages
-  return stages.filter((stage) => active.some((condition) => condition.matches(stage, context)))
+  return stages.filter(
+    (stage) =>
+      latchedStageIds?.has(stage.id) ||
+      active.some((condition) => condition.matches(stage, context)),
+  )
 }

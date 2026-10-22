@@ -559,7 +559,7 @@ export function useKosztorysEditor({
       sort,
       view,
       ...conditionCtx,
-      latchedRowIds: latch?.ids,
+      latch: latch ? { ids: latch.ids, rank: new Map() } : undefined,
     })
     if (latch) for (const row of next) latch.ids.add(row.id)
     return next

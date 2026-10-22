@@ -68,4 +68,11 @@ describe('stagesMatchingEngaged', () => {
     expect(stagesMatchingEngaged(stages, ['no-such-condition'])).toBe(stages)
     expect(ids(stagesMatchingEngaged(stages, ['no-such-condition', 'stage-no-plane']))).toEqual([1])
   })
+
+  it('keeps a latched etap whose split stopped being scaled down mid-edit', () => {
+    const fixed = { scaledDownStageIds: new Set<number>() }
+    expect(
+      ids(stagesMatchingEngaged(stages, ['stage-split-scaled'], fixed, new Set([FINE.id]))),
+    ).toEqual([3])
+  })
 })

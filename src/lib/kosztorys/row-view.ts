@@ -4,11 +4,21 @@ import { applyRowConditions } from '@/lib/kosztorys/row-conditions/queries'
 import { sortValueGetter } from '@/lib/kosztorys/columns/sort-value'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-export function filterRows(rows: KosztorysV2RowT[], query: string): KosztorysV2RowT[] {
+// What the view showed at the last deliberate action (a sort pick, a new search phrase, a condition
+// toggle). Cells write per keystroke and the grid keeps its cursor by index, so a row that leaves or
+// moves mid-edit hands the next keystroke to another pozycja.
+export type ViewLatchT = { ids: ReadonlySet<number>; rank: ReadonlyMap<number, number> }
+
+export function filterRows(
+  rows: KosztorysV2RowT[],
+  query: string,
+  latchedIds?: ReadonlySet<number>,
+): KosztorysV2RowT[] {
   const q = query.trim().toLowerCase()
   if (!q) return rows
   return rows.filter(
     (r) =>
+      latchedIds?.has(r.id) ||
       (r.description ?? '').toLowerCase().includes(q) ||
       r.sectionName.toLowerCase().includes(q) ||
       (r.unit ?? '').toLowerCase().includes(q),
@@ -56,6 +66,18 @@ export function sortRowsWithinSections(
   return [...groupBySection(rows).values()].flatMap((group) => sortRows(group, getValue, dir))
 }
 
+// Unranked rows (a new pozycja, an undo) keep their fresh order after the ranked ones, so they join at
+// the end instead of landing inside the frozen order.
+function inFrozenOrder(
+  rows: KosztorysV2RowT[],
+  rank: ReadonlyMap<number, number>,
+): KosztorysV2RowT[] {
+  const ranked = rows
+    .filter((row) => rank.has(row.id))
+    .sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
+  return [...ranked, ...rows.filter((row) => !rank.has(row.id))]
+}
+
 export function buildViewRows(input: {
   rows: KosztorysV2RowT[]
   search: string
@@ -67,7 +89,7 @@ export function buildViewRows(input: {
   divergentPriceRowIds: ReadonlySet<number>
   qtyDoneByRowId?: ReadonlyMap<number, number>
   catalogueRowIds?: { divergent: ReadonlySet<number>; missing: ReadonlySet<number> }
-  latchedRowIds?: ReadonlySet<number>
+  latch?: ViewLatchT
   hasAiDraft?: boolean
   aiColumnsShown?: boolean
 }): KosztorysV2RowT[] {
@@ -82,14 +104,12 @@ export function buildViewRows(input: {
     divergentPriceRowIds,
     qtyDoneByRowId,
     catalogueRowIds,
-    latchedRowIds,
+    latch,
     hasAiDraft,
     aiColumnsShown,
   } = input
-  // The latch bypasses the conditions only — a pozycja held open for editing still leaves the grid
-  // when the search stops matching it
   const filtered = applyRowConditions(
-    filterRows(rows, search),
+    filterRows(rows, search, latch?.ids),
     engagedConditionIds,
     {
       stages,
@@ -100,11 +120,16 @@ export function buildViewRows(input: {
       hasAiDraft,
       aiColumnsShown,
     },
-    latchedRowIds,
+    latch?.ids,
   )
   if (!sort) return filtered
   const getValue = sortValueGetter(sort.field, view, stages)
-  return sort.scope === 'global'
-    ? sortRows(filtered, getValue, sort.dir)
-    : sortRowsWithinSections(filtered, getValue, sort.dir)
+  if (sort.scope === 'global') {
+    const sorted = sortRows(filtered, getValue, sort.dir)
+    return latch ? inFrozenOrder(sorted, latch.rank) : sorted
+  }
+  const sorted = sortRowsWithinSections(filtered, getValue, sort.dir)
+  return latch
+    ? [...groupBySection(sorted).values()].flatMap((group) => inFrozenOrder(group, latch.rank))
+    : sorted
 }
