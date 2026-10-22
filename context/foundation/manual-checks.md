@@ -1352,6 +1352,18 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [ ] Dowolna tabela z kwotami (transakcje, flota, sprzęt, kosztorys → podsumowanie, raporty
       pracowników): cyfry w kolumnie stoją równo pod sobą, kwota nie łamie się na dwie linie.
 
+## 2026-10-22 — investor-gross-columns — kolumny brutto w podglądzie inwestora
+
+- [ ] Kosztorys → ustawienia podglądu inwestora: przełącznik „Netto | Brutto” pod opisem; „Brutto”
+      zamienia listę kolumn kwotowych na brutto, „Netto” wraca do netto.
+- [ ] Inwestycja bez zapisanych ustawień: wszystkie kolumny brutto domyślnie odznaczone, podgląd
+      inwestora i link `/k/…` bez kolumn brutto.
+- [ ] Zaznacz „Wartość brutto” i „Cena j.m. brutto”: pojawiają się w podglądzie inwestora i w linku
+      `/k/…` obok swoich odpowiedników netto; netto zostają, jak były.
+- [ ] Kolejność kolumn przy przełączniku „Brutto”: lista pokazuje tylko kolumny brutto, przeciągnięcie
+      zmienia kolejność w podglądzie inwestora.
+- [ ] PDF dla inwestora z zaznaczonymi kolumnami brutto: drukuje wyłącznie netto.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
