@@ -146,7 +146,7 @@ function AfterPayoutCell({ row, index }: { row: SettleRowT; index: number }) {
 }
 
 function RemainderAmount({ value }: { value: number }) {
-  return <BalanceCell value={value} settled className="font-normal whitespace-nowrap" />
+  return <BalanceCell value={value} settled />
 }
 
 const col = createColumnHelper<SettleRowT>()
@@ -182,9 +182,7 @@ const COLUMNS = [
   col.accessor('remaining', {
     header: 'Pozostało',
     meta: { align: 'right' },
-    cell: (info) => (
-      <BalanceCell value={info.getValue()} className="font-normal whitespace-nowrap" />
-    ),
+    cell: (info) => <BalanceCell value={info.getValue()} />,
   }),
   col.display({
     id: AMOUNT_COLUMN_ID,

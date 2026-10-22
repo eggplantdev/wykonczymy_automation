@@ -413,7 +413,7 @@ const refColumn = col.accessor((row) => row.ref ?? 0, {
   meta: { align: 'center' },
   cell: ({ row }) =>
     row.original.ref !== undefined && (
-      <span className="whitespace-nowrap tabular-nums">{formatFormRef(row.original.ref)}</span>
+      <span className="whitespace-nowrap">{formatFormRef(row.original.ref)}</span>
     ),
 })
 const sectionColumn = col.accessor((row) => row.sectionOrder, {
@@ -443,7 +443,7 @@ const reportedColumn = col.accessor('reportedQty', {
   header: 'Zgłoszono',
   meta: { align: 'center', vertical: true },
   cell: ({ row }) => (
-    <span className="whitespace-nowrap tabular-nums">
+    <span className="whitespace-nowrap">
       {formatQtyWithUnit(row.original.reportedQty, row.original.unit)}
     </span>
   ),

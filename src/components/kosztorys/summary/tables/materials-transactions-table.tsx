@@ -57,9 +57,7 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
     accessorKey: 'date',
     header: 'Data',
     size: 96,
-    cell: ({ getValue }) => (
-      <span className="tabular-nums">{formatPLDate(getValue<string>())}</span>
-    ),
+    cell: ({ getValue }) => formatPLDate(getValue<string>()),
   },
   { accessorKey: 'label', header: 'Kategoria', size: 160 },
   {
@@ -134,7 +132,7 @@ const moneyColumn = (
   header,
   size: 120,
   meta: { align: 'right' },
-  cell: ({ getValue }) => <span className="tabular-nums">{formatNet(getValue<number>())}</span>,
+  cell: ({ getValue }) => formatNet(getValue<number>()),
 })
 
 const NET_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [

@@ -37,7 +37,7 @@ const rateCell = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
   const rate = catalogueRateFor(entry, plane)
   const source = catalogueSourceOf(rate)
   return source === 'amount' ? (
-    <span className="tabular-nums">{formatRate(rate.rate, source, rate.coeff)}</span>
+    formatRate(rate.rate, source, rate.coeff)
   ) : (
     <span className="text-muted-foreground">{formatRate(null, source, rate.coeff)}</span>
   )
@@ -53,7 +53,7 @@ const share = (value: number | null, overCeiling: boolean) =>
   value === null ? (
     EMPTY_VALUE
   ) : (
-    <span className={cn('tabular-nums', overCeiling && FLAGGED_TONE)}>{formatPercent(value)}</span>
+    <span className={cn(overCeiling && FLAGGED_TONE)}>{formatPercent(value)}</span>
   )
 
 const twoLines = (first: string, second: string) => () => (
@@ -74,9 +74,7 @@ const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
     header: 'Lp.',
     meta: { align: 'right' },
     cell: (info) => (
-      <span className="text-muted-foreground tabular-nums">
-        {ordinals.get(info.row.original.id)}
-      </span>
+      <span className="text-muted-foreground">{ordinals.get(info.row.original.id)}</span>
     ),
   })
 
@@ -157,14 +155,15 @@ const clientPriceColumn = col.accessor('clientPrice', {
   id: 'clientPrice',
   header: 'Cena j.m.',
   size: 120,
-  cell: (info) => <span className="tabular-nums">{formatPLN(info.getValue())}</span>,
+  meta: { align: 'right' },
+  cell: (info) => formatPLN(info.getValue()),
 })
 
 const wToolsRateColumn = col.accessor((row) => catalogueRateAmount(row, 'w_tools'), {
   id: 'wToolsRate',
   header: twoLines('Stawka z narzędziami', '(podwykonawca)'),
   size: 176,
-  meta: { label: RATE_LABELS.w_tools },
+  meta: { align: 'right', label: RATE_LABELS.w_tools },
   cell: (info) => rateCell(info.row.original, 'w_tools'),
 })
 
@@ -198,7 +197,7 @@ const ownToolsRateColumn = col.accessor((row) => catalogueRateAmount(row, 'own_t
   id: 'ownToolsRate',
   header: twoLines('Stawka bez narzędzi', '(pracownik)'),
   size: 176,
-  meta: { label: RATE_LABELS.own_tools },
+  meta: { align: 'right', label: RATE_LABELS.own_tools },
   cell: (info) => rateCell(info.row.original, 'own_tools'),
 })
 
@@ -235,7 +234,7 @@ const countColumn = (id: string, header: string, tooltip: string, count: (id: nu
     id,
     header,
     meta: { align: 'right', tooltip },
-    cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
+    cell: (info) => info.getValue(),
   })
 
 const KOSZTORYS_COUNT_TOOLTIP =

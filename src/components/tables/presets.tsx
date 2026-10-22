@@ -12,12 +12,12 @@ export const PRESET_COLUMNS = [
   col.accessor('sectionCount', {
     header: 'Sekcje',
     meta: { align: 'right' },
-    cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
+    cell: (info) => info.getValue(),
   }),
   col.accessor('itemCount', {
     header: 'Pozycje',
     meta: { align: 'right' },
-    cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
+    cell: (info) => info.getValue(),
   }),
   col.accessor('updatedAt', { header: 'Zmieniono', cell: dateCell }),
   col.accessor('createdAt', { header: 'Utworzono', cell: dateCell }),

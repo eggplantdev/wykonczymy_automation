@@ -26,9 +26,7 @@ const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
     accessorKey: 'date',
     header: 'Data',
     size: 96,
-    cell: ({ getValue }) => (
-      <span className="tabular-nums">{formatPLDate(getValue<string>())}</span>
-    ),
+    cell: ({ getValue }) => formatPLDate(getValue<string>()),
   },
   { accessorKey: 'workerName', header: 'Pracownik', size: 200 },
   {
@@ -44,7 +42,7 @@ const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
     size: 140,
     meta: { align: 'right' },
     cell: ({ getValue }) => (
-      <span className="text-chart-green tabular-nums">{formatNet(getValue<number>())}</span>
+      <span className="text-chart-green">{formatNet(getValue<number>())}</span>
     ),
   },
 ]

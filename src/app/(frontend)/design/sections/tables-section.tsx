@@ -122,7 +122,7 @@ const MATERIAL_COLUMNS = [
     id: 'amount',
     header: 'Kwota',
     meta: { align: 'right', description: 'netto', label: 'Kwota netto' },
-    cell: (info) => <span className="tabular-nums">{formatPLN(info.getValue())}</span>,
+    cell: (info) => formatPLN(info.getValue()),
   }),
 ]
 

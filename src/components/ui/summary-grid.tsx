@@ -126,7 +126,7 @@ export function SummaryLabelCell({
   return (
     <span
       className={cn(
-        'border-border bg-background border-r border-b px-3 py-1 max-sm:px-2',
+        'border-border bg-background border-r border-b px-3 py-1 tabular-nums max-sm:px-2',
         CELL_TONE[tone ?? 'default'],
         CELL_WEIGHT[weight ?? 'default'],
         className,

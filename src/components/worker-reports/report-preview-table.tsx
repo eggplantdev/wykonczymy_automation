@@ -25,7 +25,7 @@ export function ReportPreviewTable({ group, lines }: PropsT) {
       id: 'ref',
       header: tReport('formNumber'),
       cell: ({ row: { original: line } }) => (
-        <span className="whitespace-nowrap tabular-nums">
+        <span className="whitespace-nowrap">
           {line.ref !== undefined ? formatFormRef(line.ref) : (line.scannedRef ?? '')}
         </span>
       ),
@@ -61,9 +61,7 @@ export function ReportPreviewTable({ group, lines }: PropsT) {
       enableSorting: false,
       meta: { align: 'right' },
       cell: ({ row: { original: line } }) => (
-        <span className="whitespace-nowrap tabular-nums">
-          {formatQtyWithUnit(line.reportedQty, line.unit)}
-        </span>
+        <span className="whitespace-nowrap">{formatQtyWithUnit(line.reportedQty, line.unit)}</span>
       ),
     }),
     col.display({
@@ -74,9 +72,7 @@ export function ReportPreviewTable({ group, lines }: PropsT) {
         const { outcome } = line
         if (outcome.kind === 'accepted') {
           return (
-            <span className="whitespace-nowrap tabular-nums">
-              {formatQtyWithUnit(outcome.qty, line.unit)}
-            </span>
+            <span className="whitespace-nowrap">{formatQtyWithUnit(outcome.qty, line.unit)}</span>
           )
         }
         return (

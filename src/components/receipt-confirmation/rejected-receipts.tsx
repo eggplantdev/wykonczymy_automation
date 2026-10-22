@@ -55,6 +55,7 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptConfir
     }),
     col.accessor('amount', {
       header: 'Kwota',
+      meta: { align: 'right' },
       cell: (info) => formatPLN(info.getValue()),
     }),
     col.accessor('investmentName', {

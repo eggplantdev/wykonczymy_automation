@@ -1343,6 +1343,15 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [ ] Kosztorys → „Porównaj z arkuszem” i import z arkusza: „nie policzyliśmy” / „nie znaleziono”
       w kolorze tekstu.
 
+## 2026-10-22 — ds-audit-a02 — kwoty, liczby i daty w komórkach
+
+- [ ] Odrzucone przez pracowników (kolumna „Kwota”) i Katalog prac (cena klienta, obie stawki
+      narzędziowe): kwoty wyrównane do prawej.
+- [ ] Rozliczenie wypłat: saldo i „Pozostało do wypłaty” pogrubione jak inne salda.
+- [ ] Inwestycje: „Wydatki inwestycyjne” zwykłą grubością, nie pogrubione.
+- [ ] Dowolna tabela z kwotami (transakcje, flota, sprzęt, kosztorys → podsumowanie, raporty
+      pracowników): cyfry w kolumnie stoją równo pod sobą, kwota nie łamie się na dwie linie.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

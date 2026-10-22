@@ -65,7 +65,7 @@ export function useWorkerReportColumns({
       header: t('works'),
       enableSorting: sortable('lineCount'),
       meta: { align: 'right' },
-      cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
+      cell: (info) => info.getValue(),
     }),
     col.accessor('status', {
       header: tDrafts('status'),

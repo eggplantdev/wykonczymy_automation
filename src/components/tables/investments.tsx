@@ -239,7 +239,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
       id: 'totalInvestmentExpense',
       header: 'Wydatki inwestycyjne',
       meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.totalInvestmentExpense },
-      cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
+      cell: (info) => formatPLN(info.getValue()),
     }),
     col.accessor('totalSettled', {
       id: 'totalSettled',

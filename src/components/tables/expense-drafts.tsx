@@ -45,9 +45,7 @@ function TransferCell({ draft, isLinked }: { draft: ExpenseDraftRowT; isLinked: 
       : undefined
   return (
     <OptionalLink href={href}>
-      <span
-        className={cn('tabular-nums', transfer.cancelled && 'text-muted-foreground line-through')}
-      >
+      <span className={cn(transfer.cancelled && 'text-muted-foreground line-through')}>
         {formatPLN(transfer.amount)}
       </span>
     </OptionalLink>

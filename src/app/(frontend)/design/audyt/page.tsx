@@ -3,7 +3,6 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { Description } from '@/components/ui/description'
 import { TextLink } from '@/components/ui/text-link'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
-import { A02MoneyNumberGroup } from './groups/a02-money-number'
 import { A03SectionHeadingGroup } from './groups/a03-section-heading'
 import { A04TwoLineValueGroup } from './groups/a04-two-line-value'
 import { A05AddButtonGroup } from './groups/a05-add-button'
@@ -51,7 +50,6 @@ import { A46EntityPickerGroup } from './groups/a46-entity-picker'
 type TocEntryT = { id: string; label: string }
 
 const GROUPS: (TocEntryT & { Group: () => React.ReactNode; children?: TocEntryT[] })[] = [
-  { id: 'A02', label: 'Kwota, liczba i data w komórce', Group: A02MoneyNumberGroup },
   { id: 'A03', label: 'Nagłówek sekcji', Group: A03SectionHeadingGroup },
   { id: 'A04', label: 'Wartość z podpisem pod spodem', Group: A04TwoLineValueGroup },
   { id: 'A05', label: 'Przycisk „Dodaj”', Group: A05AddButtonGroup },
@@ -140,7 +138,7 @@ export default async function DesignAuditPage() {
     <PageWrapper title="Audyt powtórzonych elementów">
       <Description>
         Każda grupa to element pisany ręcznie w wielu miejscach. Litery a, b, c… to różne wersje
-        tego samego elementu — kopie 1:1 z kodu, z listą miejsc. Decyzja per grupa, np. „A02:
+        tego samego elementu — kopie 1:1 z kodu, z listą miejsc. Decyzja per grupa, np. „A03:
         wszędzie b”, „A05: jeden komponent, a + c jako warianty”, „A23: zostaw”. Zostały tylko
         różnice do decyzji — wszystko, co dało się scalić bez zmiany wyglądu i działania, jest już
         scalone.

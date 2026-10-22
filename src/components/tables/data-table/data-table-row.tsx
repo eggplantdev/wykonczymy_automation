@@ -69,7 +69,7 @@ export function DataTableRow<TData>({
           <td
             key={cell.id}
             className={cn(
-              'text-foreground px-3 py-2',
+              'text-foreground px-3 py-2 tabular-nums',
               align === 'right' && 'text-right',
               align === 'center' && 'text-center',
               minWidth,

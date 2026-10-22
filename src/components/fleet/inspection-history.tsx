@@ -50,11 +50,7 @@ function HistoryTable({ entries }: { entries: InspectionHistoryEntryT[] }) {
 
       {entries.map((entry) => (
         <Fragment key={entry.id}>
-          <SummaryLabelCell
-            weight="medium"
-            className="tabular-nums"
-            note={entry.note ? { text: entry.note } : null}
-          >
+          <SummaryLabelCell weight="medium" note={entry.note ? { text: entry.note } : null}>
             {formatPLDate(entry.performedAt)}
           </SummaryLabelCell>
 

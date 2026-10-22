@@ -75,9 +75,7 @@ export function VehicleCosts({
 
           {entries.map((entry) => (
             <Fragment key={entry.id}>
-              <SummaryLabelCell className="tabular-nums">
-                {formatPLDate(entry.performedAt)}
-              </SummaryLabelCell>
+              <SummaryLabelCell>{formatPLDate(entry.performedAt)}</SummaryLabelCell>
               <SummaryValueCell>{INSPECTION_TYPE_LABELS[entry.type].pl}</SummaryValueCell>
               <SummaryValueCell>{formatPLNOrDash(entry.cost)}</SummaryValueCell>
             </Fragment>

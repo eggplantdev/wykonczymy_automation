@@ -12,7 +12,7 @@ export function BalanceCell({ value, settled = false, className }: BalanceCellPr
   return (
     <span
       className={cn(
-        'font-medium',
+        'font-medium tabular-nums',
         isNegativeMoney(value) && 'text-destructive',
         settled && roundToCents(value) === 0 && 'text-chart-green',
         className,

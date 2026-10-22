@@ -46,7 +46,7 @@ export function DepositsTable({
 }) {
   const flagsOffPlane = !preview
   const dateCell = (row: DepositTransactionRowT) => (
-    <SummaryLabelCell className="tabular-nums">
+    <SummaryLabelCell>
       <OptionalLink
         href={
           preview

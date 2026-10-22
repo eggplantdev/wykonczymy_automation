@@ -17,7 +17,7 @@ const COLUMNS = [
   col.accessor('occurredAt', {
     id: 'occurredAt',
     header: 'Data',
-    cell: (info) => <span className="tabular-nums">{formatPLDate(info.getValue())}</span>,
+    cell: (info) => formatPLDate(info.getValue()),
   }),
   col.accessor((row) => targetLabel(row.target), {
     id: 'target',
@@ -44,7 +44,7 @@ const COLUMNS = [
     header: 'Koszt',
     meta: { align: 'right' },
     sortUndefined: 'last',
-    cell: (info) => <span className="tabular-nums">{formatPLNOrDash(info.row.original.cost)}</span>,
+    cell: (info) => formatPLNOrDash(info.row.original.cost),
   }),
 ]
 

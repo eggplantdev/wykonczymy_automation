@@ -59,9 +59,7 @@ export function getFleetColumns() {
       header: 'Koszty',
       meta: { align: 'right' },
       sortUndefined: 'last',
-      cell: (info) => (
-        <span className="tabular-nums">{formatPLNOrDash(info.row.original.totalCosts)}</span>
-      ),
+      cell: (info) => formatPLNOrDash(info.row.original.totalCosts),
     }),
     ...SCHEDULED_INSPECTION_TYPES.map((type) =>
       col.accessor(

@@ -253,7 +253,7 @@ function RateCell({ rate, note, tone }: { rate?: number; note?: string; tone?: R
   const toneClass = tone ? TONE_CLASS[tone] : undefined
   return (
     <>
-      <span className={cn('whitespace-nowrap', toneClass)}>{formatPLN(rate)}</span>
+      <span className={toneClass}>{formatPLN(rate)}</span>
       <span className={cn('block text-xs whitespace-nowrap', toneClass ?? 'text-muted-foreground')}>
         {note}
       </span>
