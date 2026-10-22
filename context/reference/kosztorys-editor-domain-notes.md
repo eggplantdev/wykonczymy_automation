@@ -1600,9 +1600,16 @@ w złą stronę:
   or the client view. While a problem is engaged, unticking its revealed column is a **dead click on
   purpose**: the checkbox shows the stored state (ticked would lie about it; greyed out would need a
   third state nobody asked for).
-- **The latch that keeps a row visible while you fix it bypasses conditions only, never search** — a
-  search is a question asked now. Deferring the refilter until blur was rejected: the row still
-  vanished the moment Tab moved to the next column.
+- **One view latch freezes membership, order and the stage-column set while you type (EX-1114,
+  2026-10-22)** — under a sort, a search phrase or a condition. Cells save per keystroke and the grid
+  keeps the cursor by index, so anything that moves or drops the row (or the etap's column) sends the
+  next digit into another pozycja. Deferring the refilter until blur was rejected: the row still
+  vanished the moment Tab moved to the next column. Only a deliberate action recomputes the view:
+  picking a sort item (re-picking the active one is the refresh — no „Odśwież" button), clearing the
+  sort, editing the phrase, opening „Problemy"/„Filtry", toggling any condition, switching the price
+  view, and „Zapisz kolejność" (which must refresh in the same handler, or the saved order differs
+  from the one on screen). New pozycje join at the end of their sekcja, or of the list under a global
+  sort. Accepted cost: after edits a sorted column shows a stale order until the sort is re-picked.
 - **„Bez ceny j.m." does not switch the view** (owner): the price is typed on the investor side but
   repaired in subcontractor-only columns, so there is no one right view. Same for „z pomiarem do
   rozpisania" and both stage problems.
