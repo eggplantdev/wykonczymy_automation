@@ -470,7 +470,10 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   niosą cenę klienta): A4 poziomo, bo każdy etap dokłada dwie kolumny; kwoty z groszami, bo stawka
   7,50 zł zaokrąglona do „8 zł" to inna stawka. Na papier idą te same kolumny, w tej samej
   kolejności, co w podglądzie pracownika — po tej samej regule wpisów, więc „Σ etapów" i „Wartość
-  wykonana" pojawiają się dopiero po pierwszym wpisie.
+  wykonana" pojawiają się dopiero po pierwszym wpisie. Przed drukiem okno pyta „Tylko pozycje z
+  wykonaną pracą" (domyślnie zaznaczone, nie zapisywane): zaznaczone drukuje tylko pozycje, w których
+  etapy pracownika mają wpisy, i sumuje tylko je. Kartka do zgłoszenia prac i link zawsze niosą cały
+  zakres (2026-10-22, prośba właściciela).
 
 ### Zgłoszenia wykonanych prac — pracownik zgłasza ilości, kierownik przyjmuje (2026-09-30)
 

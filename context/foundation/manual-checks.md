@@ -1399,6 +1399,18 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [ ] Tabela poza kosztorysem (np. lista przelewów) → „Kolumny": sekcje bez strzałki, nie zwijają
       się — wygląd jak wcześniej.
 
+## 2026-10-22 — worker-pdf-own-work-filter — PDF pracownika tylko z pozycjami z wykonaną pracą
+
+- [ ] Gryka-Deszczyński Kopernika 2a Marki → „Pracownicy" → Kyryl Elektryk → „Drukuj kosztorys
+      pracownika (PDF)": otwiera się dialog z zaznaczonym „Tylko pozycje z wykonaną pracą";
+      „Drukuj" otwiera okno druku (bez blokady popupu) tylko z jego pozycjami (17 na danych
+      z 22.10); sumy sekcji i „Razem" zgadzają się z wydrukowanymi pozycjami.
+- [ ] To samo z odznaczonym polem: PDF jak dotąd — wszystkie pozycje z przedmiarem.
+- [ ] Ponowne otwarcie dialogu po odznaczeniu: pole znowu zaznaczone.
+- [ ] Pracownik, którego etapy nie mają jeszcze wpisów, pole zaznaczone: nagłówek, pusta tabela,
+      stopka — bez błędu.
+- [ ] „Drukuj kartkę do zgłoszenia prac" nadal drukuje jednym kliknięciem, z pełnym zakresem.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
