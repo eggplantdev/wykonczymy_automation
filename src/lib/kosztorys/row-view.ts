@@ -4,10 +4,14 @@ import { applyRowConditions } from '@/lib/kosztorys/row-conditions/queries'
 import { sortValueGetter } from '@/lib/kosztorys/columns/sort-value'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// What the view showed at the last deliberate action (a sort pick, a new search phrase, a condition
-// toggle). Cells write per keystroke and the grid keeps its cursor by index, so a row that leaves or
-// moves mid-edit hands the next keystroke to another pozycja.
-export type ViewLatchT = { ids: ReadonlySet<number>; rank: ReadonlyMap<number, number> }
+export type ViewLatchT = { ids: Set<number>; rank: Map<number, number> }
+
+export function latchViewRows(latch: ViewLatchT, viewRows: KosztorysV2RowT[]): void {
+  for (const row of viewRows) {
+    latch.ids.add(row.id)
+    if (!latch.rank.has(row.id)) latch.rank.set(row.id, latch.rank.size)
+  }
+}
 
 export function filterRows(
   rows: KosztorysV2RowT[],
@@ -66,18 +70,6 @@ export function sortRowsWithinSections(
   return [...groupBySection(rows).values()].flatMap((group) => sortRows(group, getValue, dir))
 }
 
-// Unranked rows (a new pozycja, an undo) keep their fresh order after the ranked ones, so they join at
-// the end instead of landing inside the frozen order.
-function inFrozenOrder(
-  rows: KosztorysV2RowT[],
-  rank: ReadonlyMap<number, number>,
-): KosztorysV2RowT[] {
-  const ranked = rows
-    .filter((row) => rank.has(row.id))
-    .sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
-  return [...ranked, ...rows.filter((row) => !rank.has(row.id))]
-}
-
 export function buildViewRows(input: {
   rows: KosztorysV2RowT[]
   search: string
@@ -123,13 +115,8 @@ export function buildViewRows(input: {
     latch?.ids,
   )
   if (!sort) return filtered
-  const getValue = sortValueGetter(sort.field, view, stages)
-  if (sort.scope === 'global') {
-    const sorted = sortRows(filtered, getValue, sort.dir)
-    return latch ? inFrozenOrder(sorted, latch.rank) : sorted
-  }
-  const sorted = sortRowsWithinSections(filtered, getValue, sort.dir)
-  return latch
-    ? [...groupBySection(sorted).values()].flatMap((group) => inFrozenOrder(group, latch.rank))
-    : sorted
+  const sortInScope = sort.scope === 'global' ? sortRows : sortRowsWithinSections
+  const sorted = sortInScope(filtered, sortValueGetter(sort.field, view, stages), sort.dir)
+  // An unranked row reads as null, so the stable sort puts it after the frozen order.
+  return latch ? sortInScope(sorted, (row) => latch.rank.get(row.id) ?? null, 'asc') : sorted
 }

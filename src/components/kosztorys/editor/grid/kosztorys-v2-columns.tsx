@@ -83,6 +83,8 @@ const PLANE_UNCONFIRMED_CELL = {
   cellClassName: 'bg-destructive/10 text-destructive',
 } as const
 
+// Never fed to the resolver, whose denominator is Σ etapów of the whole view: narrowing it would
+// reprice the columns left standing.
 function shownStagesOf(opts: BuildV2ColumnsOptsT): KosztorysStageT[] {
   return stagesMatchingEngaged(
     stagesForView(opts.stages, opts.view),
@@ -132,8 +134,6 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ),
   ]
 
-  // deliberately NOT fed to the resolver, whose denominator is Σ etapów of the whole view: hiding
-  // columns would otherwise reprice the ones left standing.
   const scaledDownStageIds = opts.scaledDownStageIds ?? new Set<number>()
   const shownStages = shownStagesOf(opts)
 

@@ -6,7 +6,7 @@ import type { SortStateT } from '@/lib/kosztorys/row-view'
 
 type InputT = Parameters<typeof useViewLatch>[0]
 
-const IDLE: InputT = { conditionIds: new Set(), search: '', sort: null, view: 'client' }
+const IDLE: InputT = { engagedConditionIds: new Set(), search: '', sort: null, view: 'client' }
 const SORT: SortStateT = { field: 'plannedQty', dir: 'asc', scope: 'section' }
 
 function renderLatch(initial: InputT) {
@@ -15,7 +15,7 @@ function renderLatch(initial: InputT) {
 
 describe('useViewLatch', () => {
   it('holds nothing while no sort, search or latching condition is active', () => {
-    expect(renderLatch(IDLE).result.current.latch).toBeNull()
+    expect(renderLatch(IDLE).result.current.latch).toBeUndefined()
   })
 
   it('keeps the latch while its inputs stay the same', () => {

@@ -2,13 +2,10 @@
 
 import { useState } from 'react'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import type { SortStateT } from '@/lib/kosztorys/row-view'
+import { hasLatchingCondition } from '@/lib/kosztorys/problem-conditions'
+import type { SortStateT, ViewLatchT } from '@/lib/kosztorys/row-view'
 
-export type EditorViewLatchT = {
-  ids: Set<number>
-  rank: Map<number, number>
-  stageIds: Set<number>
-}
+export type EditorViewLatchT = ViewLatchT & { stageIds: Set<number> }
 
 type KeyT = {
   refreshCount: number
@@ -20,22 +17,21 @@ type KeyT = {
 
 /**
  * Cells save per keystroke, so a sort, a search phrase or a condition would move or drop the pozycja
- * (or the etap's column) under the cursor one keystroke in. The latch holds what the view showed until a
- * deliberate action: a sort pick (the same sort object only while nobody re-picks it), a new phrase, a
- * condition toggle, a price-view switch or `refresh` („Problemy"/„Filtry" opening, „Zapisz kolejność").
+ * (or the etap's column) under the cursor one keystroke in.
  */
 export function useViewLatch(input: {
-  conditionIds: ReadonlySet<string>
+  engagedConditionIds: ReadonlySet<string>
   search: string
   sort: SortStateT
   view: PriceViewT
-}): { latch: EditorViewLatchT | null; refresh: () => void } {
+}): { latch: EditorViewLatchT | undefined; refresh: () => void } {
   const [refreshCount, setRefreshCount] = useState(0)
   const phrase = input.search.trim()
-  const enabled = input.conditionIds.size > 0 || phrase !== '' || input.sort !== null
+  const enabled =
+    hasLatchingCondition(input.engagedConditionIds) || phrase !== '' || input.sort !== null
   const key: KeyT = {
     refreshCount,
-    conditions: [...input.conditionIds].sort().join('|'),
+    conditions: [...input.engagedConditionIds].sort().join('|'),
     phrase,
     sort: input.sort,
     view: input.view,
@@ -44,7 +40,7 @@ export function useViewLatch(input: {
   const current = sameKey(latch.key, key) ? latch : freshLatch(key)
   if (current !== latch) setLatch(current)
   return {
-    latch: enabled ? current.value : null,
+    latch: enabled ? current.value : undefined,
     refresh: () => {
       if (enabled) setRefreshCount((count) => count + 1)
     },

@@ -25,7 +25,7 @@ import { useColumnWidths } from '@/components/kosztorys/editor/hooks/use-column-
 import { useColumnColors } from '@/components/kosztorys/editor/hooks/use-column-colors'
 import { useRowHeights } from '@/components/kosztorys/editor/hooks/use-row-heights'
 import { useViewLatch } from '@/components/kosztorys/editor/hooks/use-view-latch'
-import { engagedLatchingIds, engagedStageProblemIds } from '@/lib/kosztorys/problem-conditions'
+import { engagedStageProblemIds } from '@/lib/kosztorys/problem-conditions'
 import { useKosztorysSettings } from '@/components/kosztorys/editor/hooks/use-kosztorys-settings'
 import { useKosztorysStageOps } from '@/components/kosztorys/editor/hooks/use-kosztorys-stage-ops'
 import { useKosztorysViewState } from '@/components/kosztorys/editor/hooks/use-kosztorys-view-state'
@@ -48,7 +48,7 @@ import { marginForecastByPlane as forecastByPlane } from '@/lib/kosztorys/margin
 import { divergentPriceRowIds } from '@/lib/kosztorys/price-divergence'
 import { qtyDoneByRow } from '@/lib/kosztorys/row-conditions/ctx'
 import type { RowConditionCtxT } from '@/lib/kosztorys/row-conditions/types'
-import { buildViewRows } from '@/lib/kosztorys/row-view'
+import { buildViewRows, latchViewRows } from '@/lib/kosztorys/row-view'
 import {
   applyRowConditions,
   clientConditionIds,
@@ -259,18 +259,13 @@ export function useKosztorysEditor({
     handleApplyPercentDiscount,
   } = useKosztorysSettings({ investmentId, tree, rowsRef, patchRows, pushReversible })
 
-  const latchedConditions = useMemo(
-    () => engagedLatchingIds(engagedConditionIds),
-    [engagedConditionIds],
-  )
   const { latch, refresh: refreshView } = useViewLatch({
-    conditionIds: latchedConditions,
+    engagedConditionIds,
     search,
     sort,
     view,
   })
-  // The latch only takes rows once they render, and a new praca with no przedmiar and no etapy never
-  // would under the usual filters.
+  // The latch only takes rows once they render, and a new praca never would under the usual filters.
   const holdNewRow = (rowId: number) => latch?.ids.add(rowId)
 
   const sectionCrud = useSectionCrud({
@@ -564,14 +559,9 @@ export function useKosztorysEditor({
       sort,
       view,
       ...conditionCtx,
-      latch: latch ?? undefined,
+      latch,
     })
-    if (latch) {
-      for (const row of next) {
-        latch.ids.add(row.id)
-        if (!latch.rank.has(row.id)) latch.rank.set(row.id, latch.rank.size)
-      }
-    }
+    if (latch) latchViewRows(latch, next)
     return next
   }, [rows, search, engagedConditionIds, sort, view, conditionCtx, latch])
   const ordinalByRowId = useMemo(() => baseOrdinals(documentRows), [documentRows])

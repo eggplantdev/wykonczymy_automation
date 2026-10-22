@@ -46,7 +46,6 @@ const STAGE_PROBLEM_IDS = STAGE_CONDITIONS.map((condition) => condition.id)
 /**
  * Opening „Problemy" or „Filtry" releases the view latch; a condition latched with neither of those as
  * its release would hold edited rows forever. The worker's „Tylko zgłoszone” is released by toggling it.
- * Sort and search release the latch themselves (`useViewLatch`).
  */
 const LATCHING_IDS = [
   ...PROBLEM_IDS,
@@ -56,8 +55,8 @@ const LATCHING_IDS = [
   REPORT_UNREPORTED_CONDITION_ID,
 ]
 
-export function engagedLatchingIds(engaged: ReadonlySet<string>): Set<string> {
-  return new Set(LATCHING_IDS.filter((id) => engaged.has(id)))
+export function hasLatchingCondition(engaged: ReadonlySet<string>): boolean {
+  return LATCHING_IDS.some((id) => engaged.has(id))
 }
 
 export function engagedStageProblemIds(engaged: ReadonlySet<string>): Set<string> {
