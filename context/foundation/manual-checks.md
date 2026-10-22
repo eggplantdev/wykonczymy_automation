@@ -1378,6 +1378,14 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [ ] Ustawienia podglądu inwestora na desktopie: okno szersze niż wcześniej, „Pozostało netto
       (względem aktualizacji przedmiaru)” mieści się w jednej linii.
 
+## 2026-10-22 — catalogue-autolink — „Popraw literówki" podpina pracę do katalogu
+
+- [ ] Kosztorys z pracą, której opis jest w katalogu prac, ale j.m. ma literówkę („klp" zamiast
+      „kpl"); menu wiersza pokazuje „Zapisz pozycję do katalogu prac". „Popraw literówki" → j.m.
+      zmienia się na „kpl"; po przeładowaniu menu wiersza pokazuje „Aktualizuj pozycję w katalogu prac".
+- [ ] Ręczna zmiana opisu w komórce na nazwę z katalogu nie zmienia pozycji menu wiersza po
+      przeładowaniu (edycja komórki nie podpina katalogu).
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

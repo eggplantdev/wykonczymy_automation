@@ -1183,10 +1183,10 @@ Owner: ceny i treść prac w szablonach są 1:1 z katalogu prac; zła cena w sza
 - Tłumaczenia w zgłoszeniu pracy dalej czyta kopia w pozycji kosztorysu — link ich nie dotyczy.
 - Istniejące pozycje dostały link jednorazowo, po opisie + j.m. (skrypt jednorazowy, usunięty
   przy tabelach szablonu — żyje w historii git); wiersz szablonu tylko przy zgodności we wszystkich polach katalogu.
-- **Edycja opisu lub j.m. w kosztorysie podpina link, gdy tekst trafia w klucz wpisu** (2026-10-22):
-  komórka, kliknięcie podpowiedzi z katalogu, „Popraw literówki" i jej skrypt masowy. Wypełnia tylko
-  pusty albo martwy link — żywy zostaje. Bez tego poprawiona literówka parowała się wyłącznie po
-  tekście.
+- **„Popraw literówki" (i jej skrypt masowy) podpina link, gdy poprawiony tekst trafia w klucz wpisu**
+  (2026-10-22). Wypełnia tylko pusty albo martwy link — żywy zostaje. Ręczna edycja komórki i
+  kliknięcie podpowiedzi nie linkują (decyzja właściciela: trafienie przy pisaniu jest zbyt rzadkie,
+  by płacić zapytaniem przy każdej edycji) — taka pozycja paruje się z katalogiem po tekście.
 
 ### Szablon ma własne tabele (2026-10-15)
 
