@@ -1420,6 +1420,22 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [ ] Odznacz pole, zamknij okienko bez wybierania pliku, otwórz ponownie: pole znowu zaznaczone.
 - [ ] „Dodaj fakturę” przy transakcji: pola „Do analizy AI” nie ma.
 
+## EX-1114 — kosztorys-view-freeze-while-editing — widok kosztorysu nie przeskakuje w trakcie edycji
+
+- [ ] Edytor kosztorysu, sortowanie „Przedmiar" rosnąco z zachowaniem sekcji: wpisz dwucyfrową
+      wartość w Przedmiar pozycji — wiersz zostaje na miejscu, kursor na nim; ponowny wybór tego
+      samego sortowania przenosi wiersz na właściwe miejsce.
+- [ ] To samo przy „Sortuj rosnąco" (bez sekcji).
+- [ ] Wyszukaj „płyt", zmień opis pasującej pozycji na tekst bez „płyt": pozycja zostaje w trakcie
+      pisania; zmiana frazy wyszukiwania ją usuwa.
+- [ ] „Problemy" → „Etapy z podziałem do poprawienia" na etapie z kwotowym podziałem: podnieś ilość
+      tak, żeby podział przestał być za duży — kolumna etapu zostaje; ponowne otwarcie „Problemy" ją
+      usuwa.
+- [ ] Przy sortowaniu, które po edycji pokazuje nieaktualną kolejność, „Zapisz kolejność": widok
+      układa się w zapisanej kolejności.
+- [ ] Przy sortowaniu „Dodaj pozycję" na końcu sekcji: nowa pozycja pojawia się na końcu tej sekcji
+      i zostaje tam w trakcie wypełniania.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

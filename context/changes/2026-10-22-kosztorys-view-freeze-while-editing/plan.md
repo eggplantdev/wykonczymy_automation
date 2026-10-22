@@ -262,6 +262,6 @@ existing `viewRows` memo — no new per-keystroke scans.
 
 #### Automated
 
-- [x] 2.1 view-freeze editor spec red, then green — (this commit)
-- [x] 2.2 use-view-latch spec green — (this commit)
-- [x] 2.3 reported-only and memoization specs green — (this commit)
+- [x] 2.1 view-freeze editor spec red, then green — 46b270be4
+- [x] 2.2 use-view-latch spec green — 46b270be4
+- [x] 2.3 reported-only and memoization specs green — 46b270be4

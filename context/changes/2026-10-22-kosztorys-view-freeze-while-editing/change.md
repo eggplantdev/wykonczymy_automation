@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-view-freeze-while-editing
 title: Freeze the kosztorys view's rows and stage columns while the user edits
-status: implementing
+status: implemented
 created: 2026-10-22
 updated: 2026-10-22
 archived_at: null
