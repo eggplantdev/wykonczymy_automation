@@ -821,6 +821,11 @@ export function TablesSection() {
       <h3 className="mt-4 text-xs font-semibold tracking-wide uppercase">
         A. DataTable — warianty (tables/data-table)
       </h3>
+      <Description size="xs" withIcon={false}>
+        Każda tabela w aplikacji — kolumny, nagłówki, suma i akcje — wyrównana do lewej, bo
+        kolejność kolumn jest zmienna. Wyjątek: PDF kosztorysu dla inwestora zostaje wyrównany jak
+        arkusz właściciela.
+      </Description>
       <ShowcaseRow
         title="Zwykła tabela (meta: fill, minWidth, tooltip, vertical, description)"
         source="tables/data-table/data-table.tsx, tables/column-meta.ts"
