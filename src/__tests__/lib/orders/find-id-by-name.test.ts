@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { findCategoryIdByName } from '@/lib/orders/find-category-by-name'
+import { findIdByName } from '@/lib/orders/find-id-by-name'
 
 const CATEGORIES = [
   { id: 3, name: 'Wywóz gruzu' },
@@ -8,16 +8,16 @@ const CATEGORIES = [
   { id: 9, name: 'big bag duży' },
 ]
 
-describe('findCategoryIdByName', () => {
+describe('findIdByName', () => {
   it('matches a fragment case-insensitively and takes the first hit in list order', () => {
-    expect(findCategoryIdByName('big bag', CATEGORIES)).toBe('7')
+    expect(findIdByName('big bag', CATEGORIES)).toBe('7')
   })
 
   it('trims the fragment', () => {
-    expect(findCategoryIdByName('  wywóz  ', CATEGORIES)).toBe('3')
+    expect(findIdByName('  wywóz  ', CATEGORIES)).toBe('3')
   })
 
   it('returns an empty id when nothing matches', () => {
-    expect(findCategoryIdByName('kontener', CATEGORIES)).toBe('')
+    expect(findIdByName('kontener', CATEGORIES)).toBe('')
   })
 })
