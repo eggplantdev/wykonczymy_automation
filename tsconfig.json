@@ -34,5 +34,5 @@
     ".next-qa/types/**/*.ts",
     ".next-qa/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", ".next"]
+  "exclude": ["node_modules", ".next", "context"]
 }
