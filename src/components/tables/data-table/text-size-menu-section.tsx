@@ -1,10 +1,7 @@
 'use client'
 
-import {
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from '@/components/ui/dropdown-menu'
+import { DropdownMenuSection } from '@/components/ui/dropdown-menu-section'
 import { type TableTextSizeT } from '@/components/tables/data-table/table-text-size'
 import { useTranslation } from '@/hooks/use-translation'
 
@@ -19,17 +16,19 @@ type PropsT<T extends TableTextSizeT> = {
   sizes: readonly T[]
   value: T
   onChange: (size: T) => void
+  collapseStorageKey?: string
 }
 
 export function TextSizeMenuSection<T extends TableTextSizeT>({
   sizes,
   value,
   onChange,
+  collapseStorageKey,
 }: PropsT<T>) {
   const { t } = useTranslation('filters')
+
   return (
-    <>
-      <DropdownMenuLabel>{t('textSize')}</DropdownMenuLabel>
+    <DropdownMenuSection label={t('textSize')} collapseStorageKey={collapseStorageKey}>
       <DropdownMenuRadioGroup
         value={value}
         onValueChange={(next) => {
@@ -43,6 +42,6 @@ export function TextSizeMenuSection<T extends TableTextSizeT>({
           </DropdownMenuRadioItem>
         ))}
       </DropdownMenuRadioGroup>
-    </>
+    </DropdownMenuSection>
   )
 }

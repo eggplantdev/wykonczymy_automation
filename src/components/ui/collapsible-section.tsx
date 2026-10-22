@@ -1,13 +1,12 @@
 'use client'
 
-import { useState } from 'react'
 import { type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { Separator } from '@/components/ui/separator'
 import * as Collapsible from '@/components/ui/collapsible'
 import { Description } from '@/components/ui/description'
 import { SECTION_TITLE_CLASS } from '@/components/ui/section-header'
-import { usePersistedFlag } from '@/hooks/use-persisted-value'
+import { useSectionOpen } from '@/hooks/use-section-open'
 
 type CollapsibleSectionSizeT = 'lg' | 'sm' | 'compact'
 
@@ -30,18 +29,6 @@ const SIZE: Record<CollapsibleSectionSizeT, { title: string; chevron: string; tr
   lg: { title: SECTION_TITLE_CLASS, chevron: 'size-5', trigger: 'py-2' },
   sm: { title: 'text-sm font-medium', chevron: 'size-4', trigger: 'py-2' },
   compact: { title: 'text-sm font-medium', chevron: 'size-4', trigger: 'min-h-7' },
-}
-
-export const OPEN_STATES = ['open', 'closed'] as const
-
-function useSectionOpen(
-  storageKey: string | undefined,
-  defaultOpen: boolean,
-): [boolean, (open: boolean) => void] {
-  const [local, setLocal] = useState(defaultOpen)
-  const stored = usePersistedFlag(storageKey ?? '', OPEN_STATES, defaultOpen)
-
-  return storageKey ? stored : [local, setLocal]
 }
 
 export function CollapsibleSection({

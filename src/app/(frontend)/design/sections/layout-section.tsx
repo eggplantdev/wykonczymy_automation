@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/section-header'
 import { cn } from '@/lib/utils/cn'
 import { SettingsCard } from '@/components/ui/settings-card'
-import { CollapsibleSection, OPEN_STATES } from '@/components/ui/collapsible-section'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { OPEN_STATES } from '@/hooks/use-section-open'
 import { Separator } from '@/components/ui/separator'
 import { ControlGrid } from '@/components/ui/control-grid'
 import {

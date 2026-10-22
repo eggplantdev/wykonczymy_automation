@@ -40,6 +40,7 @@ import {
 import { MenuItemBody } from '@/components/ui/menu-item-body'
 import { DropdownCheckGroups, type DropdownCheckItemT } from '@/components/ui/dropdown-check-groups'
 import { ColumnToggleMenu } from '@/components/ui/column-toggle-menu'
+import { DropdownMenuSection } from '@/components/ui/dropdown-menu-section'
 import type { ColumnToggleItemT } from '@/components/ui/column-order-dialog'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
@@ -137,6 +138,17 @@ function SampleActionsMenu({
           <DropdownMenuRadioItem value="net">Netto</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="gross">Brutto</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuSection label="DropdownMenuSection">
+          <DropdownMenuItem>Pozycja w sekcji</DropdownMenuItem>
+        </DropdownMenuSection>
+        <DropdownMenuSeparator />
+        <DropdownMenuSection
+          label="collapseStorageKey"
+          collapseStorageKey="design:dropdown-menu-section"
+        >
+          <DropdownMenuItem>Pozycja w zwijanej sekcji</DropdownMenuItem>
+        </DropdownMenuSection>
         <DropdownMenuSeparator />
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Podmenu</DropdownMenuSubTrigger>
@@ -268,7 +280,7 @@ export function OverlaysSection() {
       </ShowcaseRow>
       <ShowcaseRow
         title="DropdownMenu"
-        source="ui/dropdown-menu.tsx, ui/menu-item-body.tsx, ui/dropdown-check-groups.tsx"
+        source="ui/dropdown-menu.tsx, ui/dropdown-menu-section.tsx, ui/menu-item-body.tsx, ui/dropdown-check-groups.tsx"
       >
         <SampleActionsMenu {...actionsMenuProps} />
         <SampleCheckGroupsMenu {...checkGroupsMenuProps} />
@@ -283,6 +295,11 @@ export function OverlaysSection() {
       >
         <ColumnToggleMenu {...columnToggleProps} />
         <ColumnToggleMenu {...columnToggleProps} hiddenCount={3} />
+        <ColumnToggleMenu
+          {...columnToggleProps}
+          collapseStorageKey="design:column-toggle-menu"
+          hint={<InfoTooltip content="Podpowiedź sekcji" />}
+        />
         <OpenPreview backdrop={false} className="h-96 justify-start">
           <ColumnToggleMenu {...columnToggleProps} order={undefined} />
         </OpenPreview>
