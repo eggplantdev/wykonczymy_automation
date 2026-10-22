@@ -33,6 +33,8 @@ export function InfoTooltip({
           event.preventDefault()
           setOpen((wasOpen) => !wasOpen)
         }}
+        // The same Trigger closes it again on the click that follows.
+        onClick={(event) => event.preventDefault()}
       >
         <Info className="size-3.5" />
       </TextButton>
