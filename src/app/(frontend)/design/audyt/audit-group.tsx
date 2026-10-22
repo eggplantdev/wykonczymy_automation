@@ -11,6 +11,7 @@ type AuditGroupPropsT = {
   count: string
   proposal: ReactNode
   drift: ReactNode[]
+  after?: ReactNode
   children: ReactNode
 }
 
@@ -19,7 +20,15 @@ function subscribeHash(onChange: () => void) {
   return () => window.removeEventListener('hashchange', onChange)
 }
 
-export function AuditGroup({ id, title, count, proposal, drift, children }: AuditGroupPropsT) {
+export function AuditGroup({
+  id,
+  title,
+  count,
+  proposal,
+  drift,
+  after,
+  children,
+}: AuditGroupPropsT) {
   const hash = useSyncExternalStore(
     subscribeHash,
     () => window.location.hash,
@@ -50,6 +59,8 @@ export function AuditGroup({ id, title, count, proposal, drift, children }: Audi
           <h3 className={EYEBROW_CLASS}>Propozycja</h3>
           <p className="text-sm">{proposal}</p>
         </div>
+        {after}
+        {after && <h3 className={EYEBROW_CLASS}>Przed</h3>}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
       </div>
     </CollapsibleSection>
