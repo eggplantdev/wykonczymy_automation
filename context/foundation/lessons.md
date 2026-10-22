@@ -229,6 +229,10 @@
   production (2026-08-19). No scheduled jobs against a large mirror; cap bursts.
 - SMTP host = the certificate's name (`mail.wykonczymy.com.pl`); check with `openssl s_client`;
   redeploy after an env change. A failed send needs an alert, not a log line (EX-958).
+- Rotating the mailbox password in the hosting panel breaks prod mail (`535 Incorrect authentication
+data`) until `EMAIL_PASS` is updated and prod redeployed — the second outage noticed only by a user
+  (2026-10-21). `EMAIL_PASS` is one record shared by all Vercel environments: `vercel env update`, never
+  `env rm` + `add`. Verify the new password with a nodemailer `verify()` before pushing it.
 
 ## Webhooks fail loud and verify over raw bytes
 
