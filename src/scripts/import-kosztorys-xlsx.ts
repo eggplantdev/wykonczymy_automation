@@ -5,15 +5,15 @@ import config from '@/payload.config'
 import { getDb } from '@/lib/db/get-db'
 import { lockInvestmentForReplace } from '@/lib/db/lock-investment-for-replace'
 import { insertSnapshot } from '@/lib/db/snapshots'
-import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
+import { retryOnConcurrentWrite, withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { listCatalogueIdentitiesByMatchKey } from '@/lib/db/work-catalogue'
-import { fold } from '@/lib/kosztorys/fold'
+import { getInvestmentSheet } from '@/lib/google/sheet-lookup'
 import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import { serializeTree } from '@/lib/kosztorys/serialize-tree'
 import { buildImportPlan } from '@/lib/kosztorys/sheet-import/build-import-plan'
 import {
   LABOR_TAB,
-  RATE_TAB_PREFIX,
+  pickImportTabs,
   type ImportGridsT,
 } from '@/lib/kosztorys/sheet-import/read-sheet'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
@@ -21,34 +21,39 @@ import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 type XlsxTabT = { title: string; values: unknown[][]; formulas: unknown[][] }
 
 const USAGE =
-  'użycie: INV=<id> FILE=<plik.xlsx> BY=<e-mail> node --env-file=.env --conditions=react-server \\\n' +
-  '  --import tsx src/scripts/import-kosztorys-xlsx.ts [--apply]\n' +
-  'prod: DB_POSTGRES_URL="$DB_POSTGRES_URL_PROD" na początku, potem „Odśwież dane" w aplikacji'
+  'użycie (wymaga python3 z openpyxl):\n' +
+  '  INV=<id> FILE=<plik.xlsx> BY=<e-mail> node --env-file=.env --conditions=react-server \\\n' +
+  '    --import tsx src/scripts/import-kosztorys-xlsx.ts [--apply]\n' +
+  'prod: set -a; source .env; set +a; DB_POSTGRES_URL="$DB_POSTGRES_URL_PROD" INV=… (jak wyżej)'
 
 const INVESTMENT_ID = Number(process.env.INV)
 const FILE = process.env.FILE
 const BY = process.env.BY
 const APPLY = process.argv.includes('--apply')
 const SNAPSHOT_LABEL = 'Przed importem z pliku xlsx'
+const XLSX_TO_GRIDS = path.resolve(import.meta.dirname, '../../scripts/xlsx-to-grids.py')
 
-if (!INVESTMENT_ID || !FILE || !BY) throw new Error(USAGE)
+if (!INVESTMENT_ID || !FILE || !BY || !process.env.DB_POSTGRES_URL) throw new Error(USAGE)
 
 function readGrids(file: string): ImportGridsT {
   const tabs: XlsxTabT[] = JSON.parse(
-    execFileSync('python3', ['-I', path.resolve('scripts/xlsx-to-grids.py'), file], {
+    execFileSync('python3', ['-I', XLSX_TO_GRIDS, file], {
       encoding: 'utf8',
       maxBuffer: 256 * 1024 * 1024,
     }),
   )
-  const labor = tabs.find((tab) => fold(tab.title) === LABOR_TAB)
+  const byTitle = new Map(tabs.map((tab) => [tab.title, tab]))
+  const { laborTabTitle, rateTitles } = pickImportTabs(tabs.map((tab) => tab.title))
+  const labor = laborTabTitle ? byTitle.get(laborTabTitle) : undefined
   if (!labor) throw new Error(`${file} nie ma zakładki „${LABOR_TAB}"`)
   return {
     laborGrid: labor.values,
     laborTabGid: undefined,
     laborGridFormulas: labor.formulas,
-    rateTabs: tabs
-      .filter((tab) => fold(tab.title).startsWith(RATE_TAB_PREFIX))
-      .map((tab) => ({ title: tab.title, grid: tab.values, formulas: tab.formulas })),
+    rateTabs: rateTitles.flatMap((title) => {
+      const tab = byTitle.get(title)
+      return tab ? [{ title, grid: tab.values, formulas: tab.formulas }] : []
+    }),
   }
 }
 
@@ -65,14 +70,16 @@ async function run() {
   const plan = buildImportPlan(
     grids,
     serializeTree(await buildKosztorysTree(INVESTMENT_ID)),
-    undefined,
+    (await getInvestmentSheet(payload, INVESTMENT_ID))?.sheetColumnMapping,
     undefined,
     await listCatalogueIdentitiesByMatchKey(db),
   )
   if (!plan.ok) throw new Error(plan.problems.join(' '))
 
   const { report } = plan
-  console.log(`DB ${new URL(process.env.DB_POSTGRES_URL ?? '').hostname} · inv ${INVESTMENT_ID}`)
+  console.log(
+    `DB ${new URL(process.env.DB_POSTGRES_URL as string).hostname} · inv ${INVESTMENT_ID}`,
+  )
   console.log('counts', report.counts, 'coeffs', report.coeffs)
   console.log(
     'missingColumns',
@@ -96,22 +103,31 @@ async function run() {
     process.exit(0)
   }
 
-  await withPayloadTransaction(
-    payload,
-    async (req) => {
-      const txDb = await getDb(payload, req)
-      await lockInvestmentForReplace(txDb, INVESTMENT_ID)
-      await insertSnapshot(txDb, {
-        investmentId: INVESTMENT_ID,
-        kind: 'manual',
-        label: SNAPSHOT_LABEL,
-        takenBy: user.id,
-        payload: serializeTree(await buildKosztorysTree(INVESTMENT_ID, req)),
-      })
-      return restoreKosztorys(payload, req, INVESTMENT_ID, plan.tree)
+  // Not `replaceTreeWithSnapshot`: its `serializeKosztorys` read runs a session check that throws in a
+  // script with no request.
+  await retryOnConcurrentWrite(
+    () =>
+      withPayloadTransaction(
+        payload,
+        async (req) => {
+          const txDb = await getDb(payload, req)
+          await lockInvestmentForReplace(txDb, INVESTMENT_ID)
+          await insertSnapshot(txDb, {
+            investmentId: INVESTMENT_ID,
+            kind: 'manual',
+            label: SNAPSHOT_LABEL,
+            takenBy: user.id,
+            payload: serializeTree(await buildKosztorysTree(INVESTMENT_ID, req)),
+          })
+          return restoreKosztorys(payload, req, INVESTMENT_ID, plan.tree)
+        },
+        { skipRevalidation: true },
+        { isolationLevel: 'repeatable read' },
+      ),
+    {
+      logLabel: 'import-kosztorys-xlsx',
+      failedMessage: 'Import przerwany przez równoległy zapis.',
     },
-    { skipRevalidation: true },
-    { isolationLevel: 'repeatable read' },
   )
 
   const written = await buildKosztorysTree(INVESTMENT_ID)
