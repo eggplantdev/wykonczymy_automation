@@ -2,7 +2,7 @@ import { fold } from '@/lib/kosztorys/fold'
 import type { sheets_v4 } from 'googleapis'
 
 export const LABOR_TAB = 'kosztorys_robocizny'
-const RATE_TAB_PREFIX = 'zakres pracy'
+export const RATE_TAB_PREFIX = 'zakres pracy'
 
 const LAST_COLUMN = 'BZ'
 
