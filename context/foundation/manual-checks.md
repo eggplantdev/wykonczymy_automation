@@ -1411,6 +1411,15 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
       stopka — bez błędu.
 - [ ] „Drukuj kartkę do zgłoszenia prac" nadal drukuje jednym kliknięciem, z pełnym zakresem.
 
+## 2026-10-22 — ai-marker-default-on — „Do analizy AI” domyślnie zaznaczone
+
+- [ ] Inwestycja → dodawanie plików: pole „Do analizy AI” jest zaznaczone, podpowiedź mówi
+      „Odznacz, jeśli ma ich nie widzieć”; wgrany plik bez dotykania pola ma w galerii
+      „Oznaczony do analizy AI”.
+- [ ] Odznacz pole, wgraj plik: w galerii plik ma przycisk „Oznacz do analizy AI”.
+- [ ] Odznacz pole, zamknij okienko bez wybierania pliku, otwórz ponownie: pole znowu zaznaczone.
+- [ ] „Dodaj fakturę” przy transakcji: pola „Do analizy AI” nie ma.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

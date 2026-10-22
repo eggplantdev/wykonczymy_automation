@@ -606,7 +606,7 @@ export const pl = {
     addInvoice: 'Dodaj fakturę',
     isPlan: 'Do analizy AI',
     planHint:
-      'Zaznacz, jeśli AI ma analizować te pliki — rzuty, projekty, zdjęcia poglądowe. Nieoznaczonych AI nie widzi.',
+      'AI analizuje te pliki — rzuty, projekty, zdjęcia poglądowe. Odznacz, jeśli ma ich nie widzieć.',
     markForAi: 'Oznacz do analizy AI',
     markedForAi: 'Oznaczony do analizy AI',
     markedForAiToast: 'Plik oznaczony do analizy AI',

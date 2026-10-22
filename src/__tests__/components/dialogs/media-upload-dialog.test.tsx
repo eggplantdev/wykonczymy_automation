@@ -26,19 +26,19 @@ describe('MediaUploadDialog — znacznik „to jest rzut"', () => {
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   })
 
-  it('rides along with the pick when checked', async () => {
+  it('is ticked by default, so an untouched pick goes to the AI', async () => {
     const user = userEvent.setup()
     const { onFiles } = openDialog({ allowPlanMarker: true })
 
-    await user.click(screen.getByRole('checkbox'))
+    expect(screen.getByRole('checkbox')).toBeChecked()
     await user.upload(fileInput(), pickedFile())
 
     expect(onFiles).toHaveBeenCalledWith([expect.objectContaining({ name: 'rzut.pdf' })], true)
   })
 
-  // The dialog stays mounted when Radix unmounts its content, so a tick left behind by a cancelled
-  // pick would silently stamp the next upload as a rzut.
-  it('forgets the tick when the dialog is closed without a pick', async () => {
+  // The dialog stays mounted when Radix unmounts its content, so an untick left behind by a
+  // cancelled pick would silently hide the next upload from the AI.
+  it('restores the tick when the dialog is closed without a pick', async () => {
     const user = userEvent.setup()
 
     function Harness() {
@@ -56,13 +56,14 @@ describe('MediaUploadDialog — znacznik „to jest rzut"', () => {
     await user.keyboard('{Escape}')
     await user.click(screen.getByRole('button', { name: 'otwórz' }))
 
-    expect(screen.getByRole('checkbox')).not.toBeChecked()
+    expect(screen.getByRole('checkbox')).toBeChecked()
   })
 
-  it('stays off when the marker was offered but not checked', async () => {
+  it('stays off when the marker was unticked', async () => {
     const user = userEvent.setup()
     const { onFiles } = openDialog({ allowPlanMarker: true })
 
+    await user.click(screen.getByRole('checkbox'))
     await user.upload(fileInput(), pickedFile())
 
     expect(onFiles).toHaveBeenCalledWith([expect.objectContaining({ name: 'rzut.pdf' })], false)
