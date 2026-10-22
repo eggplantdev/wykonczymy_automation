@@ -1362,7 +1362,12 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
       `/k/…` obok swoich odpowiedników netto; netto zostają, jak były.
 - [ ] Kolejność kolumn przy przełączniku „Brutto”: lista pokazuje tylko kolumny brutto, przeciągnięcie
       zmienia kolejność w podglądzie inwestora.
-- [ ] PDF dla inwestora z zaznaczonymi kolumnami brutto: drukuje wyłącznie netto.
+- [ ] PDF dla inwestora z zaznaczonymi kolumnami brutto: drukuje wyłącznie netto, w tej samej
+      orientacji co bez nich.
+- [ ] Inwestycja bez wpisów w etapach, z zaznaczonymi „Wartość brutto (razem etapy)” i „Pozostało
+      brutto”: obie schowane w podglądzie inwestora, tak jak ich odpowiedniki netto.
+- [ ] Ustawienia podglądu inwestora na desktopie: okno szersze niż wcześniej, „Pozostało netto
+      (względem aktualizacji przedmiaru)” mieści się w jednej linii.
 
 # Zamknięte — indeks
 
