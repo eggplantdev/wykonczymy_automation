@@ -1435,6 +1435,8 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
       układa się w zapisanej kolejności.
 - [ ] Przy sortowaniu „Dodaj pozycję" na końcu sekcji: nowa pozycja pojawia się na końcu tej sekcji
       i zostaje tam w trakcie wypełniania.
+- [ ] Raport pracownika, wyszukaj frazę pasującą też do pozycji bez wpisanej pracy: włącz
+      „Wszystkie prace" — puste pozycje się pojawiają; wyłącz — znikają z powrotem.
 
 # Zamknięte — indeks
 
