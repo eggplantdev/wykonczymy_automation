@@ -63,7 +63,7 @@ import { memoisedByRow } from '@/lib/kosztorys/columns/memoised-by-row'
 import { activeSortPick } from '@/lib/kosztorys/row-view'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { stagesMatchingEngaged } from '@/lib/kosztorys/stage-conditions'
-import type { KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
+import type { KosztorysStageT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
 import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
 
 // keyColumn wants Column<Row[K]>, but longTextColumn is nullable where the item fields are not, and
@@ -82,6 +82,15 @@ const PLANE_UNCONFIRMED_CELL = {
   headerClassName: 'bg-destructive/15',
   cellClassName: 'bg-destructive/10 text-destructive',
 } as const
+
+function shownStagesOf(opts: BuildV2ColumnsOptsT): KosztorysStageT[] {
+  return stagesMatchingEngaged(
+    stagesForView(opts.stages, opts.view),
+    opts.engagedStageConditionIds ?? [],
+    { scaledDownStageIds: opts.scaledDownStageIds ?? new Set<number>() },
+    opts.latchedStageIds,
+  )
+}
 
 function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   const { stages, view } = opts
@@ -123,14 +132,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ),
   ]
 
-  const viewStages = stagesForView(stages, view)
-
   // deliberately NOT fed to the resolver, whose denominator is Σ etapów of the whole view: hiding
   // columns would otherwise reprice the ones left standing.
   const scaledDownStageIds = opts.scaledDownStageIds ?? new Set<number>()
-  const shownStages = stagesMatchingEngaged(viewStages, opts.engagedStageConditionIds ?? [], {
-    scaledDownStageIds,
-  })
+  const shownStages = shownStagesOf(opts)
 
   const valueOf = computedColumnValues({
     stages,
@@ -364,6 +369,7 @@ export function buildV2Grid(opts: BuildV2ColumnsOptsT): {
   columns: Column<KosztorysV2RowT>[]
   columnToggleItems: ColumnToggleItemT[]
   columnBaseRanks: ColumnRanksT
+  shownStageIds: number[]
 } {
   const assembled = assembleV2Columns(opts)
   const ordered = orderAssembled(assembled, opts)
@@ -371,5 +377,6 @@ export function buildV2Grid(opts: BuildV2ColumnsOptsT): {
     columns: selectV2Columns(ordered, opts),
     columnToggleItems: selectV2ToggleItems(ordered, opts),
     columnBaseRanks: assembleBaseRanks(assembled),
+    shownStageIds: shownStagesOf(opts).map((stage) => stage.id),
   }
 }

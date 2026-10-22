@@ -30,7 +30,7 @@ const editorContext = {
   conditionCounts: new Map<string, number>(),
   toggleCondition: vi.fn(),
   toggleConditionExclusive: vi.fn(),
-  refreshProblemRows: vi.fn(),
+  refreshView: vi.fn(),
   resetFilters: vi.fn(),
   collapsedSectionIds: new Set<number>(),
   storedCollapsedSectionIds: new Set<number>(),

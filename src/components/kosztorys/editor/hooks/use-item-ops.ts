@@ -44,6 +44,7 @@ type ArgsT = {
   dropHeight: (...keys: string[]) => void
   unfoldSection: (sectionId: number) => void
   holdNewRow: (rowId: number) => void
+  refreshView: () => void
 }
 
 export function useItemOps({
@@ -61,6 +62,7 @@ export function useItemOps({
   dropHeight,
   unfoldSection,
   holdNewRow,
+  refreshView,
 }: ArgsT) {
   const { setRows, rowsRef, prevById } = editorRows
   const { sectionMeta, sectionsRef, rowsFromSections } = sectionCrud
@@ -136,6 +138,8 @@ export function useItemOps({
 
   function handlePersistKosztorysOrder() {
     if (!sort) return
+    // The renumber follows a fresh sort; a latched view would keep showing an order that wasn't saved.
+    refreshView()
     const { before, after } = planKosztorysRenumber(
       rowsRef.current,
       sortValueGetter(sort.field, view, stages),

@@ -44,8 +44,9 @@ export const PROBLEM_IDS = PROBLEM_CONDITIONS.map((problem) => problem.id)
 const STAGE_PROBLEM_IDS = STAGE_CONDITIONS.map((condition) => condition.id)
 
 /**
- * Opening „Problemy" or „Filtry" releases the latch; a condition latched with neither of those as its
- * release would hold edited rows forever. The worker's „Tylko zgłoszone” is released by toggling it.
+ * Opening „Problemy" or „Filtry" releases the view latch; a condition latched with neither of those as
+ * its release would hold edited rows forever. The worker's „Tylko zgłoszone” is released by toggling it.
+ * Sort and search release the latch themselves (`useViewLatch`).
  */
 const LATCHING_IDS = [
   ...PROBLEM_IDS,

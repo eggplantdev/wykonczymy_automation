@@ -254,14 +254,14 @@ existing `viewRows` memo — no new per-keystroke scans.
 
 #### Automated
 
-- [x] 1.1 row-view-latch spec red, then green
-- [x] 1.2 stage-conditions spec covers latched etapy
-- [x] 1.3 existing row-view specs green
+- [x] 1.1 row-view-latch spec red, then green — 3dfe5e15b
+- [x] 1.2 stage-conditions spec covers latched etapy — 3dfe5e15b
+- [x] 1.3 existing row-view specs green — 3dfe5e15b
 
 ### Phase 2: One view latch in the editor
 
 #### Automated
 
-- [ ] 2.1 view-freeze editor spec red, then green
-- [ ] 2.2 use-view-latch spec green
-- [ ] 2.3 reported-only and memoization specs green
+- [x] 2.1 view-freeze editor spec red, then green — (this commit)
+- [x] 2.2 use-view-latch spec green — (this commit)
+- [x] 2.3 reported-only and memoization specs green — (this commit)

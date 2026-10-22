@@ -30,6 +30,7 @@ export type BuildV2ColumnsOptsT = {
   workers?: WorkerRefT[]
   executedValueByStage?: Map<number, number>
   scaledDownStageIds?: ReadonlySet<number>
+  latchedStageIds?: ReadonlySet<number>
   sort?: SortStateT
   onSetSort?: (field: string, pick: SortPickT | null) => void
   isHidden?: (id: string) => boolean

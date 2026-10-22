@@ -24,7 +24,7 @@ import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 import { useColumnWidths } from '@/components/kosztorys/editor/hooks/use-column-widths'
 import { useColumnColors } from '@/components/kosztorys/editor/hooks/use-column-colors'
 import { useRowHeights } from '@/components/kosztorys/editor/hooks/use-row-heights'
-import { useConditionRowLatch } from '@/components/kosztorys/editor/hooks/use-condition-row-latch'
+import { useViewLatch } from '@/components/kosztorys/editor/hooks/use-view-latch'
 import { engagedLatchingIds, engagedStageProblemIds } from '@/lib/kosztorys/problem-conditions'
 import { useKosztorysSettings } from '@/components/kosztorys/editor/hooks/use-kosztorys-settings'
 import { useKosztorysStageOps } from '@/components/kosztorys/editor/hooks/use-kosztorys-stage-ops'
@@ -263,10 +263,12 @@ export function useKosztorysEditor({
     () => engagedLatchingIds(engagedConditionIds),
     [engagedConditionIds],
   )
-  const { latch, refresh: refreshProblemRows } = useConditionRowLatch(
-    latchedConditions,
-    latchedConditions.size > 0,
-  )
+  const { latch, refresh: refreshView } = useViewLatch({
+    conditionIds: latchedConditions,
+    search,
+    sort,
+    view,
+  })
   // The latch only takes rows once they render, and a new praca with no przedmiar and no etapy never
   // would under the usual filters.
   const holdNewRow = (rowId: number) => latch?.ids.add(rowId)
@@ -322,6 +324,7 @@ export function useKosztorysEditor({
     dropHeight,
     unfoldSection,
     holdNewRow,
+    refreshView,
   })
   const { handleApplyCatalogueToItems, handleAcceptCatalogueName } = useCatalogueOps({
     investmentId,
@@ -471,6 +474,7 @@ export function useKosztorysEditor({
     workers,
     executedValueByStage: subcontractorDue.byStage,
     scaledDownStageIds: subcontractorDue.scaledDownStageIds,
+    latchedStageIds: latch?.stageIds,
     sort,
     onSetSort: editorOnly(setSortField),
     isHidden,
@@ -519,6 +523,7 @@ export function useKosztorysEditor({
     dictionary: gridDictionary,
   }
   const grid = buildV2Grid(columnOpts)
+  if (latch) for (const stageId of grid.shownStageIds) latch.stageIds.add(stageId)
   const { columnToggleItems, columnBaseRanks } = grid
   const columns = seams ? seams.transformColumns(grid.columns) : grid.columns
   // A sort must not outlive its column: a money-axis or view toggle can drop the sorted column and its
@@ -559,9 +564,14 @@ export function useKosztorysEditor({
       sort,
       view,
       ...conditionCtx,
-      latch: latch ? { ids: latch.ids, rank: new Map() } : undefined,
+      latch: latch ?? undefined,
     })
-    if (latch) for (const row of next) latch.ids.add(row.id)
+    if (latch) {
+      for (const row of next) {
+        latch.ids.add(row.id)
+        if (!latch.rank.has(row.id)) latch.rank.set(row.id, latch.rank.size)
+      }
+    }
     return next
   }, [rows, search, engagedConditionIds, sort, view, conditionCtx, latch])
   const ordinalByRowId = useMemo(() => baseOrdinals(documentRows), [documentRows])
@@ -728,7 +738,7 @@ export function useKosztorysEditor({
     toggleCondition,
     setConditions,
     toggleConditionExclusive,
-    refreshProblemRows,
+    refreshView,
     resetFilters,
     conditionCounts,
     foldableSectionIds,
