@@ -1438,6 +1438,12 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [ ] Raport pracownika, wyszukaj frazę pasującą też do pozycji bez wpisanej pracy: włącz
       „Wszystkie prace" — puste pozycje się pojawiają; wyłącz — znikają z powrotem.
 
+## 2026-10-22 — order-default-register — zamówienie big bagu / kontenera z kasy big bag / kontener
+
+- [ ] Konto z ustawioną własną domyślną kasą → „Zamów big bag / kontener” → big bag → „Dalej”:
+      formularz wydatku ma „Kasa Big Bag”, nie domyślną kasę konta. To samo dla kontenera: „Kasa
+      kontener”. Kasę da się zmienić ręcznie przed zapisem.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
