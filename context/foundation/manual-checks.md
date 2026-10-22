@@ -1386,6 +1386,19 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [ ] Ręczna zmiana opisu w komórce na nazwę z katalogu nie zmienia pozycji menu wiersza po
       przeładowaniu (edycja komórki nie podpina katalogu).
 
+## 2026-10-22 — view-menu-collapsible — zwijane sekcje w menu „Kolumny" kosztorysu
+
+- [ ] Kosztorys → „Kolumny": każda sekcja („Widok", „Kwoty", „Stawki wykonawców", „Warstwy",
+      „Etapy", „Widoczne kolumny", „Ustal wielkość czcionki w tabeli") zwija się i rozwija
+      kliknięciem w nagłówek, a menu przy tym zostaje otwarte.
+- [ ] Zwiń dwie sekcje, zamknij menu, przeładuj stronę i otwórz je ponownie: obie nadal zwinięte.
+- [ ] W nagłówku „Widoczne kolumny" kliknięcie (i) otwiera podpowiedź i nie zwija sekcji; drugie
+      kliknięcie (i) ją zamyka.
+- [ ] Telefon (390px): stuknięcie (i) w dowolnym miejscu aplikacji otwiera podpowiedź i zostaje
+      otwarta po puszczeniu palca.
+- [ ] Tabela poza kosztorysem (np. lista przelewów) → „Kolumny": sekcje bez strzałki, nie zwijają
+      się — wygląd jak wcześniej.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
