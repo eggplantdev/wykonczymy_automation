@@ -1,6 +1,7 @@
 import { sql } from '@payloadcms/db-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import type { DbExecutorT } from '@/lib/db/get-db'
+import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
 // The wire carries ids and field names only, so the (opis, j.m.) the katalog is matched on has to
 // come from the row as it stands NOW — a dialog left open across a rename must miss, not price the
@@ -64,4 +65,28 @@ export async function applyCatalogueValues(
     RETURNING i.id
   `)
   return res.rows.length
+}
+
+type CatalogueLinkTargetT = { id: number; description: string | null; unit: string | null }
+
+// Fills a missing or dangling link only — a live one outranks the text.
+export async function linkItemsToCatalogue(
+  db: DbExecutorT,
+  investmentId: number,
+  rows: readonly CatalogueLinkTargetT[],
+): Promise<void> {
+  if (rows.length === 0) return
+  const values = rows.map(
+    ({ id, description, unit }) =>
+      sql`(${id}::int, ${catalogueKey(description ?? '', unit)}::text)`,
+  )
+  await db.execute(sql`
+    UPDATE kosztorys_items AS i
+    SET catalogue_item_id = c.id
+    FROM (VALUES ${sql.join(values, sql.raw(', '))}) AS v(id, match_key)
+    JOIN work_catalogue_items AS c ON c.match_key = v.match_key
+    WHERE i.id = v.id AND i.investment_id = ${investmentId}
+      AND (i.catalogue_item_id IS NULL
+        OR NOT EXISTS (SELECT 1 FROM work_catalogue_items AS w WHERE w.id = i.catalogue_item_id))
+  `)
 }
