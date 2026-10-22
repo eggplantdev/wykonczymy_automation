@@ -138,7 +138,6 @@ const buildColumns = (
     col.accessor('invoices', {
       id: 'invoice',
       header: t('colInvoice'),
-      meta: { align: 'center' },
       cell: (info) => (
         <InvoiceCell transactionId={info.row.original.id} invoices={info.getValue()} />
       ),
@@ -146,7 +145,6 @@ const buildColumns = (
     col.accessor('invoiceNote', {
       id: 'invoiceNote',
       header: t('colInvoiceNote'),
-      meta: { align: 'center' },
       cell: (info) => <NotePopover note={info.getValue()} />,
     }),
 
@@ -217,7 +215,7 @@ const buildColumns = (
     col.accessor('payoutRejectionReason', {
       id: 'payoutRejectionReason',
       header: t('colPayoutRejectionReason'),
-      meta: { minWidth: 'min-w-56', printValue: (row) => row.payoutRejectionReason ?? '' },
+      meta: { minWidth: 'min-w-56', printValue: (row) => row.payoutRejectionReason || EMPTY_VALUE },
       cell: (info) => <span className="whitespace-pre-line">{info.getValue()}</span>,
     }),
     col.accessor('orderStatus', {

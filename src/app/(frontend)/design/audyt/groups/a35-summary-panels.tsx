@@ -12,9 +12,8 @@ import {
   SUMMARY_NAME_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { ToggleStatButtons, type StatEntryT } from '@/components/ui/toggle-stat-buttons'
 import { cn } from '@/lib/utils/cn'
@@ -123,7 +122,7 @@ export function A35SummaryPanelsGroup() {
         'Kontener: goła SummaryTable (siatka z obramowaniem komórek) vs Panel tone="muted" px-6 py-4 (saldo w formularzach) vs surowa <table> bez ramek (raport pracownika) vs ikonka statusu + tabela z liniami border-border/60 (raporty arkusza) vs siatka kafelków StatButton (ToggleStatButtons) vs sama linia „Saldo: …”.',
         'Tytuł: w lewej komórce nagłówka SummaryHeaderCell (text-xs, wyszarzony) vs osobny h2/h3 SUBSECTION_TITLE_CLASS nad tabelą (raz mb-2, raz gap-2 sekcji) vs tytuł CollapsibleSection vs p.font-medium obok ikonki vs Description nad kafelkami vs brak tytułu.',
         'Nagłówki kolumn: „Netto/Brutto” text-foreground font-bold (SummaryMoneyHeaders) vs zwykłe wyszarzone „Netto/Brutto” vs „Kwota” vs brak wiersza nagłówka (protokół, rozliczenie bez osi); kolumna wartości 9rem vs 17rem (marża) vs SUMMARY_NAME_COL (kasy).',
-        'Wartości: zwykła waga + tabular-nums (SummaryValueCell) vs font-medium w każdej wartości (raport pracownika) vs font-semibold (SignedMoneyDisplay) vs font-medium tylko w „Suma wydatków”; kolor: tone="error" wg isNegativeMoney, danger w SummaryRow, ręczne text-chart-green/text-destructive, signedMoneyColor (dodatnie na zielono), wpłaty raz tone="success", raz bez koloru.',
+        'Wartości: zwykła waga + tabular-nums (SummaryCell) vs font-medium w każdej wartości (raport pracownika) vs font-semibold (SignedMoneyDisplay) vs font-medium tylko w „Suma wydatków”; kolor: tone="error" wg isNegativeMoney, danger w SummaryRow, ręczne text-chart-green/text-destructive, signedMoneyColor (dodatnie na zielono), wpłaty raz tone="success", raz bez koloru.',
         'Wiersz zamykający: font-bold („Razem”, „Marża”, „Pozostało…”) vs font-medium („Łącznie”, „Suma”) vs GRAND border-t text-base font-semibold vs linia SignedMoneyDisplay pod kafelkami; nadpłata jako minus z notką „nadpłacone” vs zmiana etykiety na „Nadpłata” z kwotą bez znaku vs „Pozostało do zapłaty*” z przypisem.',
         'Telefon: SummaryTable max-sm:text-xs + px-2 (ale kasy nadpisują text-sm), raport pracownika max-sm:text-xs z GRAND max-sm:text-sm, tabela porównania max-sm:text-xs + overflow-x-auto, kafelki max-sm:grid-cols-1; w-fit prawie wszędzie, ale „Podsumowanie” bez w-fit.',
       ]}
@@ -209,24 +208,24 @@ export function A35SummaryPanelsGroup() {
             stratę i premie.
           </Description>
           <SummaryTable cols={MARGIN_TABLE_COLS} className="w-fit">
-            <SummaryHeaderCell variant="label">Marża rzeczywista</SummaryHeaderCell>
+            <SummaryHeaderCell>Marża rzeczywista</SummaryHeaderCell>
             <SummaryHeaderCell>Kwota</SummaryHeaderCell>
-            <SummaryLabelCell weight="default">Robocizna</SummaryLabelCell>
-            <SummaryValueCell weight="default" tone="default">
+            <SummaryCell weight="default">Robocizna</SummaryCell>
+            <SummaryCell weight="default" tone="default">
               12 345,67
-            </SummaryValueCell>
-            <SummaryLabelCell weight="default">Rabat</SummaryLabelCell>
-            <SummaryValueCell weight="default" tone="success">
+            </SummaryCell>
+            <SummaryCell weight="default">Rabat</SummaryCell>
+            <SummaryCell weight="default" tone="success">
               −500,00
-            </SummaryValueCell>
-            <SummaryLabelCell weight="default">Suma wykonanej pracy</SummaryLabelCell>
-            <SummaryValueCell weight="default" tone="success">
+            </SummaryCell>
+            <SummaryCell weight="default">Suma wykonanej pracy</SummaryCell>
+            <SummaryCell weight="default" tone="success">
               −9 111,11
-            </SummaryValueCell>
-            <SummaryLabelCell weight="bold">Marża</SummaryLabelCell>
-            <SummaryValueCell weight="bold" tone="default">
+            </SummaryCell>
+            <SummaryCell weight="bold">Marża</SummaryCell>
+            <SummaryCell weight="bold" tone="default">
               2 734,56
-            </SummaryValueCell>
+            </SummaryCell>
           </SummaryTable>
         </div>
       </AuditVariant>
@@ -277,30 +276,30 @@ export function A35SummaryPanelsGroup() {
         ]}
       >
         <SummaryTable cols={THREE_COLS} className="w-fit">
-          <SummaryHeaderCell variant="label">Robocizna</SummaryHeaderCell>
+          <SummaryHeaderCell>Robocizna</SummaryHeaderCell>
           <SummaryHeaderCell className="text-foreground font-bold">Netto</SummaryHeaderCell>
           <SummaryHeaderCell className="text-foreground font-bold">Brutto</SummaryHeaderCell>
-          <SummaryLabelCell weight="default">Etap 1</SummaryLabelCell>
-          <SummaryValueCell weight="default" tone="default">
+          <SummaryCell weight="default">Etap 1</SummaryCell>
+          <SummaryCell weight="default" tone="default">
             1 111,11
-          </SummaryValueCell>
-          <SummaryValueCell weight="default" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="default" tone="default">
             1 200,00
-          </SummaryValueCell>
-          <SummaryLabelCell weight="default">Etap 2</SummaryLabelCell>
-          <SummaryValueCell weight="default" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="default">Etap 2</SummaryCell>
+          <SummaryCell weight="default" tone="default">
             11 234,56
-          </SummaryValueCell>
-          <SummaryValueCell weight="default" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="default" tone="default">
             12 133,32
-          </SummaryValueCell>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold" tone="default">
             12 345,67
-          </SummaryValueCell>
-          <SummaryValueCell weight="bold" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="bold" tone="default">
             13 333,32
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -324,37 +323,37 @@ export function A35SummaryPanelsGroup() {
         sources={['src/components/kosztorys/summary/tables/summary-breakdown-table.tsx:30']}
       >
         <SummaryTable cols={THREE_COLS}>
-          <SummaryHeaderCell variant="label">Podsumowanie</SummaryHeaderCell>
+          <SummaryHeaderCell>Podsumowanie</SummaryHeaderCell>
           <SummaryHeaderCell className="text-foreground font-bold">Netto</SummaryHeaderCell>
           <SummaryHeaderCell className="text-foreground font-bold">Brutto</SummaryHeaderCell>
-          <SummaryLabelCell weight="default">Robocizna</SummaryLabelCell>
-          <SummaryValueCell weight="default" tone="default">
+          <SummaryCell weight="default">Robocizna</SummaryCell>
+          <SummaryCell weight="default" tone="default">
             12 345,67
-          </SummaryValueCell>
-          <SummaryValueCell weight="default" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="default" tone="default">
             13 333,32
-          </SummaryValueCell>
-          <SummaryLabelCell weight="default">Rabat</SummaryLabelCell>
-          <SummaryValueCell weight="default" tone="success">
+          </SummaryCell>
+          <SummaryCell weight="default">Rabat</SummaryCell>
+          <SummaryCell weight="default" tone="success">
             −500,00
-          </SummaryValueCell>
-          <SummaryValueCell weight="default" tone="success">
+          </SummaryCell>
+          <SummaryCell weight="default" tone="success">
             −540,00
-          </SummaryValueCell>
-          <SummaryLabelCell weight="default">Materiały</SummaryLabelCell>
-          <SummaryValueCell weight="default" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="default">Materiały</SummaryCell>
+          <SummaryCell weight="default" tone="default">
             1 111,11
-          </SummaryValueCell>
-          <SummaryValueCell weight="default" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="default" tone="default">
             1 366,67
-          </SummaryValueCell>
-          <SummaryLabelCell weight="medium">Łącznie</SummaryLabelCell>
-          <SummaryValueCell weight="medium" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="medium">Łącznie</SummaryCell>
+          <SummaryCell weight="medium" tone="default">
             12 956,78
-          </SummaryValueCell>
-          <SummaryValueCell weight="medium" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="medium" tone="default">
             14 159,99
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -364,28 +363,28 @@ export function A35SummaryPanelsGroup() {
         sources={['src/components/kosztorys/summary/blocks/subcontractor-headline-summary.tsx:31']}
       >
         <SummaryTable cols={TWO_COLS} className="w-fit">
-          <SummaryHeaderCell variant="label">Podsumowanie podwykonawców</SummaryHeaderCell>
+          <SummaryHeaderCell>Podsumowanie podwykonawców</SummaryHeaderCell>
           <SummaryHeaderCell>Kwota</SummaryHeaderCell>
           <div className="contents">
-            <SummaryLabelCell>Z narzędziami</SummaryLabelCell>
-            <SummaryValueCell>8 000,00</SummaryValueCell>
-            <SummaryLabelCell>Bez narzędzi</SummaryLabelCell>
-            <SummaryValueCell>1 111,11</SummaryValueCell>
+            <SummaryCell>Z narzędziami</SummaryCell>
+            <SummaryCell>8 000,00</SummaryCell>
+            <SummaryCell>Bez narzędzi</SummaryCell>
+            <SummaryCell>1 111,11</SummaryCell>
           </div>
-          <SummaryLabelCell weight="bold">Suma wykonanej pracy</SummaryLabelCell>
-          <SummaryValueCell weight="bold">9 111,11</SummaryValueCell>
+          <SummaryCell weight="bold">Suma wykonanej pracy</SummaryCell>
+          <SummaryCell weight="bold">9 111,11</SummaryCell>
           <div className="contents">
-            <SummaryLabelCell weight="medium">Premia</SummaryLabelCell>
-            <SummaryValueCell weight="medium">500,00</SummaryValueCell>
+            <SummaryCell weight="medium">Premia</SummaryCell>
+            <SummaryCell weight="medium">500,00</SummaryCell>
           </div>
-          <SummaryLabelCell weight="medium">Zaliczki (wypłaty)</SummaryLabelCell>
-          <SummaryValueCell tone="success" weight="medium">
+          <SummaryCell weight="medium">Zaliczki (wypłaty)</SummaryCell>
+          <SummaryCell tone="success" weight="medium">
             9 699,11
-          </SummaryValueCell>
-          <SummaryLabelCell weight="bold">Pozostało do wypłaty</SummaryLabelCell>
-          <SummaryValueCell tone="error" weight="bold">
+          </SummaryCell>
+          <SummaryCell weight="bold">Pozostało do wypłaty</SummaryCell>
+          <SummaryCell tone="error" weight="bold">
             −88,00
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -395,20 +394,20 @@ export function A35SummaryPanelsGroup() {
         sources={['src/components/kosztorys/summary/tables/materials-breakdown-table.tsx:43']}
       >
         <SummaryTable cols={FOUR_COLS} className="w-fit">
-          <SummaryHeaderCell variant="label">Materiały</SummaryHeaderCell>
+          <SummaryHeaderCell>Materiały</SummaryHeaderCell>
           <SummaryHeaderCell>Netto</SummaryHeaderCell>
           <SummaryHeaderCell>Brutto</SummaryHeaderCell>
           <SummaryHeaderCell>Różnica</SummaryHeaderCell>
-          <SummaryLabelCell>Materiały budowlane</SummaryLabelCell>
-          <SummaryValueCell>1 000,00</SummaryValueCell>
-          <SummaryValueCell>1 230,00</SummaryValueCell>
-          <SummaryValueCell className="text-muted-foreground">−230,00</SummaryValueCell>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">10 037,13</SummaryValueCell>
-          <SummaryValueCell weight="bold">12 345,67</SummaryValueCell>
-          <SummaryValueCell weight="bold" className="text-muted-foreground">
+          <SummaryCell>Materiały budowlane</SummaryCell>
+          <SummaryCell>1 000,00</SummaryCell>
+          <SummaryCell>1 230,00</SummaryCell>
+          <SummaryCell className="text-muted-foreground">−230,00</SummaryCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">10 037,13</SummaryCell>
+          <SummaryCell weight="bold">12 345,67</SummaryCell>
+          <SummaryCell weight="bold" className="text-muted-foreground">
             −2 308,54
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -418,18 +417,18 @@ export function A35SummaryPanelsGroup() {
         sources={['src/components/kosztorys/summary/tables/deposits-table.tsx:98']}
       >
         <SummaryTable cols={THREE_COLS} className="w-fit">
-          <SummaryHeaderCell variant="label">Wpłaty wg formy</SummaryHeaderCell>
+          <SummaryHeaderCell>Wpłaty wg formy</SummaryHeaderCell>
           <SummaryHeaderCell>Netto</SummaryHeaderCell>
           <SummaryHeaderCell>Brutto</SummaryHeaderCell>
-          <SummaryLabelCell>Wpłaty gotówką</SummaryLabelCell>
-          <SummaryValueCell>1 111,11</SummaryValueCell>
-          <SummaryValueCell>×</SummaryValueCell>
-          <SummaryLabelCell>Wpłaty przelewem</SummaryLabelCell>
-          <SummaryValueCell>11 234,56</SummaryValueCell>
-          <SummaryValueCell>13 818,51</SummaryValueCell>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">12 345,67</SummaryValueCell>
-          <SummaryValueCell>{''}</SummaryValueCell>
+          <SummaryCell>Wpłaty gotówką</SummaryCell>
+          <SummaryCell>1 111,11</SummaryCell>
+          <SummaryCell>×</SummaryCell>
+          <SummaryCell>Wpłaty przelewem</SummaryCell>
+          <SummaryCell>11 234,56</SummaryCell>
+          <SummaryCell>13 818,51</SummaryCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">12 345,67</SummaryCell>
+          <SummaryCell>{''}</SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -439,7 +438,7 @@ export function A35SummaryPanelsGroup() {
         sources={['src/components/kosztorys/summary/blocks/subcontractor-worker-totals.tsx:67']}
       >
         <SummaryTable cols={FOUR_COLS} className="h-fit w-fit">
-          <SummaryHeaderCell variant="label" className="flex items-center justify-between gap-2">
+          <SummaryHeaderCell className="flex items-center justify-between gap-2">
             <span>Podsumowanie pracowników</span>
             <Button type="button" variant="outline" size="sm">
               Rozlicz wypłaty
@@ -449,42 +448,38 @@ export function A35SummaryPanelsGroup() {
           <SummaryHeaderCell>Zaliczki (wypłaty)</SummaryHeaderCell>
           <SummaryHeaderCell>Pozostało do wypłaty</SummaryHeaderCell>
           <div className="contents">
-            <SummaryLabelCell weight="medium">Jan Kowalski</SummaryLabelCell>
-            <SummaryValueCell>8 000,00</SummaryValueCell>
-            <SummaryValueCell tone="success" weight="medium">
+            <SummaryCell weight="medium">Jan Kowalski</SummaryCell>
+            <SummaryCell>8 000,00</SummaryCell>
+            <SummaryCell tone="success" weight="medium">
               6 888,89
-            </SummaryValueCell>
-            <SummaryValueCell tone="default" weight="medium">
+            </SummaryCell>
+            <SummaryCell tone="default" weight="medium">
               1 111,11
-            </SummaryValueCell>
+            </SummaryCell>
           </div>
           <div className="contents">
-            <SummaryLabelCell
+            <SummaryCell
               weight="medium"
               note={{ text: 'Wypłacono więcej niż wykonano', tone: 'error' }}
             >
               Adam Nowak
-            </SummaryLabelCell>
-            <SummaryValueCell>1 111,11</SummaryValueCell>
-            <SummaryValueCell tone="success" weight="medium">
+            </SummaryCell>
+            <SummaryCell>1 111,11</SummaryCell>
+            <SummaryCell tone="success" weight="medium">
               1 199,11
-            </SummaryValueCell>
-            <SummaryValueCell
-              tone="error"
-              weight="medium"
-              note={{ text: 'nadpłacone', tone: 'error' }}
-            >
+            </SummaryCell>
+            <SummaryCell tone="error" weight="medium" note={{ text: 'nadpłacone', tone: 'error' }}>
               −88,00
-            </SummaryValueCell>
+            </SummaryCell>
           </div>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">9 111,11</SummaryValueCell>
-          <SummaryValueCell tone="success" weight="bold">
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">9 111,11</SummaryCell>
+          <SummaryCell tone="success" weight="bold">
             8 088,00
-          </SummaryValueCell>
-          <SummaryValueCell tone="default" weight="bold">
+          </SummaryCell>
+          <SummaryCell tone="default" weight="bold">
             1 023,11
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -494,36 +489,36 @@ export function A35SummaryPanelsGroup() {
         sources={['src/components/kosztorys/summary/blocks/subcontractor-stage-breakdown.tsx:19']}
       >
         <SummaryTable cols={FOUR_COLS} className="h-fit w-fit">
-          <SummaryHeaderCell variant="label">Podział etapów</SummaryHeaderCell>
+          <SummaryHeaderCell>Podział etapów</SummaryHeaderCell>
           <SummaryHeaderCell>Wartość etapu</SummaryHeaderCell>
           <SummaryHeaderCell>Jan Kowalski</SummaryHeaderCell>
           <SummaryHeaderCell>Adam Nowak</SummaryHeaderCell>
           <div className="contents">
-            <SummaryLabelCell>Etap 1</SummaryLabelCell>
-            <SummaryValueCell muted>2 222,22</SummaryValueCell>
-            <SummaryValueCell muted={false} note={{ text: '50%' }}>
+            <SummaryCell>Etap 1</SummaryCell>
+            <SummaryCell muted>2 222,22</SummaryCell>
+            <SummaryCell muted={false} note={{ text: '50%' }}>
               1 111,11
-            </SummaryValueCell>
-            <SummaryValueCell muted={false} note={{ text: '50%' }}>
+            </SummaryCell>
+            <SummaryCell muted={false} note={{ text: '50%' }}>
               1 111,11
-            </SummaryValueCell>
+            </SummaryCell>
           </div>
           <div className="contents">
-            <SummaryLabelCell>Etap 2</SummaryLabelCell>
-            <SummaryValueCell muted>10 123,45</SummaryValueCell>
-            <SummaryValueCell muted={false} note={{ text: '100%' }}>
+            <SummaryCell>Etap 2</SummaryCell>
+            <SummaryCell muted>10 123,45</SummaryCell>
+            <SummaryCell muted={false} note={{ text: '100%' }}>
               10 123,45
-            </SummaryValueCell>
-            <SummaryValueCell muted note={null}>
+            </SummaryCell>
+            <SummaryCell muted note={null}>
               —
-            </SummaryValueCell>
+            </SummaryCell>
           </div>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell muted weight="bold">
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell muted weight="bold">
             12 345,67
-          </SummaryValueCell>
-          <SummaryValueCell weight="bold">11 234,56</SummaryValueCell>
-          <SummaryValueCell weight="bold">1 111,11</SummaryValueCell>
+          </SummaryCell>
+          <SummaryCell weight="bold">11 234,56</SummaryCell>
+          <SummaryCell weight="bold">1 111,11</SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -535,18 +530,18 @@ export function A35SummaryPanelsGroup() {
         <div>
           <h2 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>Podsumowanie</h2>
           <SummaryTable cols={THREE_COLS} className="w-fit">
-            <SummaryHeaderCell variant="label">Rodzaj</SummaryHeaderCell>
+            <SummaryHeaderCell>Rodzaj</SummaryHeaderCell>
             <SummaryHeaderCell>Wpisy</SummaryHeaderCell>
             <SummaryHeaderCell>Koszt</SummaryHeaderCell>
-            <SummaryLabelCell>Przegląd</SummaryLabelCell>
-            <SummaryValueCell>2</SummaryValueCell>
-            <SummaryValueCell>1 111,11 zł</SummaryValueCell>
-            <SummaryLabelCell>Wymiana oleju</SummaryLabelCell>
-            <SummaryValueCell>3</SummaryValueCell>
-            <SummaryValueCell>—</SummaryValueCell>
-            <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-            <SummaryValueCell weight="bold">5</SummaryValueCell>
-            <SummaryValueCell weight="bold">1 111,11 zł</SummaryValueCell>
+            <SummaryCell>Przegląd</SummaryCell>
+            <SummaryCell>2</SummaryCell>
+            <SummaryCell>1 111,11 zł</SummaryCell>
+            <SummaryCell>Wymiana oleju</SummaryCell>
+            <SummaryCell>3</SummaryCell>
+            <SummaryCell>—</SummaryCell>
+            <SummaryCell weight="bold">Razem</SummaryCell>
+            <SummaryCell weight="bold">5</SummaryCell>
+            <SummaryCell weight="bold">1 111,11 zł</SummaryCell>
           </SummaryTable>
         </div>
       </AuditVariant>
@@ -559,20 +554,20 @@ export function A35SummaryPanelsGroup() {
         <section className="flex flex-col gap-2">
           <h3 className={SUBSECTION_TITLE_CLASS}>Rozliczenie (netto)</h3>
           <SummaryTable cols={TWO_COLS} className="w-fit">
-            <SummaryLabelCell>Robocizna</SummaryLabelCell>
-            <SummaryValueCell>12 345,67 zł</SummaryValueCell>
-            <SummaryLabelCell>Rabat</SummaryLabelCell>
-            <SummaryValueCell>−500,00 zł</SummaryValueCell>
-            <SummaryLabelCell>Materiały</SummaryLabelCell>
-            <SummaryValueCell>1 111,11 zł</SummaryValueCell>
-            <SummaryLabelCell weight="medium">Suma</SummaryLabelCell>
-            <SummaryValueCell weight="medium">12 956,78 zł</SummaryValueCell>
-            <SummaryLabelCell>Wpłaty</SummaryLabelCell>
-            <SummaryValueCell>−11 234,56 zł</SummaryValueCell>
-            <SummaryLabelCell weight="bold">Pozostało do zapłaty</SummaryLabelCell>
-            <SummaryValueCell weight="bold" tone="error">
+            <SummaryCell>Robocizna</SummaryCell>
+            <SummaryCell>12 345,67 zł</SummaryCell>
+            <SummaryCell>Rabat</SummaryCell>
+            <SummaryCell>−500,00 zł</SummaryCell>
+            <SummaryCell>Materiały</SummaryCell>
+            <SummaryCell>1 111,11 zł</SummaryCell>
+            <SummaryCell weight="medium">Suma</SummaryCell>
+            <SummaryCell weight="medium">12 956,78 zł</SummaryCell>
+            <SummaryCell>Wpłaty</SummaryCell>
+            <SummaryCell>−11 234,56 zł</SummaryCell>
+            <SummaryCell weight="bold">Pozostało do zapłaty</SummaryCell>
+            <SummaryCell weight="bold" tone="error">
               1 722,22 zł
-            </SummaryValueCell>
+            </SummaryCell>
           </SummaryTable>
         </section>
       </AuditVariant>
@@ -585,16 +580,16 @@ export function A35SummaryPanelsGroup() {
         <div className="w-full">
           <CollapsibleSection title="Moje kasy" withSeparator={false}>
             <SummaryTable cols={NAME_COLS} className="w-fit text-sm">
-              <SummaryHeaderCell variant="label">Kasa</SummaryHeaderCell>
+              <SummaryHeaderCell>Kasa</SummaryHeaderCell>
               <SummaryHeaderCell>Saldo</SummaryHeaderCell>
-              <SummaryLabelCell note={null}>Kasa Jana</SummaryLabelCell>
-              <SummaryValueCell tone="default">1 111,11 zł</SummaryValueCell>
-              <SummaryLabelCell note={{ text: 'nieaktywna' }}>Kasa budowa</SummaryLabelCell>
-              <SummaryValueCell tone="error">−88,00 zł</SummaryValueCell>
-              <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-              <SummaryValueCell weight="bold" tone="default">
+              <SummaryCell note={null}>Kasa Jana</SummaryCell>
+              <SummaryCell tone="default">1 111,11 zł</SummaryCell>
+              <SummaryCell note={{ text: 'nieaktywna' }}>Kasa budowa</SummaryCell>
+              <SummaryCell tone="error">−88,00 zł</SummaryCell>
+              <SummaryCell weight="bold">Razem</SummaryCell>
+              <SummaryCell weight="bold" tone="default">
                 1 023,11 zł
-              </SummaryValueCell>
+              </SummaryCell>
             </SummaryTable>
           </CollapsibleSection>
         </div>

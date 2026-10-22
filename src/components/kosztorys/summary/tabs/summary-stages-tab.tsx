@@ -45,7 +45,7 @@ export function SummaryStagesTab({
       <div className="flex flex-col items-start gap-8 lg:flex-row">
         <div>
           <SummaryTable cols={cols} className="w-fit">
-            <SummaryHeaderCell variant="label">Robocizna</SummaryHeaderCell>
+            <SummaryHeaderCell>Robocizna</SummaryHeaderCell>
             <SummaryMoneyHeaders axis={STAGES_AXIS} />
             {shownStages.map((st) => (
               <SummaryRow

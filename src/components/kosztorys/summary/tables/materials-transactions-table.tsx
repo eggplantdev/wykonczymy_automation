@@ -106,7 +106,6 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
     header: 'Faktura',
     size: 88,
     enableSorting: false,
-    meta: { align: 'center' },
     // The empty branch still reserves the control's box: the container's height is
     // derived from the ROW_HEIGHT estimate while the rows inside it are measured, so an invoice-less
     // row collapsing to the text line height makes the two disagree and adds an inner scrollbar.
@@ -119,7 +118,7 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
           className="size-7"
         />
       ) : (
-        <span className="mx-auto block size-7" />
+        <span className="block size-7" />
       ),
   },
 ]
@@ -131,7 +130,6 @@ const moneyColumn = (
   accessorKey,
   header,
   size: 120,
-  meta: { align: 'right' },
   cell: ({ getValue }) => formatNet(getValue<number>()),
 })
 

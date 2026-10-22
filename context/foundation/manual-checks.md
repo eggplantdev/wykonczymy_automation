@@ -1345,12 +1345,21 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 
 ## 2026-10-22 — ds-audit-a02 — kwoty, liczby i daty w komórkach
 
-- [ ] Odrzucone przez pracowników (kolumna „Kwota”) i Katalog prac (cena klienta, obie stawki
-      narzędziowe): kwoty wyrównane do prawej.
+- [ ] Każda tabela (inwestycje, kasy, konta, katalog prac, flota, transakcje, rozliczenie wypłat,
+      kosztorys → podsumowanie, raporty pracowników, odrzucone przez pracowników): wszystkie
+      kolumny, nagłówki, suma pod tabelą i przyciski akcji wyrównane do lewej.
+- [ ] Panele podsumowania (koszty pojazdu, przeglądy, wpłaty w kosztorysie), kosztorys → „Porównaj
+      z arkuszem”, porównanie z katalogiem, wybór pozycji z katalogu, podział etapu między
+      pracowników i podsumowanie w raporcie pracownika: kwoty i nagłówki do lewej.
 - [ ] Rozliczenie wypłat: saldo i „Pozostało do wypłaty” pogrubione jak inne salda.
 - [ ] Inwestycje: „Wydatki inwestycyjne” zwykłą grubością, nie pogrubione.
 - [ ] Dowolna tabela z kwotami (transakcje, flota, sprzęt, kosztorys → podsumowanie, raporty
       pracowników): cyfry w kolumnie stoją równo pod sobą, kwota nie łamie się na dwie linie.
+- [ ] Kosztorys → raporty pracowników → przegląd raportu: w tabeli „Prace spoza rozpiski” nagłówek
+      „Zgłoszono” czytany poziomo; w tabeli pozycji z rozpiski zostaje pionowy.
+- [ ] Flota → pojazd wycofany: „bezterminowo” / „brak danych” / „bez terminu” szare jak data w tym
+      wierszu; u pojazdu w użyciu w kolorze tekstu.
+- [ ] Transakcje → Drukuj z kolumną „Powód odrzucenia”: pusty powód drukuje się jako „—”.
 
 ## 2026-10-22 — investor-gross-columns — kolumny brutto w podglądzie inwestora
 

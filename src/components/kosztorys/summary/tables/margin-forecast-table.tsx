@@ -30,7 +30,7 @@ export function MarginForecastTable({ forecast, plane, onPlaneChange }: PropsT) 
         {DESCRIPTION}
       </Description>
       <SummaryTable cols={MARGIN_TABLE_COLS} className="w-fit">
-        <SummaryHeaderCell variant="label">Prognoza</SummaryHeaderCell>
+        <SummaryHeaderCell>Prognoza</SummaryHeaderCell>
         <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
         <SummaryRow label="Wartość przedmiaru" line={faceValue(forecast.clientNet)} axis="net" />

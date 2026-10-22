@@ -9,8 +9,8 @@ import { stageShareLabel, type WorkerSummaryT } from '@/lib/kosztorys/worker-vie
 
 const TABLE = 'w-auto min-w-64 max-sm:text-xs'
 const CELL = 'py-1.5 pl-7 first:pl-0'
-const LABEL = cn(CELL, 'text-muted-foreground text-left')
-const VALUE = cn(CELL, 'text-right font-medium whitespace-nowrap tabular-nums')
+const LABEL = cn(CELL, 'text-muted-foreground')
+const VALUE = cn(CELL, 'font-medium whitespace-nowrap tabular-nums')
 const HEAD = 'border-border text-muted-foreground border-b text-xs [&>td]:font-normal'
 const GRAND =
   'border-foreground border-t text-base max-sm:text-sm [&>td]:pt-2.5 [&>td]:font-semibold'
@@ -23,7 +23,7 @@ export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
   const gridDictionary = useTranslation('grid')
 
   return (
-    <div className="flex flex-col items-end gap-6">
+    <div className="flex flex-col items-start gap-6">
       <table className={TABLE}>
         <tbody>
           <tr className={HEAD}>
@@ -86,9 +86,7 @@ export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
             <td className={cn(VALUE, 'text-chart-green')}>{formatNet(summary.paidNet)}</td>
           </tr>
           <tr className={GRAND}>
-            <td className={cn(CELL, 'text-left')}>
-              {summary.isOverpaid ? t('summaryOverpaid') : t('summaryOwed')}
-            </td>
+            <td className={CELL}>{summary.isOverpaid ? t('summaryOverpaid') : t('summaryOwed')}</td>
             <td className={cn(VALUE, summary.isOverpaid && 'text-destructive')}>
               {formatNet(Math.abs(summary.owed))}
             </td>

@@ -35,9 +35,8 @@ import {
   SUMMARY_NAME_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { formatPLN } from '@/lib/utils/format-currency'
@@ -115,13 +114,13 @@ const MATERIAL_COLUMNS = [
   materialColumn.accessor('qty', {
     id: 'qty',
     header: 'Ilość',
-    meta: { align: 'center', vertical: true, label: 'Ilość' },
+    meta: { vertical: true, label: 'Ilość' },
     cell: (info) => `${info.getValue()} ${info.row.original.unit}`,
   }),
   materialColumn.accessor('amount', {
     id: 'amount',
     header: 'Kwota',
-    meta: { align: 'right', description: 'netto', label: 'Kwota netto' },
+    meta: { description: 'netto', label: 'Kwota netto' },
     cell: (info) => formatPLN(info.getValue()),
   }),
 ]
@@ -1016,34 +1015,34 @@ export function TablesSection() {
           cols={`${SUMMARY_NAME_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL}`}
           className="w-fit"
         >
-          <SummaryHeaderCell variant="label">Etap</SummaryHeaderCell>
+          <SummaryHeaderCell>Etap</SummaryHeaderCell>
           <SummaryHeaderCell>Oferta</SummaryHeaderCell>
           <SummaryHeaderCell>Wykonano</SummaryHeaderCell>
           <SummaryHeaderCell muted>Wypłacono</SummaryHeaderCell>
-          <SummaryLabelCell>Wyburzenia</SummaryLabelCell>
-          <SummaryValueCell>6 000,00 zł</SummaryValueCell>
-          <SummaryValueCell tone="success">6 000,00 zł</SummaryValueCell>
-          <SummaryValueCell muted>3 200,00 zł</SummaryValueCell>
-          <SummaryLabelCell
+          <SummaryCell>Wyburzenia</SummaryCell>
+          <SummaryCell>6 000,00 zł</SummaryCell>
+          <SummaryCell tone="success">6 000,00 zł</SummaryCell>
+          <SummaryCell muted>3 200,00 zł</SummaryCell>
+          <SummaryCell
             hints={[{ variant: 'planeUnconfirmed', content: 'Etap bez ustawionego rozliczenia' }]}
           >
             Glazura
-          </SummaryLabelCell>
-          <SummaryValueCell>12 000,00 zł</SummaryValueCell>
-          <SummaryValueCell note={{ text: '68% oferty' }}>8 200,00 zł</SummaryValueCell>
-          <SummaryValueCell tone="error" note={{ text: 'nadpłata', tone: 'error' }}>
+          </SummaryCell>
+          <SummaryCell>12 000,00 zł</SummaryCell>
+          <SummaryCell note={{ text: '68% oferty' }}>8 200,00 zł</SummaryCell>
+          <SummaryCell tone="error" note={{ text: 'nadpłata', tone: 'error' }}>
             -300,00 zł
-          </SummaryValueCell>
-          <SummaryLabelCell weight="medium">Razem netto</SummaryLabelCell>
-          <SummaryValueCell weight="medium">18 000,00 zł</SummaryValueCell>
-          <SummaryValueCell weight="medium">14 200,00 zł</SummaryValueCell>
-          <SummaryValueCell weight="medium">2 900,00 zł</SummaryValueCell>
-          <SummaryLabelCell weight="bold">Do wypłaty</SummaryLabelCell>
-          <SummaryValueCell weight="bold">—</SummaryValueCell>
-          <SummaryValueCell weight="bold" tone="success">
+          </SummaryCell>
+          <SummaryCell weight="medium">Razem netto</SummaryCell>
+          <SummaryCell weight="medium">18 000,00 zł</SummaryCell>
+          <SummaryCell weight="medium">14 200,00 zł</SummaryCell>
+          <SummaryCell weight="medium">2 900,00 zł</SummaryCell>
+          <SummaryCell weight="bold">Do wypłaty</SummaryCell>
+          <SummaryCell weight="bold">—</SummaryCell>
+          <SummaryCell weight="bold" tone="success">
             11 300,00 zł
-          </SummaryValueCell>
-          <SummaryValueCell weight="bold">—</SummaryValueCell>
+          </SummaryCell>
+          <SummaryCell weight="bold">—</SummaryCell>
         </SummaryTable>
       </ShowcaseRow>
       <ShowcaseRow

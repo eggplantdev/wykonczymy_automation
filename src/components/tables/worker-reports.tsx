@@ -64,7 +64,6 @@ export function useWorkerReportColumns({
     col.accessor('lineCount', {
       header: t('works'),
       enableSorting: sortable('lineCount'),
-      meta: { align: 'right' },
       cell: (info) => info.getValue(),
     }),
     col.accessor('status', {

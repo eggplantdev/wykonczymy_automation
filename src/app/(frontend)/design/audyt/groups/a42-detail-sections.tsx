@@ -13,9 +13,8 @@ import {
   SUMMARY_NAME_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { cn } from '@/lib/utils/cn'
 import { AuditGroup } from '../audit-group'
@@ -142,12 +141,12 @@ export function A42DetailSectionsGroup() {
             cols={`${SUMMARY_NAME_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL}`}
             className="w-fit"
           >
-            <SummaryHeaderCell variant="label">Rodzaj</SummaryHeaderCell>
+            <SummaryHeaderCell>Rodzaj</SummaryHeaderCell>
             <SummaryHeaderCell>Wpisy</SummaryHeaderCell>
             <SummaryHeaderCell>Koszt</SummaryHeaderCell>
-            <SummaryLabelCell>Przegląd</SummaryLabelCell>
-            <SummaryValueCell>2</SummaryValueCell>
-            <SummaryValueCell>1 111,11 zł</SummaryValueCell>
+            <SummaryCell>Przegląd</SummaryCell>
+            <SummaryCell>2</SummaryCell>
+            <SummaryCell>1 111,11 zł</SummaryCell>
           </SummaryTable>
         </div>
       </AuditVariant>
@@ -181,14 +180,14 @@ export function A42DetailSectionsGroup() {
         <div className="w-full">
           <CollapsibleSection title="Moje kasy" withSeparator={false}>
             <SummaryTable cols={REGISTER_COLS} className="w-fit text-sm">
-              <SummaryHeaderCell variant="label">Kasa</SummaryHeaderCell>
+              <SummaryHeaderCell>Kasa</SummaryHeaderCell>
               <SummaryHeaderCell>Saldo</SummaryHeaderCell>
-              <SummaryLabelCell>
+              <SummaryCell>
                 <OptionalLink href="/design/audyt">Kasa Jana</OptionalLink>
-              </SummaryLabelCell>
-              <SummaryValueCell>1 111,11 zł</SummaryValueCell>
-              <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-              <SummaryValueCell weight="bold">1 111,11 zł</SummaryValueCell>
+              </SummaryCell>
+              <SummaryCell>1 111,11 zł</SummaryCell>
+              <SummaryCell weight="bold">Razem</SummaryCell>
+              <SummaryCell weight="bold">1 111,11 zł</SummaryCell>
             </SummaryTable>
           </CollapsibleSection>
         </div>
@@ -241,12 +240,12 @@ export function A42DetailSectionsGroup() {
         <div>
           <SectionHeader title="Na stanie" />
           <SummaryTable cols={EQUIPMENT_COLS} className="w-fit text-sm">
-            <SummaryHeaderCell variant="label">Sprzęt</SummaryHeaderCell>
-            <SummaryHeaderCell variant="label">Nr seryjny</SummaryHeaderCell>
-            <SummaryHeaderCell variant="label">Od</SummaryHeaderCell>
-            <SummaryLabelCell>Wiertarka Makita</SummaryLabelCell>
-            <SummaryLabelCell>SN-2026-0042</SummaryLabelCell>
-            <SummaryLabelCell>20.10.2026</SummaryLabelCell>
+            <SummaryHeaderCell>Sprzęt</SummaryHeaderCell>
+            <SummaryHeaderCell>Nr seryjny</SummaryHeaderCell>
+            <SummaryHeaderCell>Od</SummaryHeaderCell>
+            <SummaryCell>Wiertarka Makita</SummaryCell>
+            <SummaryCell>SN-2026-0042</SummaryCell>
+            <SummaryCell>20.10.2026</SummaryCell>
           </SummaryTable>
         </div>
       </AuditVariant>

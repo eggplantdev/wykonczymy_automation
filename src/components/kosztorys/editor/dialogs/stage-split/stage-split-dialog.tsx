@@ -125,12 +125,12 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
           >
             <span className="text-muted-foreground text-xs">Główny</span>
             <span className="text-muted-foreground text-xs">Pracownik</span>
-            {!byAmount && <span className="text-muted-foreground text-right text-xs">Udział</span>}
-            <span className="text-muted-foreground text-right text-xs">Kwota</span>
+            {!byAmount && <span className="text-muted-foreground text-xs">Udział</span>}
+            <span className="text-muted-foreground text-xs">Kwota</span>
             <span />
             {draft.members.map((member) => {
               const share = (
-                <span className="text-right tabular-nums" data-testid="member-share">
+                <span className="tabular-nums" data-testid="member-share">
                   {formatPLN(shares.get(member.workerId) ?? 0)}
                 </span>
               )
@@ -156,7 +156,7 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
                   {member.takesRest ? (
                     <>
                       {!byAmount && (
-                        <span className="text-muted-foreground text-right tabular-nums">
+                        <span className="text-muted-foreground tabular-nums">
                           {percentOf(member.workerId)}
                         </span>
                       )}
@@ -172,7 +172,6 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
                           aria-label={`${byAmount ? 'Kwota' : 'Udział'} — ${nameOf(member.workerId)}`}
                           inputMode="decimal"
                           placeholder="0"
-                          className="text-right"
                           defaultValue={member.value === 0 ? '' : decimalText(member.value)}
                           onChange={(event) => {
                             const parsed = parseDecimalInput(event.target.value)

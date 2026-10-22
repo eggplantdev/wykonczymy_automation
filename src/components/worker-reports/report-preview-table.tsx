@@ -59,7 +59,6 @@ export function ReportPreviewTable({ group, lines }: PropsT) {
     col.accessor('reportedQty', {
       header: t('reported'),
       enableSorting: false,
-      meta: { align: 'right' },
       cell: ({ row: { original: line } }) => (
         <span className="whitespace-nowrap">{formatQtyWithUnit(line.reportedQty, line.unit)}</span>
       ),
@@ -67,7 +66,6 @@ export function ReportPreviewTable({ group, lines }: PropsT) {
     col.display({
       id: 'accepted',
       header: t('accepted'),
-      meta: { align: 'right' },
       cell: ({ row: { original: line } }) => {
         const { outcome } = line
         if (outcome.kind === 'accepted') {

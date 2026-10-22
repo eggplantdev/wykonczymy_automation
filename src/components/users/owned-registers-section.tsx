@@ -4,9 +4,8 @@ import {
   SUMMARY_NAME_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { Description } from '@/components/ui/description'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
@@ -48,24 +47,24 @@ export function OwnedRegistersSection({
         <Description>{t('noRegisters')}</Description>
       ) : (
         <SummaryTable cols={COLS} className="w-fit text-sm">
-          <SummaryHeaderCell variant="label">{t('register')}</SummaryHeaderCell>
+          <SummaryHeaderCell>{t('register')}</SummaryHeaderCell>
           <SummaryHeaderCell>{t('balance')}</SummaryHeaderCell>
           {rows.map((row) => (
             <Fragment key={row.id}>
-              <SummaryLabelCell note={row.active ? null : { text: t('registerInactive') }}>
+              <SummaryCell note={row.active ? null : { text: t('registerInactive') }}>
                 <OptionalLink href={linkable ? `/kasa/${row.id}` : undefined}>
                   {row.name}
                 </OptionalLink>
-              </SummaryLabelCell>
-              <SummaryValueCell tone={isNegativeMoney(row.balance) ? 'error' : 'default'}>
+              </SummaryCell>
+              <SummaryCell tone={isNegativeMoney(row.balance) ? 'error' : 'default'}>
                 {formatPLN(row.balance)}
-              </SummaryValueCell>
+              </SummaryCell>
             </Fragment>
           ))}
-          <SummaryLabelCell weight="bold">{t('total')}</SummaryLabelCell>
-          <SummaryValueCell weight="bold" tone={isNegativeMoney(total) ? 'error' : 'default'}>
+          <SummaryCell weight="bold">{t('total')}</SummaryCell>
+          <SummaryCell weight="bold" tone={isNegativeMoney(total) ? 'error' : 'default'}>
             {formatPLN(total)}
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       )}
     </CollapsibleSection>

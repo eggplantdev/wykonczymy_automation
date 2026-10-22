@@ -19,9 +19,8 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { InfoList } from '@/components/ui/info-list'
 import { EdgeHandlePill } from '@/components/ui/edge-handle-pill'
@@ -166,18 +165,18 @@ export function LayoutSection() {
       </ShowcaseRow>
       <ShowcaseRow title="SummaryTable" source="ui/summary-grid.tsx">
         <SummaryTable cols={SUMMARY_COLS} className="w-fit">
-          <SummaryHeaderCell variant="label">Pozycja</SummaryHeaderCell>
+          <SummaryHeaderCell>Pozycja</SummaryHeaderCell>
           <SummaryHeaderCell>Kwota</SummaryHeaderCell>
-          <SummaryLabelCell>Robocizna</SummaryLabelCell>
-          <SummaryValueCell tone="success">8 000,00 zł</SummaryValueCell>
-          <SummaryLabelCell muted>Wyszarzone</SummaryLabelCell>
-          <SummaryValueCell muted>0,00 zł</SummaryValueCell>
-          <SummaryLabelCell hints={[{ variant: 'noStages' }]}>Z podpowiedzią</SummaryLabelCell>
-          <SummaryValueCell tone="error" note={{ text: 'Notatka', tone: 'error' }}>
+          <SummaryCell>Robocizna</SummaryCell>
+          <SummaryCell tone="success">8 000,00 zł</SummaryCell>
+          <SummaryCell muted>Wyszarzone</SummaryCell>
+          <SummaryCell muted>0,00 zł</SummaryCell>
+          <SummaryCell hints={[{ variant: 'noStages' }]}>Z podpowiedzią</SummaryCell>
+          <SummaryCell tone="error" note={{ text: 'Notatka', tone: 'error' }}>
             -120,00 zł
-          </SummaryValueCell>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">7 880,00 zł</SummaryValueCell>
+          </SummaryCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">7 880,00 zł</SummaryCell>
         </SummaryTable>
       </ShowcaseRow>
       <ShowcaseRow

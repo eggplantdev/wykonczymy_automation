@@ -4,7 +4,7 @@ import {
   SUMMARY_NAME_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
 } from '@/components/ui/summary-grid'
 import { EMPTY_VALUE } from '@/lib/utils/empty-value'
@@ -32,21 +32,19 @@ export function HeldEquipmentSection({
     <div>
       <SectionHeader title={t('heldEquipment')} />
       <SummaryTable cols={COLS} className="w-fit text-sm">
-        <SummaryHeaderCell variant="label">{t('equipment')}</SummaryHeaderCell>
-        <SummaryHeaderCell variant="label">{t('serialNumber')}</SummaryHeaderCell>
-        <SummaryHeaderCell variant="label">{t('since')}</SummaryHeaderCell>
+        <SummaryHeaderCell>{t('equipment')}</SummaryHeaderCell>
+        <SummaryHeaderCell>{t('serialNumber')}</SummaryHeaderCell>
+        <SummaryHeaderCell>{t('since')}</SummaryHeaderCell>
 
         {equipment.map((item) => (
           <div key={item.id} className="contents">
-            <SummaryLabelCell>
+            <SummaryCell>
               <OptionalLink href={linkable ? `/sprzet/${item.id}` : undefined}>
                 {item.name}
               </OptionalLink>
-            </SummaryLabelCell>
-            <SummaryLabelCell>{item.serialNumber || EMPTY_VALUE}</SummaryLabelCell>
-            <SummaryLabelCell>
-              {item.locatedAt ? formatPLDate(item.locatedAt) : EMPTY_VALUE}
-            </SummaryLabelCell>
+            </SummaryCell>
+            <SummaryCell>{item.serialNumber || EMPTY_VALUE}</SummaryCell>
+            <SummaryCell>{item.locatedAt ? formatPLDate(item.locatedAt) : EMPTY_VALUE}</SummaryCell>
           </div>
         ))}
       </SummaryTable>

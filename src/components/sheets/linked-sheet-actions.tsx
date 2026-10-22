@@ -45,7 +45,7 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
   }
 
   return (
-    <div className="flex items-center justify-end gap-2">
+    <div className="flex items-center gap-2">
       <Button size="sm" asChild>
         <Link href={`/inwestycje/${investmentId}/kosztorys`}>
           <FileSpreadsheet />

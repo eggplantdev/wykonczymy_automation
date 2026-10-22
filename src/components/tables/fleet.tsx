@@ -57,7 +57,6 @@ export function getFleetColumns() {
     col.accessor((row) => row.totalCosts ?? undefined, {
       id: COSTS_COLUMN_ID,
       header: 'Koszty',
-      meta: { align: 'right' },
       sortUndefined: 'last',
       cell: (info) => formatPLNOrDash(info.row.original.totalCosts),
     }),
@@ -92,7 +91,6 @@ export function getFleetColumns() {
     col.accessor('status', {
       id: 'status',
       header: 'Status',
-      meta: { align: 'right' },
       cell: (info) => <VehicleStatusBadge status={info.getValue()} />,
     }),
     actionsColumn<FleetRowT>((vehicle) => (

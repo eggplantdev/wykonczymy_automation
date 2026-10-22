@@ -34,13 +34,11 @@ export function getCashRegisterColumns(
     col.accessor('balance', {
       id: 'balance',
       header: 'Saldo',
-      meta: { align: 'right' },
       cell: (info) => <BalanceCell value={info.getValue()} />,
     }),
     col.accessor('active', {
       id: 'active',
       header: 'Status',
-      meta: { align: 'right' },
       enableSorting: true,
       cell: (info) => {
         const isActive = info.getValue()

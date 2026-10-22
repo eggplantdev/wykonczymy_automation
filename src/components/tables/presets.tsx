@@ -11,12 +11,10 @@ export const PRESET_COLUMNS = [
   col.accessor('name', { header: 'Nazwa' }),
   col.accessor('sectionCount', {
     header: 'Sekcje',
-    meta: { align: 'right' },
     cell: (info) => info.getValue(),
   }),
   col.accessor('itemCount', {
     header: 'Pozycje',
-    meta: { align: 'right' },
     cell: (info) => info.getValue(),
   }),
   col.accessor('updatedAt', { header: 'Zmieniono', cell: dateCell }),
@@ -24,7 +22,6 @@ export const PRESET_COLUMNS = [
   col.display({
     id: 'actions',
     header: 'Akcje',
-    meta: { align: 'right' },
     cell: (info) => <PresetRowActions preset={info.row.original} />,
   }),
 ]

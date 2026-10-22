@@ -40,7 +40,7 @@ export function SummaryTotalsTable({
     <SummaryTable cols={cols} className="w-fit">
       {(bothPlanes || caption !== undefined) && (
         <>
-          <SummaryHeaderCell variant="label">{caption}</SummaryHeaderCell>
+          <SummaryHeaderCell>{caption}</SummaryHeaderCell>
           {bothPlanes ? (
             <SummaryMoneyHeaders axis={axis} />
           ) : (

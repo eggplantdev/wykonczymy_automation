@@ -8,10 +8,9 @@ export function actionsColumn<TData>(
   return createColumnHelper<TData>().display({
     id: 'actions',
     header,
-    meta: { align: 'right' },
     cell: (info) => {
       const actions = renderActions(info.row.original)
-      return actions && <div className="flex items-center justify-end gap-1">{actions}</div>
+      return actions && <div className="flex items-center gap-1">{actions}</div>
     },
   })
 }

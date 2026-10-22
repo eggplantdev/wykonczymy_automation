@@ -90,7 +90,7 @@ export function CatalogueDiffTable({
       <ReportTable
         headers={[
           { content: null, className: 'w-6' },
-          { content: 'Liczba', className: 'pl-0 text-left' },
+          { content: 'Liczba', className: 'pl-0' },
           'Kosztorys',
           'Katalog',
           'Różnica',
@@ -156,7 +156,7 @@ function DiffGroup({
           {diff.description}
           <span className="text-muted-foreground"> ({unitLabel(diff.unit)})</span>
         </td>
-        <td className="py-1 pl-3 text-right whitespace-nowrap">
+        <td className="py-1 pl-3 whitespace-nowrap">
           {!readOnly && (
             <Button variant="link" size="inlineXs" onClick={onEditInCatalogue}>
               Edytuj w katalogu
@@ -224,14 +224,14 @@ function FigureRow({
       {/* „auto" on either side, never the kwota it implies: that kwota is a product of this
           inwestycja's współczynnik, so printing it would show a number nobody entered and which
           moves when the współczynnik does. */}
-      <td className="py-1 pl-3 text-right tabular-nums">
+      <td className="py-1 pl-3 tabular-nums">
         {sideText(figure.kosztorys, figure.kosztorysSource, figure.kosztorysCoeff)}
       </td>
-      <td className="py-1 pl-3 text-right tabular-nums">
+      <td className="py-1 pl-3 tabular-nums">
         {sideText(figure.catalogue, figure.catalogueSource, figure.catalogueCoeff)}
       </td>
       <td
-        className={`py-1 pl-3 text-right tabular-nums ${
+        className={`py-1 pl-3 tabular-nums ${
           figure.kosztorysSource === 'auto' || figure.catalogueSource === 'auto'
             ? 'text-muted-foreground'
             : 'text-warning'

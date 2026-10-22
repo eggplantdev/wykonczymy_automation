@@ -7,9 +7,8 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 
@@ -41,29 +40,29 @@ export function MaterialsBreakdownTable({
 
   return (
     <SummaryTable cols={cols} className="w-fit">
-      <SummaryHeaderCell variant="label">{caption}</SummaryHeaderCell>
+      <SummaryHeaderCell>{caption}</SummaryHeaderCell>
       {showNet && <SummaryHeaderCell>Netto</SummaryHeaderCell>}
       <SummaryHeaderCell>{showNet ? 'Brutto' : 'Kwota'}</SummaryHeaderCell>
       {showNet && <SummaryHeaderCell>Różnica</SummaryHeaderCell>}
       {priced.map(({ key, label, pair }) => (
         <Fragment key={key}>
-          <SummaryLabelCell>{label}</SummaryLabelCell>
-          {showNet && <SummaryValueCell>{formatNet(pair.net)}</SummaryValueCell>}
-          <SummaryValueCell>{formatNet(pair.gross)}</SummaryValueCell>
+          <SummaryCell>{label}</SummaryCell>
+          {showNet && <SummaryCell>{formatNet(pair.net)}</SummaryCell>}
+          <SummaryCell>{formatNet(pair.gross)}</SummaryCell>
           {showNet && (
-            <SummaryValueCell className="text-muted-foreground">
+            <SummaryCell className="text-muted-foreground">
               {formatNet(pair.net - pair.gross)}
-            </SummaryValueCell>
+            </SummaryCell>
           )}
         </Fragment>
       ))}
-      <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-      {showNet && <SummaryValueCell weight="bold">{formatNet(totalNet)}</SummaryValueCell>}
-      <SummaryValueCell weight="bold">{formatNet(totalGross)}</SummaryValueCell>
+      <SummaryCell weight="bold">Razem</SummaryCell>
+      {showNet && <SummaryCell weight="bold">{formatNet(totalNet)}</SummaryCell>}
+      <SummaryCell weight="bold">{formatNet(totalGross)}</SummaryCell>
       {showNet && (
-        <SummaryValueCell weight="bold" className="text-muted-foreground">
+        <SummaryCell weight="bold" className="text-muted-foreground">
           {formatNet(totalNet - totalGross)}
-        </SummaryValueCell>
+        </SummaryCell>
       )}
     </SummaryTable>
   )

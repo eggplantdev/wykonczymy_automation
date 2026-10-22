@@ -24,12 +24,8 @@ export function CandidateRow({
       <span className="min-w-0 flex-1 text-left">{entry.description}</span>
       {showFigures && (
         <>
-          <span className="text-muted-foreground w-16 shrink-0 text-right">
-            {unitLabel(entry.unit)}
-          </span>
-          <span className="w-20 shrink-0 text-right tabular-nums">
-            {formatPLN(entry.clientPrice)}
-          </span>
+          <span className="text-muted-foreground w-16 shrink-0">{unitLabel(entry.unit)}</span>
+          <span className="w-20 shrink-0 tabular-nums">{formatPLN(entry.clientPrice)}</span>
         </>
       )}
     </>

@@ -141,10 +141,10 @@ function AcceptedQtyCell({ row }: { row: ReviewRowT }) {
         disabled={!draft.isTicked}
         aria-invalid={draft.isTicked && parseReportQty(draft.qty).kind !== 'value'}
         onChange={(event) => onChange(row.id, { qty: event.target.value })}
-        className="mx-auto h-8 w-20 tabular-nums"
+        className="h-8 w-20 tabular-nums"
       />
       {note && (
-        <Description size="xs" withIcon={false} className="justify-center whitespace-nowrap">
+        <Description size="xs" withIcon={false} className="whitespace-nowrap">
           {note}
         </Description>
       )}
@@ -397,20 +397,17 @@ const tickColumn = col.display({
   id: 'tick',
   enableHiding: false,
   header: () => <TickHeader />,
-  meta: { align: 'center' },
   cell: ({ row }) => <TickCell row={row.original} />,
 })
 const rejectColumn = col.display({
   id: 'reject',
   enableHiding: false,
   header: 'Akcje',
-  meta: { align: 'center' },
   cell: ({ row }) => <RejectCell row={row.original} />,
 })
 const refColumn = col.accessor((row) => row.ref ?? 0, {
   id: 'ref',
   header: 'Nr',
-  meta: { align: 'center' },
   cell: ({ row }) =>
     row.original.ref !== undefined && (
       <span className="whitespace-nowrap">{formatFormRef(row.original.ref)}</span>
@@ -419,7 +416,6 @@ const refColumn = col.accessor((row) => row.ref ?? 0, {
 const sectionColumn = col.accessor((row) => row.sectionOrder, {
   id: 'section',
   header: 'Sekcja',
-  meta: { align: 'center' },
   cell: ({ row }) => <SectionPill name={row.original.sectionName} />,
 })
 const reviewDescriptionColumn = col.accessor('description', {
@@ -441,7 +437,7 @@ const workerDescriptionColumn = col.accessor('workerDescription', {
 })
 const reportedColumn = col.accessor('reportedQty', {
   header: 'Zgłoszono',
-  meta: { align: 'center', vertical: true },
+  meta: { vertical: true },
   cell: ({ row }) => (
     <span className="whitespace-nowrap">
       {formatQtyWithUnit(row.original.reportedQty, row.original.unit)}
@@ -450,19 +446,18 @@ const reportedColumn = col.accessor('reportedQty', {
 })
 const extraReportedColumn = {
   ...reportedColumn,
-  meta: { align: 'center' },
+  meta: {},
 } satisfies typeof reportedColumn
 const acceptedColumn = col.display({
   id: 'accepted',
   header: 'Przyjmuję',
-  meta: { align: 'center', vertical: true },
+  meta: { vertical: true },
   cell: ({ row }) => <AcceptedQtyCell row={row.original} />,
 })
 const stageColumn = col.accessor((row) => row.figures?.stageQty ?? 0, {
   id: 'stage',
   header: () => <StageHeader />,
   meta: {
-    align: 'center',
     label: 'Etap',
     description: 'wartości etapu, do którego przyjmujesz zgłoszenie',
     vertical: true,
@@ -473,13 +468,13 @@ const OFFERED_PLANNED_ID = 'plannedQty'
 const offeredPlannedColumn = col.accessor((row) => row.figures?.plannedQty ?? 0, {
   id: OFFERED_PLANNED_ID,
   header: COLUMN_LABELS.plannedQty,
-  meta: { align: 'center', vertical: true },
+  meta: { vertical: true },
   cell: ({ row }) => row.original.figures && formatQty(row.original.figures.plannedQty),
 })
 const plannedColumn = col.accessor((row) => row.figures?.currentPlannedQty ?? 0, {
   id: 'planned',
   header: COLUMN_LABELS.currentPlannedQty,
-  meta: { align: 'center', vertical: true },
+  meta: { vertical: true },
   cell: ({ row }) =>
     row.original.figures &&
     (row.original.figures.currentPlannedQty > 0
@@ -491,7 +486,6 @@ const stageQtySumColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {
   id: 'stageQtySum',
   header: STAGE_QTY_SUM_LABEL,
   meta: {
-    align: 'center',
     vertical: true,
     description: 'ile jest aktualnie zgłoszone',
   },
@@ -501,7 +495,6 @@ const stageQtySumAfterColumn = col.display({
   id: 'stageQtySumAfter',
   header: STAGE_QTY_SUM_LABEL,
   meta: {
-    align: 'center',
     vertical: true,
     label: `${STAGE_QTY_SUM_LABEL} po przyjęciu`,
     description: 'po przyjęciu zgłoszenia',
@@ -512,7 +505,7 @@ const MEASURED_LABEL = `Pomiar z natury / ${COLUMN_LABELS.currentPlannedQty}`
 const measuredColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {
   id: 'measured',
   header: MEASURED_LABEL,
-  meta: { align: 'center', vertical: true },
+  meta: { vertical: true },
   cell: ({ row }) => <MeasuredCell row={row.original} />,
 })
 const EXTRA_TEXT_WIDTH = 'min-w-80 w-1/3'

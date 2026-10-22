@@ -42,7 +42,6 @@ const COLUMNS = [
   col.accessor((row) => row.cost ?? undefined, {
     id: 'cost',
     header: 'Koszt',
-    meta: { align: 'right' },
     sortUndefined: 'last',
     cell: (info) => formatPLNOrDash(info.row.original.cost),
   }),

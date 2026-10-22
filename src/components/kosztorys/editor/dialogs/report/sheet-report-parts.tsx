@@ -31,8 +31,8 @@ export function ReportTable({
                 <th
                   key={index}
                   className={cn(
-                    'py-1 font-normal',
-                    index === 0 ? 'text-left' : 'pl-3 text-right',
+                    'py-1 text-left font-normal',
+                    index > 0 && 'pl-3',
                     isHeaderObject(header) && header.className,
                   )}
                 >
@@ -66,10 +66,7 @@ export function ReportRow({
     <tr className="border-border/60 border-t align-middle">
       <td className={cn('py-1', labelClassName)}>{label}</td>
       {cells.map((cell, index) => (
-        <td
-          key={index}
-          className={cn('text-foreground py-1 pl-3 text-right tabular-nums', cell.className)}
-        >
+        <td key={index} className={cn('text-foreground py-1 pl-3 tabular-nums', cell.className)}>
           {cell.content}
         </td>
       ))}
@@ -134,7 +131,7 @@ export function ItemList({
           }
           labelClassName={hasNote ? 'w-1/2' : undefined}
           cells={[
-            ...(hasNote ? [{ content: item.note, className: 'text-left text-warning' }] : []),
+            ...(hasNote ? [{ content: item.note, className: 'text-warning' }] : []),
             ...(hasAction ? [{ content: item.action, className: 'whitespace-nowrap' }] : []),
           ]}
         />

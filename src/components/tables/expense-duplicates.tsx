@@ -89,13 +89,11 @@ export function getExpenseDuplicateColumns<R extends DuplicateMatchT>({
     col.accessor((row) => row.amount, {
       id: 'amount',
       header: 'Kwota',
-      meta: { align: 'right' },
       cell: (info) => formatPLNOrDash(info.getValue()),
     }),
     col.display({
       id: 'preview',
       header: 'Podgląd',
-      meta: { align: 'center' },
       cell: ({ row }) =>
         row.original.pages.length > 0 && (
           <MediaPreviewButton

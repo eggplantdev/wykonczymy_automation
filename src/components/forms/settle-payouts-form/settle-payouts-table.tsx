@@ -165,23 +165,19 @@ const COLUMNS = [
   }),
   col.accessor('due', {
     header: 'Wykonane',
-    meta: { align: 'right' },
     cell: (info) => formatPLNOrDash(info.getValue()),
   }),
   col.accessor('bonus', {
     id: BONUS_COLUMN_ID,
     header: 'Premia',
-    meta: { align: 'right' },
     cell: (info) => formatPLNOrDash(info.getValue()),
   }),
   col.accessor('paid', {
     header: 'Wypłacone',
-    meta: { align: 'right' },
     cell: (info) => formatPLNOrDash(info.getValue()),
   }),
   col.accessor('remaining', {
     header: 'Pozostało',
-    meta: { align: 'right' },
     cell: (info) => <BalanceCell value={info.getValue()} />,
   }),
   col.display({
@@ -193,7 +189,6 @@ const COLUMNS = [
   col.display({
     id: 'after',
     header: 'Pozostało do rozliczenia',
-    meta: { align: 'right' },
     cell: ({ row }) => <AfterPayoutCell row={row.original} index={row.index} />,
   }),
 ]

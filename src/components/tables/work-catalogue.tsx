@@ -67,12 +67,11 @@ const twoLines = (first: string, second: string) => () => (
 const shareTooltip = (plane: ToolPlaneT) =>
   `Udział stawki w cenie j.m. Powyżej ${clientShareCeilingLabel(plane)} na czerwono.`
 
-// it survives every sort and filter. `row.index` would slide under the row and name nothing.
+// `row.index` would slide under the row and name nothing.
 const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
   col.display({
     id: 'lp',
     header: 'Lp.',
-    meta: { align: 'right' },
     cell: (info) => (
       <span className="text-muted-foreground">{ordinals.get(info.row.original.id)}</span>
     ),
@@ -155,7 +154,6 @@ const clientPriceColumn = col.accessor('clientPrice', {
   id: 'clientPrice',
   header: 'Cena j.m.',
   size: 120,
-  meta: { align: 'right' },
   cell: (info) => formatPLN(info.getValue()),
 })
 
@@ -163,7 +161,7 @@ const wToolsRateColumn = col.accessor((row) => catalogueRateAmount(row, 'w_tools
   id: 'wToolsRate',
   header: twoLines('Stawka z narzędziami', '(podwykonawca)'),
   size: 176,
-  meta: { align: 'right', label: RATE_LABELS.w_tools },
+  meta: { label: RATE_LABELS.w_tools },
   cell: (info) => rateCell(info.row.original, 'w_tools'),
 })
 
@@ -197,7 +195,7 @@ const ownToolsRateColumn = col.accessor((row) => catalogueRateAmount(row, 'own_t
   id: 'ownToolsRate',
   header: twoLines('Stawka bez narzędzi', '(pracownik)'),
   size: 176,
-  meta: { align: 'right', label: RATE_LABELS.own_tools },
+  meta: { label: RATE_LABELS.own_tools },
   cell: (info) => rateCell(info.row.original, 'own_tools'),
 })
 
@@ -233,7 +231,7 @@ const countColumn = (id: string, header: string, tooltip: string, count: (id: nu
   col.accessor((row) => count(row.id), {
     id,
     header,
-    meta: { align: 'right', tooltip },
+    meta: { tooltip },
     cell: (info) => info.getValue(),
   })
 
@@ -283,7 +281,6 @@ export function getWorkCatalogueColumns({
     col.display({
       id: 'actions',
       header: 'Akcje',
-      meta: { align: 'right' },
       cell: (info) => (
         <CatalogueRowActions
           item={info.row.original}

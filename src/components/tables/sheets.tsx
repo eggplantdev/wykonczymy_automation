@@ -38,7 +38,7 @@ export function getKosztorysColumns({
       },
     }),
 
-    // Accessor on the label so the sort follows the visible Polish text, not the enum value.
+    // Accessor on the label so the sort follows the visible Polish text.
     kosztorysCol.accessor((row) => SHEET_STATUS_LABELS[row.status], {
       id: 'status',
       header: 'Status',
@@ -48,7 +48,6 @@ export function getKosztorysColumns({
     kosztorysCol.display({
       id: 'actions',
       header: 'Akcje',
-      meta: { align: 'right' },
       cell: (info) => {
         const row = info.row.original
 
@@ -92,7 +91,6 @@ export function getInvestmentWithoutSheetColumns() {
     investmentCol.display({
       id: 'actions',
       header: 'Akcje',
-      meta: { align: 'right' },
       cell: (info) => {
         const row = info.row.original
         return (

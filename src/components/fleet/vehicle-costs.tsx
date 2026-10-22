@@ -4,9 +4,8 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { summariseCosts } from '@/lib/fleet/costs'
 import { emptyHistoryLabel } from '@/lib/fleet/history-window'
@@ -47,21 +46,21 @@ export function VehicleCosts({
         <h2 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>Podsumowanie</h2>
 
         <SummaryTable cols={COLS} className="w-fit">
-          <SummaryHeaderCell variant="label">Rodzaj</SummaryHeaderCell>
+          <SummaryHeaderCell>Rodzaj</SummaryHeaderCell>
           <SummaryHeaderCell>Wpisy</SummaryHeaderCell>
           <SummaryHeaderCell>Koszt</SummaryHeaderCell>
 
           {byType.map((bucket) => (
             <Fragment key={bucket.type}>
-              <SummaryLabelCell>{INSPECTION_TYPE_LABELS[bucket.type].pl}</SummaryLabelCell>
-              <SummaryValueCell>{bucket.count}</SummaryValueCell>
-              <SummaryValueCell>{formatPLNOrDash(bucket.total)}</SummaryValueCell>
+              <SummaryCell>{INSPECTION_TYPE_LABELS[bucket.type].pl}</SummaryCell>
+              <SummaryCell>{bucket.count}</SummaryCell>
+              <SummaryCell>{formatPLNOrDash(bucket.total)}</SummaryCell>
             </Fragment>
           ))}
 
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">{entries.length}</SummaryValueCell>
-          <SummaryValueCell weight="bold">{formatPLNOrDash(total)}</SummaryValueCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">{entries.length}</SummaryCell>
+          <SummaryCell weight="bold">{formatPLNOrDash(total)}</SummaryCell>
         </SummaryTable>
       </div>
 
@@ -69,15 +68,15 @@ export function VehicleCosts({
         <h2 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>Szczegóły</h2>
 
         <SummaryTable cols={COLS} className="w-fit">
-          <SummaryHeaderCell variant="label">Data</SummaryHeaderCell>
+          <SummaryHeaderCell>Data</SummaryHeaderCell>
           <SummaryHeaderCell>Rodzaj</SummaryHeaderCell>
           <SummaryHeaderCell>Koszt</SummaryHeaderCell>
 
           {entries.map((entry) => (
             <Fragment key={entry.id}>
-              <SummaryLabelCell>{formatPLDate(entry.performedAt)}</SummaryLabelCell>
-              <SummaryValueCell>{INSPECTION_TYPE_LABELS[entry.type].pl}</SummaryValueCell>
-              <SummaryValueCell>{formatPLNOrDash(entry.cost)}</SummaryValueCell>
+              <SummaryCell>{formatPLDate(entry.performedAt)}</SummaryCell>
+              <SummaryCell>{INSPECTION_TYPE_LABELS[entry.type].pl}</SummaryCell>
+              <SummaryCell>{formatPLNOrDash(entry.cost)}</SummaryCell>
             </Fragment>
           ))}
         </SummaryTable>

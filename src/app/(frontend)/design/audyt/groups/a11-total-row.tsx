@@ -3,9 +3,8 @@ import { SignedMoneyDisplay } from '@/components/ui/signed-money-display'
 import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { cn } from '@/lib/utils/cn'
 import { AuditGroup } from '../audit-group'
@@ -34,7 +33,7 @@ export function A11TotalRowGroup() {
       count="27 wystąpień w 22 plikach · 16 wersji"
       drift={[
         'Waga: font-bold (SummaryTable, ColumnTotalRow, etykieta stopki siatki) vs font-semibold (wartości siatki, GRAND) vs font-medium („Łącznie”, „Suma: …”) vs zwykła (surowa tabela raportu).',
-        'Budowa: helper SummaryRow bold vs ręcznie wpisane SummaryLabelCell + N × SummaryValueCell weight="bold" vs surowe <tr>/<td> z lokalnymi stałymi TABLE/CELL/LABEL/VALUE.',
+        'Budowa: helper SummaryRow bold vs ręcznie wpisane SummaryCell + N × SummaryCell weight="bold" vs surowe <tr>/<td> z lokalnymi stałymi TABLE/CELL/LABEL/VALUE.',
         'Wyciszenie: prop muted (opacity) vs className="text-muted-foreground" vs cn(VALUE, \'text-muted-foreground\').',
         'Kolor: tone="success" / tone="error" wg znaku / notka „nadpłacone” — każdy wiersz liczy to po swojemu; w surowej tabeli text-chart-green i text-destructive wpisane ręcznie.',
         "Wypełniacze: pusta komórka {''} albo <td /> vs colSpan; etykieta „Razem” / t('summaryTotal') / t('total') / „Łącznie”.",
@@ -85,12 +84,12 @@ export function A11TotalRowGroup() {
         ]}
       >
         <SummaryTable cols={TWO_COLS} className="w-fit text-sm">
-          <SummaryLabelCell>Kasa Jana</SummaryLabelCell>
-          <SummaryValueCell>1 111,11 zł</SummaryValueCell>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold" tone="error">
+          <SummaryCell>Kasa Jana</SummaryCell>
+          <SummaryCell>1 111,11 zł</SummaryCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold" tone="error">
             −88,00 zł
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -104,20 +103,20 @@ export function A11TotalRowGroup() {
         ]}
       >
         <SummaryTable cols={THREE_COLS} className="w-fit">
-          <SummaryLabelCell weight="default">Etap 1</SummaryLabelCell>
-          <SummaryValueCell weight="default" tone="default">
+          <SummaryCell weight="default">Etap 1</SummaryCell>
+          <SummaryCell weight="default" tone="default">
             1 111,11 zł
-          </SummaryValueCell>
-          <SummaryValueCell weight="default" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="default" tone="default">
             1 366,67 zł
-          </SummaryValueCell>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold" tone="default">
             12 345,67 zł
-          </SummaryValueCell>
-          <SummaryValueCell weight="bold" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="bold" tone="default">
             15 185,17 zł
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -190,12 +189,12 @@ export function A11TotalRowGroup() {
         sources={['src/components/fleet/vehicle-costs.tsx:62']}
       >
         <SummaryTable cols={THREE_COLS} className="w-fit">
-          <SummaryLabelCell>Przegląd</SummaryLabelCell>
-          <SummaryValueCell>2</SummaryValueCell>
-          <SummaryValueCell>1 111,11 zł</SummaryValueCell>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">5</SummaryValueCell>
-          <SummaryValueCell weight="bold">12 345,67 zł</SummaryValueCell>
+          <SummaryCell>Przegląd</SummaryCell>
+          <SummaryCell>2</SummaryCell>
+          <SummaryCell>1 111,11 zł</SummaryCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">5</SummaryCell>
+          <SummaryCell weight="bold">12 345,67 zł</SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -205,12 +204,12 @@ export function A11TotalRowGroup() {
         sources={['src/components/kosztorys/summary/tables/deposits-table.tsx:111']}
       >
         <SummaryTable cols={THREE_COLS} className="w-fit">
-          <SummaryLabelCell>Przelew</SummaryLabelCell>
-          <SummaryValueCell>1 111,11 zł</SummaryValueCell>
-          <SummaryValueCell>1 366,67 zł</SummaryValueCell>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">12 345,67 zł</SummaryValueCell>
-          <SummaryValueCell>{''}</SummaryValueCell>
+          <SummaryCell>Przelew</SummaryCell>
+          <SummaryCell>1 111,11 zł</SummaryCell>
+          <SummaryCell>1 366,67 zł</SummaryCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">12 345,67 zł</SummaryCell>
+          <SummaryCell>{''}</SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -220,16 +219,16 @@ export function A11TotalRowGroup() {
         sources={['src/components/kosztorys/summary/tables/materials-breakdown-table.tsx:60']}
       >
         <SummaryTable cols={FOUR_COLS} className="w-fit">
-          <SummaryLabelCell>Materiały budowlane</SummaryLabelCell>
-          <SummaryValueCell>1 000,00 zł</SummaryValueCell>
-          <SummaryValueCell>1 230,00 zł</SummaryValueCell>
-          <SummaryValueCell className="text-muted-foreground">−230,00 zł</SummaryValueCell>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">10 037,13 zł</SummaryValueCell>
-          <SummaryValueCell weight="bold">12 345,67 zł</SummaryValueCell>
-          <SummaryValueCell weight="bold" className="text-muted-foreground">
+          <SummaryCell>Materiały budowlane</SummaryCell>
+          <SummaryCell>1 000,00 zł</SummaryCell>
+          <SummaryCell>1 230,00 zł</SummaryCell>
+          <SummaryCell className="text-muted-foreground">−230,00 zł</SummaryCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">10 037,13 zł</SummaryCell>
+          <SummaryCell weight="bold">12 345,67 zł</SummaryCell>
+          <SummaryCell weight="bold" className="text-muted-foreground">
             −2 308,54 zł
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -239,14 +238,14 @@ export function A11TotalRowGroup() {
         sources={['src/components/kosztorys/summary/blocks/subcontractor-stage-breakdown.tsx:47']}
       >
         <SummaryTable cols={THREE_COLS} className="w-fit">
-          <SummaryLabelCell>Etap 1</SummaryLabelCell>
-          <SummaryValueCell muted>2 222,22 zł</SummaryValueCell>
-          <SummaryValueCell>1 111,11 zł</SummaryValueCell>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell muted weight="bold">
+          <SummaryCell>Etap 1</SummaryCell>
+          <SummaryCell muted>2 222,22 zł</SummaryCell>
+          <SummaryCell>1 111,11 zł</SummaryCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell muted weight="bold">
             24 691,34 zł
-          </SummaryValueCell>
-          <SummaryValueCell weight="bold">12 345,67 zł</SummaryValueCell>
+          </SummaryCell>
+          <SummaryCell weight="bold">12 345,67 zł</SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -256,14 +255,14 @@ export function A11TotalRowGroup() {
         sources={['src/components/kosztorys/summary/blocks/subcontractor-worker-totals.tsx:109']}
       >
         <SummaryTable cols={FOUR_COLS} className="h-fit w-fit">
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">12 345,67 zł</SummaryValueCell>
-          <SummaryValueCell tone="success" weight="bold">
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">12 345,67 zł</SummaryCell>
+          <SummaryCell tone="success" weight="bold">
             12 433,67 zł
-          </SummaryValueCell>
-          <SummaryValueCell tone="error" weight="bold" note={{ text: 'nadpłacone', tone: 'error' }}>
+          </SummaryCell>
+          <SummaryCell tone="error" weight="bold" note={{ text: 'nadpłacone', tone: 'error' }}>
             −88,00 zł
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -273,20 +272,20 @@ export function A11TotalRowGroup() {
         sources={['src/components/kosztorys/summary/tables/summary-breakdown-table.tsx:51']}
       >
         <SummaryTable cols={THREE_COLS}>
-          <SummaryLabelCell weight="default">Materiały</SummaryLabelCell>
-          <SummaryValueCell weight="default" tone="default">
+          <SummaryCell weight="default">Materiały</SummaryCell>
+          <SummaryCell weight="default" tone="default">
             1 111,11 zł
-          </SummaryValueCell>
-          <SummaryValueCell weight="default" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="default" tone="default">
             1 366,67 zł
-          </SummaryValueCell>
-          <SummaryLabelCell weight="medium">Łącznie</SummaryLabelCell>
-          <SummaryValueCell weight="medium" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="medium">Łącznie</SummaryCell>
+          <SummaryCell weight="medium" tone="default">
             12 345,67 zł
-          </SummaryValueCell>
-          <SummaryValueCell weight="medium" tone="default">
+          </SummaryCell>
+          <SummaryCell weight="medium" tone="default">
             15 185,17 zł
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       </AuditVariant>
 
@@ -296,13 +295,13 @@ export function A11TotalRowGroup() {
         sources={['src/components/kosztorys/summary/tables/margin-actual-table.tsx:74']}
       >
         <SummaryTable cols={TWO_COLS} className="w-fit">
-          <SummaryLabelCell weight="bold">Marża</SummaryLabelCell>
-          <SummaryValueCell
+          <SummaryCell weight="bold">Marża</SummaryCell>
+          <SummaryCell
             weight="bold"
             note={{ text: 'Etapy z wykonaną pracą, ale bez rozliczenia.', tone: 'error' }}
           >
             Ustaw rozliczenie etapów
-          </SummaryValueCell>
+          </SummaryCell>
         </SummaryTable>
       </AuditVariant>
 

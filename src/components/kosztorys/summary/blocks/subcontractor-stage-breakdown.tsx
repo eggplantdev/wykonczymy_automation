@@ -4,9 +4,8 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { formatNet, formatPercent } from '@/lib/kosztorys/format'
 import type { StageBreakdownT } from '@/lib/kosztorys/subcontractor-stage-breakdown'
@@ -22,7 +21,7 @@ export function SubcontractorStageBreakdown({ breakdown }: { breakdown: StageBre
         .join(' ')}`}
       className="h-fit w-fit"
     >
-      <SummaryHeaderCell variant="label">Podział etapów</SummaryHeaderCell>
+      <SummaryHeaderCell>Podział etapów</SummaryHeaderCell>
       <SummaryHeaderCell>Wartość etapu</SummaryHeaderCell>
       {workers.map((worker) => (
         <SummaryHeaderCell key={workerKey(worker.workerId)}>{worker.name}</SummaryHeaderCell>
@@ -30,28 +29,28 @@ export function SubcontractorStageBreakdown({ breakdown }: { breakdown: StageBre
 
       {rows.map((row) => (
         <div key={row.stageId} className="contents">
-          <SummaryLabelCell>{row.label}</SummaryLabelCell>
-          <SummaryValueCell muted>{formatNet(row.wholeNet)}</SummaryValueCell>
+          <SummaryCell>{row.label}</SummaryCell>
+          <SummaryCell muted>{formatNet(row.wholeNet)}</SummaryCell>
           {row.shares.map((share, column) => (
-            <SummaryValueCell
+            <SummaryCell
               key={workerKey(workers[column].workerId)}
               muted={share === null}
               note={share === null ? null : { text: formatPercent(share / row.wholeNet) }}
             >
               {share === null ? '—' : formatNet(share)}
-            </SummaryValueCell>
+            </SummaryCell>
           ))}
         </div>
       ))}
 
-      <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-      <SummaryValueCell muted weight="bold">
+      <SummaryCell weight="bold">Razem</SummaryCell>
+      <SummaryCell muted weight="bold">
         {formatNet(totals.wholeNet)}
-      </SummaryValueCell>
+      </SummaryCell>
       {totals.shares.map((total, column) => (
-        <SummaryValueCell key={workerKey(workers[column].workerId)} weight="bold">
+        <SummaryCell key={workerKey(workers[column].workerId)} weight="bold">
           {formatNet(total)}
-        </SummaryValueCell>
+        </SummaryCell>
       ))}
     </SummaryTable>
   )

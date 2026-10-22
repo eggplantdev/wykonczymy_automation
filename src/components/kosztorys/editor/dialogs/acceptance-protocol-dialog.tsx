@@ -10,9 +10,8 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
@@ -170,14 +169,14 @@ function AcceptanceProtocolBody({
           </Description>
         ) : (
           <SummaryTable cols={`2.5rem minmax(0, 1fr) ${SUMMARY_VALUE_COL}`}>
-            <SummaryHeaderCell variant="label">Lp.</SummaryHeaderCell>
-            <SummaryHeaderCell variant="label">Prace</SummaryHeaderCell>
+            <SummaryHeaderCell>Lp.</SummaryHeaderCell>
+            <SummaryHeaderCell>Prace</SummaryHeaderCell>
             <SummaryHeaderCell>Ilość i jedn.</SummaryHeaderCell>
             {scope.map((row, index) => (
               <Fragment key={index}>
-                <SummaryLabelCell>{index + 1}</SummaryLabelCell>
-                <SummaryLabelCell>{row.description}</SummaryLabelCell>
-                <SummaryValueCell>{scopeQuantityText(row)}</SummaryValueCell>
+                <SummaryCell>{index + 1}</SummaryCell>
+                <SummaryCell>{row.description}</SummaryCell>
+                <SummaryCell>{scopeQuantityText(row)}</SummaryCell>
               </Fragment>
             ))}
           </SummaryTable>
@@ -192,12 +191,12 @@ function AcceptanceProtocolBody({
             // Red only on what is still owed, rounded first so a bill settled to the grosz stays black.
             const tone = emphasis === 'total' && roundToCents(amount) > 0 ? 'error' : undefined
             return [
-              <SummaryLabelCell key={`${label}-label`} weight={weight}>
+              <SummaryCell key={`${label}-label`} weight={weight}>
                 {label}
-              </SummaryLabelCell>,
-              <SummaryValueCell key={`${label}-value`} weight={weight} tone={tone}>
+              </SummaryCell>,
+              <SummaryCell key={`${label}-value`} weight={weight} tone={tone}>
                 {formatPLN(amount)}
-              </SummaryValueCell>,
+              </SummaryCell>,
             ]
           })}
         </SummaryTable>

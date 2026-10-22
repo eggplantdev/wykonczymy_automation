@@ -73,7 +73,6 @@ function CellNote({ note }: { note: SummaryCellNoteT }) {
   )
 }
 
-// An extra wrapper would break `text-right`.
 function CellContent({ children, hints }: { children: ReactNode; hints?: LabelHintT[] }) {
   if (!hints?.length) return children
   return (
@@ -91,30 +90,23 @@ function CellContent({ children, hints }: { children: ReactNode; hints?: LabelHi
 function CellBody({
   muted,
   note,
-  align,
   hints,
   children,
 }: {
   muted?: boolean
   note?: SummaryCellNoteT | null
-  align: 'start' | 'end'
   hints?: LabelHintT[]
   children: ReactNode
 }) {
   return (
-    <span
-      className={cn(
-        muted && 'opacity-40',
-        note && (align === 'end' ? 'flex flex-col items-end' : 'flex flex-col items-start'),
-      )}
-    >
+    <span className={cn(muted && 'opacity-40', note && 'flex flex-col items-start')}>
       <CellContent hints={hints}>{children}</CellContent>
       {note && <CellNote note={note} />}
     </span>
   )
 }
 
-export function SummaryLabelCell({
+export function SummaryCell({
   muted,
   tone,
   weight,
@@ -132,32 +124,7 @@ export function SummaryLabelCell({
         className,
       )}
     >
-      <CellBody muted={muted} note={note} align="start" hints={hints}>
-        {children}
-      </CellBody>
-    </span>
-  )
-}
-
-export function SummaryValueCell({
-  muted,
-  tone,
-  weight,
-  className,
-  children,
-  note,
-  hints,
-}: SummaryCellPropsT) {
-  return (
-    <span
-      className={cn(
-        'border-border bg-background border-r border-b px-3 py-1 text-right tabular-nums max-sm:px-2',
-        CELL_TONE[tone ?? 'default'],
-        CELL_WEIGHT[weight ?? 'default'],
-        className,
-      )}
-    >
-      <CellBody muted={muted} note={note} align="end" hints={hints}>
+      <CellBody muted={muted} note={note} hints={hints}>
         {children}
       </CellBody>
     </span>
@@ -165,21 +132,18 @@ export function SummaryValueCell({
 }
 
 export function SummaryHeaderCell({
-  variant = 'value',
   muted,
   className,
   children,
 }: {
-  variant?: 'label' | 'value'
   muted?: boolean
   className?: string
   children: ReactNode
 }) {
-  const Cell = variant === 'label' ? SummaryLabelCell : SummaryValueCell
   return (
-    <Cell muted={muted} className={cn('text-muted-foreground text-xs', className)}>
+    <SummaryCell muted={muted} className={cn('text-muted-foreground text-xs', className)}>
       {children}
-    </Cell>
+    </SummaryCell>
   )
 }
 

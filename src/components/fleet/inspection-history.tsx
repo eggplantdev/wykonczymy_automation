@@ -5,9 +5,8 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { emptyHistoryLabel } from '@/lib/fleet/history-window'
@@ -39,7 +38,7 @@ function HistoryTable({ entries }: { entries: InspectionHistoryEntryT[] }) {
 
   return (
     <SummaryTable cols={cols} className="w-fit">
-      <SummaryHeaderCell variant="label">Data</SummaryHeaderCell>
+      <SummaryHeaderCell>Data</SummaryHeaderCell>
       <SummaryHeaderCell>Następny termin</SummaryHeaderCell>
       <SummaryHeaderCell>Przebieg</SummaryHeaderCell>
       <SummaryHeaderCell>Od poprzedniego</SummaryHeaderCell>
@@ -50,30 +49,26 @@ function HistoryTable({ entries }: { entries: InspectionHistoryEntryT[] }) {
 
       {entries.map((entry) => (
         <Fragment key={entry.id}>
-          <SummaryLabelCell weight="medium" note={entry.note ? { text: entry.note } : null}>
+          <SummaryCell weight="medium" note={entry.note ? { text: entry.note } : null}>
             {formatPLDate(entry.performedAt)}
-          </SummaryLabelCell>
+          </SummaryCell>
 
-          <SummaryValueCell>
-            {entry.nextDueAt ? formatPLDate(entry.nextDueAt) : EMPTY_VALUE}
-          </SummaryValueCell>
+          <SummaryCell>{entry.nextDueAt ? formatPLDate(entry.nextDueAt) : EMPTY_VALUE}</SummaryCell>
 
-          <SummaryValueCell>{formatKmOrDash(entry.odometer)}</SummaryValueCell>
+          <SummaryCell>{formatKmOrDash(entry.odometer)}</SummaryCell>
 
-          <SummaryValueCell>
+          <SummaryCell>
             {entry.kmSincePrevious !== null ? `+${formatKm(entry.kmSincePrevious)}` : EMPTY_VALUE}
-          </SummaryValueCell>
+          </SummaryCell>
 
-          <SummaryValueCell>{formatPLNOrDash(entry.cost)}</SummaryValueCell>
+          <SummaryCell>{formatPLNOrDash(entry.cost)}</SummaryCell>
 
-          {shown.insurer && <SummaryValueCell>{entry.insurer || EMPTY_VALUE}</SummaryValueCell>}
+          {shown.insurer && <SummaryCell>{entry.insurer || EMPTY_VALUE}</SummaryCell>}
 
-          {shown.policyNumber && (
-            <SummaryValueCell>{entry.policyNumber || EMPTY_VALUE}</SummaryValueCell>
-          )}
+          {shown.policyNumber && <SummaryCell>{entry.policyNumber || EMPTY_VALUE}</SummaryCell>}
 
           {shown.attachments && (
-            <SummaryValueCell>
+            <SummaryCell>
               {entry.attachmentCount > 0 ? (
                 <span className="inline-flex items-center gap-1">
                   <Paperclip className="size-3" />
@@ -82,7 +77,7 @@ function HistoryTable({ entries }: { entries: InspectionHistoryEntryT[] }) {
               ) : (
                 EMPTY_VALUE
               )}
-            </SummaryValueCell>
+            </SummaryCell>
           )}
         </Fragment>
       ))}

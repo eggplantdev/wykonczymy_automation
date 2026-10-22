@@ -55,9 +55,14 @@ function PayoutRemainingCell({
   }).filter((line) => line.count > 0)
   const withheldCount = view.active.withheldCount + view.completed.withheldCount
   return (
-    <span className="inline-flex flex-col items-end">
+    <span className="inline-flex flex-col items-start">
       {/* The withheld hint stays outside: its tooltip trigger is a button of its own. */}
-      <Button variant="link" size="inline" className="flex-col items-end gap-0" onClick={onSettle}>
+      <Button
+        variant="link"
+        size="inline"
+        className="flex-col items-start gap-0"
+        onClick={onSettle}
+      >
         {lines.length === 0 ? (
           <BalanceCell value={0} settled />
         ) : (
@@ -113,7 +118,6 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
     col.accessor('active', {
       id: 'active',
       header: 'Status',
-      meta: { align: 'right' },
       cell: (info) => {
         const isActive = info.getValue()
         const tone = isActive ? 'positive' : 'muted'
@@ -134,7 +138,6 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
         id: 'payoutRemaining',
         sortUndefined: 'last',
         header: SUBCONTRACTOR_FIGURE_LABELS.remaining,
-        meta: { align: 'right' },
         cell: (info) => (
           <PayoutRemainingCell
             view={info.row.original.payoutRemaining}
@@ -151,7 +154,6 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
     col.accessor((row) => row.registerNames.length, {
       id: 'registers',
       header: 'Kasy',
-      meta: { align: 'right' },
       cell: (info) =>
         info.getValue() === 0 ? (
           EMPTY_VALUE

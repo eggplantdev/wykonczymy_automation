@@ -20,15 +20,12 @@ export function TableHeader<T>({ headerGroups, textSize }: TableHeaderPropsT<T>)
           {headerGroup.headers.map((header) => {
             const canSort = header.column.getCanSort()
             const sorted = header.column.getIsSorted()
-            const align = header.column.columnDef.meta?.align
             const tooltip = header.column.columnDef.meta?.tooltip
             const minWidth = header.column.columnDef.meta?.minWidth
             const description = header.column.columnDef.meta?.description
             const isVertical = header.column.columnDef.meta?.vertical
             const rawHeader = header.column.columnDef.header
 
-            // Radix closes the tip on pointerdown, so the click that sorts also dismisses it instead
-            // of leaving it hanging over the re-sorted table.
             const content = (
               <span
                 className={cn(
@@ -53,8 +50,6 @@ export function TableHeader<T>({ headerGroups, textSize }: TableHeaderPropsT<T>)
                 className={cn(
                   'text-muted-foreground px-3 py-2 text-left font-medium',
                   sizes.header,
-                  align === 'right' && 'text-right',
-                  align === 'center' && 'text-center',
                   canSort && 'cursor-pointer select-none',
                   isVertical && 'text-center align-bottom',
                   minWidth,
@@ -84,7 +79,6 @@ export function TableHeader<T>({ headerGroups, textSize }: TableHeaderPropsT<T>)
                         className={cn(
                           'block w-max max-w-40 font-normal whitespace-normal',
                           sizes.headerDescription,
-                          align === 'right' && 'ml-auto',
                         )}
                       >
                         {description}

@@ -138,7 +138,6 @@ export function useExpenseDraftColumns({
     col.display({
       id: 'media',
       header: t('attachments'),
-      meta: { align: 'center' },
       cell: ({ row: { original: draft } }) => (
         <MediaPreviewButton labels={INVOICE_PREVIEW_LABELS} files={draft.media} variant="compact" />
       ),
@@ -192,7 +191,7 @@ export function useExpenseDraftColumns({
           col.accessor('transfers', {
             header: t('transfers'),
             enableSorting: false,
-            meta: { align: 'right', minWidth: 'min-w-28' },
+            meta: { minWidth: 'min-w-28' },
             cell: ({ row: { original: draft } }) => (
               <TransferCell draft={draft} isLinked={canOpenTransfers} />
             ),

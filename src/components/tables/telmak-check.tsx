@@ -54,12 +54,10 @@ export function getTelmakCheckColumns(onAttached: () => void) {
     col.accessor('issueDate', { header: 'Data wyst.', cell: dateCell }),
     col.accessor('docAmount', {
       header: 'Faktura',
-      meta: { align: 'right' },
       cell: (info) => formatPLNOrDash(info.getValue()),
     }),
     col.accessor('appAmount', {
       header: 'Aplikacja',
-      meta: { align: 'right' },
       cell: (info) => formatPLNOrDash(info.getValue()),
     }),
     col.accessor('investmentName', {
@@ -70,7 +68,6 @@ export function getTelmakCheckColumns(onAttached: () => void) {
     col.display({
       id: 'preview',
       header: 'Podgląd',
-      meta: { align: 'center' },
       cell: ({ row }) =>
         row.original.local && (
           <MediaPreviewButton
@@ -84,12 +81,11 @@ export function getTelmakCheckColumns(onAttached: () => void) {
     col.display({
       id: 'actions',
       header: 'Akcje',
-      meta: { align: 'right' },
       cell: ({ row }) => {
         const { local, needsFile } = row.original
         if (!local) return null
         return (
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center gap-2">
             {needsFile.map((r) => (
               <AttachButton
                 key={r.id}

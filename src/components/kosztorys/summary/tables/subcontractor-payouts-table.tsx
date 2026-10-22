@@ -40,7 +40,6 @@ const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
     accessorKey: 'amount',
     header: 'Kwota',
     size: 140,
-    meta: { align: 'right' },
     cell: ({ getValue }) => (
       <span className="text-chart-green">{formatNet(getValue<number>())}</span>
     ),
