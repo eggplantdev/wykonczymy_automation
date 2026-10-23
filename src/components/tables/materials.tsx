@@ -20,37 +20,37 @@ export const MATERIALS_COLUMNS = [
   }),
   col.accessor('type', {
     header: 'Rodzaj',
-    size: 170,
+    size: 180,
     cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
   }),
   col.accessor('pack', {
     header: 'Opakowanie',
-    size: 100,
+    size: 120,
     enableSorting: false,
     cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
   }),
   col.accessor('qty', {
     header: 'Kupiono',
-    size: 90,
+    size: 110,
     cell: (info) => (
       <span className="block text-right tabular-nums">{formatQty(info.getValue())}</span>
     ),
   }),
   col.accessor('investments', {
     header: 'Inwestycje',
-    size: 90,
+    size: 120,
     cell: (info) => <span className="block text-right tabular-nums">{info.getValue()}</span>,
   }),
   col.accessor('avgNet', {
     header: 'Średnio netto',
-    size: 110,
+    size: 140,
     cell: (info) => money(info.getValue()),
   }),
-  col.accessor('minNet', { header: 'Min', size: 100, cell: (info) => money(info.getValue()) }),
-  col.accessor('maxNet', { header: 'Max', size: 100, cell: (info) => money(info.getValue()) }),
+  col.accessor('minNet', { header: 'Min', size: 120, cell: (info) => money(info.getValue()) }),
+  col.accessor('maxNet', { header: 'Max', size: 120, cell: (info) => money(info.getValue()) }),
   col.accessor('spread', {
     header: 'Rozrzut',
-    size: 80,
+    size: 110,
     meta: { tooltip: 'O ile najdroższy zakup był droższy od najtańszego.' },
     cell: (info) => (
       <span className="block text-right tabular-nums">
@@ -61,23 +61,23 @@ export const MATERIALS_COLUMNS = [
   col.accessor((row) => row.shopNames.join(', '), {
     id: 'shops',
     header: 'Sklepy',
-    size: 200,
+    size: 220,
     enableSorting: false,
     cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
   }),
   col.accessor('cheapestShop', {
     header: 'Najtaniej',
-    size: 120,
+    size: 140,
     cell: (info) => (info.row.original.shopNames.length > 1 ? info.getValue() : ''),
   }),
   col.accessor('gross', {
     header: 'Wydano brutto',
-    size: 120,
+    size: 150,
     cell: (info) => money(info.getValue()),
   }),
   col.accessor('lastDate', {
     header: 'Ostatnio',
-    size: 100,
+    size: 120,
     cell: (info) => <span className="text-muted-foreground tabular-nums">{info.getValue()}</span>,
   }),
 ]

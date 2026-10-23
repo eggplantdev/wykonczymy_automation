@@ -46,8 +46,6 @@ export type MaterialRowT = Omit<MaterialT, 'names' | 'shops' | 'purchases'> & {
   shopNames: string[]
 }
 
-export type MaterialTypeTotalT = { type: string; gross: number; count: number }
-
 export type MaterialPricePointT = Pick<
   MaterialPurchaseT,
   'shop' | 'date' | 'doc' | 'qty' | 'net'

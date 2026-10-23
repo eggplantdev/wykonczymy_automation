@@ -1,7 +1,7 @@
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { PAGE_TITLES } from '@/lib/constants/sections'
-import { MATERIALS, PRICE_LIST_DATE, toMaterialRow } from '@/lib/materials/price-list'
-import { MaterialsReport } from '@/components/investments/materials/materials-report'
+import { MATERIALS, toMaterialRow } from '@/lib/materials/price-list'
+import { MaterialsDataTable } from '@/components/investments/materials/materials-data-table'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 
 export default async function MaterialsPage() {
@@ -9,7 +9,7 @@ export default async function MaterialsPage() {
 
   return (
     <PageWrapper title={PAGE_TITLES.materials}>
-      <MaterialsReport rows={MATERIALS.map(toMaterialRow)} priceListDate={PRICE_LIST_DATE} />
+      <MaterialsDataTable data={MATERIALS.map(toMaterialRow)} />
     </PageWrapper>
   )
 }
