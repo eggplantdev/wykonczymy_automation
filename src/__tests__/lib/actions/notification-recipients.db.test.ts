@@ -11,6 +11,8 @@ const BASELINE = {
   equipmentDigest: [{ email: 'sprzet@example.com' }],
   newLead: [{ email: 'sprzedaz@example.com' }],
   opsAlerts: [{ email: 'ops@example.com' }],
+  aiPipeline: [{ email: 'ai@example.com' }],
+  aiReviewers: [{ email: 'recenzja@example.com' }],
 }
 
 describe.skipIf(!ENV_READY)('saveRecipientListAction (DB)', () => {
@@ -40,6 +42,8 @@ describe.skipIf(!ENV_READY)('saveRecipientListAction (DB)', () => {
       equipmentDigest: ['sprzet@example.com'],
       newLead: ['sprzedaz@example.com'],
       opsAlerts: ['ops@example.com'],
+      aiPipeline: ['ai@example.com'],
+      aiReviewers: ['recenzja@example.com'],
     })
   })
 

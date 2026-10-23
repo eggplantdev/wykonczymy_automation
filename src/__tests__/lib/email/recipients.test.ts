@@ -10,6 +10,8 @@ const seeded = {
   equipmentDigest: [{ email: 'sprzet@example.com' }],
   newLead: [{ email: 'sprzedaz@example.com' }],
   opsAlerts: [{ email: 'ops@example.com' }],
+  aiPipeline: [{ email: 'ai@example.com' }],
+  aiReviewers: [{ email: 'recenzja@example.com' }],
 }
 
 describe('readRecipientLists', () => {
@@ -19,6 +21,8 @@ describe('readRecipientLists', () => {
       equipmentDigest: ['sprzet@example.com'],
       newLead: ['sprzedaz@example.com'],
       opsAlerts: ['ops@example.com'],
+      aiPipeline: ['ai@example.com'],
+      aiReviewers: ['recenzja@example.com'],
     })
   })
 
@@ -30,6 +34,8 @@ describe('readRecipientLists', () => {
       equipmentDigest: [],
       newLead: [],
       opsAlerts: [],
+      aiPipeline: [],
+      aiReviewers: [],
     })
   })
 })
