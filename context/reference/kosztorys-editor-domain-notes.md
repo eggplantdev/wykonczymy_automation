@@ -473,7 +473,11 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   wykonana" pojawiają się dopiero po pierwszym wpisie. Przed drukiem okno pyta „Tylko pozycje z
   wykonaną pracą" (domyślnie zaznaczone, nie zapisywane): zaznaczone drukuje tylko pozycje, w których
   etapy pracownika mają wpisy, i sumuje tylko je. Kartka do zgłoszenia prac i link zawsze niosą cały
-  zakres (2026-10-22, prośba właściciela).
+  zakres (2026-10-22, prośba właściciela). Wybór nie jest ustawieniem, bo ustawienia widoku pracownika
+  to jeden wiersz dla całej firmy — zapisany przełączyłby PDF każdemu pracownikowi naraz. „Jego praca"
+  to praca na jego etapach: na etapie dzielonym z innymi liczą się też ich wpisy (`stage_progress` nie
+  ma kolumny pracownika). Pozycja, której jedynym wpisem jest ujemna korekta, wypada z wydruku — ten
+  sam warunek „z wykonaną pracą" co filtr w edytorze.
 
 ### Zgłoszenia wykonanych prac — pracownik zgłasza ilości, kierownik przyjmuje (2026-09-30)
 

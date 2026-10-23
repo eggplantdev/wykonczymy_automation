@@ -1,10 +1,10 @@
 ---
 change_id: netto-expense-gross-settlement
 title: Netto expense bills netto plus the investment's VAT when materiały settle brutto
-status: implemented
+status: archived
 created: 2026-10-23
 updated: 2026-10-23
-archived_at: null
+archived_at: 2026-10-23T10:18:31Z
 branch: netto-expense-gross-settlement
 worktree: ../wykonczymy-worktrees/netto-expense-gross-settlement
 ---
@@ -22,3 +22,9 @@ stawka vat inwestycji”.
 Mirabelki 5/93 #5986 — dziś przy brutto liczy 3662,38 zamiast 4504,73).
 
 Poprzednia zmiana tego mechanizmu: `context/archive/2026-07-29-netto-expense-grossup/`.
+
+## Decisions (as shipped)
+
+- Poza zakresem, celowo: v1 (`balanceFromTransactions`), synchronizacja arkusza, marża v2 i „Lista
+  wydatków” nadal czytają wydatek netto po samym netto. Koszty kategorii to kwoty z faktur (ustalenie
+  właściciela), więc też się nie zmieniają.

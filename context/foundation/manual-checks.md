@@ -1062,16 +1062,6 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       jednej linii, tak jak w „Dodane przez”.
   _Staging 2026-10-22 (pass 13): OWNER, `/` tabela: 100 wierszy pierwszej strony — „Pracownik” i „Dodane przez” w jednej linii (pomiar zakresów tekstu, 0 zawinięć)._
 
-## 2026-10-19 — desktop-regression-audit — poprawki z przeklikania desktopu
-
-- [x] Strona inwestycji: strzałki przy „Etap AI” i „Kierownik budowy” są szare, jak przy „Notatki”,
-      a nie czarne.
-  _Staging 2026-10-22 (pass 13): OWNER, inw. 179: strzałki Etap AI, Kierownik budowy, status i Notatki mają ten sam szary lab(74.48 0 0)._
-- [x] Jako kierownik → „Pracownicy”: status „Aktywny/Nieaktywny” przy koncie właściciela, innego
-      kierownika i przy własnym jest zwykłym znaczkiem (nie da się kliknąć); przy pracowniku przełącza
-      jak dotąd. Jako właściciel: tylko własny status jest nieklikalny.
-  _Staging 2026-10-22 (pass 13): MANAGER: status właściciela/admina/innego kierownika/własny to <span> (nieklikalny), pracownicy <button>. OWNER: nieklikalny tylko własny status (1 z 48 wierszy)._
-
 ## EX-1112 — rejected-snapshot-retention — historia oferty odrzuconej znika od razu
 
 - [ ] Inwestycja ze statusem „Odrzucona", która ma zapisane wersje kosztorysu: po najbliższym
@@ -1527,18 +1517,6 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [x] Tabela poza kosztorysem (np. lista przelewów) → „Kolumny": sekcje bez strzałki, nie zwijają
       się — wygląd jak wcześniej.
 
-## 2026-10-22 — worker-pdf-own-work-filter — PDF pracownika tylko z pozycjami z wykonaną pracą
-
-- [x] Gryka-Deszczyński Kopernika 2a Marki → „Pracownicy" → Kyryl Elektryk → „Drukuj kosztorys
-      pracownika (PDF)": otwiera się dialog z zaznaczonym „Tylko pozycje z wykonaną pracą";
-      „Drukuj" otwiera okno druku (bez blokady popupu) tylko z jego pozycjami (17 na danych
-      z 22.10); sumy sekcji i „Razem" zgadzają się z wydrukowanymi pozycjami.
-- [x] To samo z odznaczonym polem: PDF jak dotąd — wszystkie pozycje z przedmiarem.
-- [x] Ponowne otwarcie dialogu po odznaczeniu: pole znowu zaznaczone.
-- [x] Pracownik, którego etapy nie mają jeszcze wpisów, pole zaznaczone: nagłówek, pusta tabela,
-      stopka — bez błędu.
-- [x] „Drukuj kartkę do zgłoszenia prac" nadal drukuje jednym kliknięciem, z pełnym zakresem.
-
 ## 2026-10-22 — ai-marker-default-on — „Do analizy AI” domyślnie zaznaczone
 
 Staging 2026-10-22 (pass 15, deploy 32fb4c7bd): sekcja sprawdzona. Test pliki wgrane do inw. 179 usunięte przez UI (trafiły do Kosza na 7 dni).
@@ -1659,26 +1637,9 @@ głównym, w Safari przełącznika nie ma).
 
 ## EX-1091 — netto-expense-gross-settlement — wydatek netto przy rozliczeniu materiałów brutto
 
-- [x] Inwestycja rozliczana brutto z wydatkiem netto → podsumowanie kosztorysu, „Wydatki”: wiersz
-      „… netto*” pokazuje netto × (1 + VAT inwestycji), pod tabelą przypis „*Wydatki netto liczone
-      po stawce VAT inwestycji <stawka>%”. „Pozostało do zapłaty” rośnie o tę samą różnicę względem
-      netto.
-- [x] Inwestycja z wydatkiem netto rozliczana netto ze stawką: wydatek netto liczy się po netto,
-      bez gwiazdki i przypisu. Przełącz materiały na brutto → netto × (1 + stawka) z gwiazdką i
-      przypisem „… <stawka>%”; przełącz z powrotem → netto.
-- [x] Podgląd inwestora tej samej inwestycji przy rozliczeniu brutto: jeden wiersz na kategorię,
-      bez gwiazdki i przypisu; „Razem” równe widokowi managera.
-- [x] Lista inwestycji: „Wydatki inwestycyjne” i bilans Mirabelek zgadzają się z panelem
-      podsumowania. Podpowiedź nagłówka „Wydatki inwestycyjne” wspomina „wydatek netto plus VAT
-      inwestycji”.
-- [x] Protokół odbioru inwestycji rozliczanej brutto z wydatkiem netto: „Materiały” równe
-      „Materiały” w Podsumowaniu.
-
 ### Findings — 2026-10-23
 
-- [x] **Fixed — boksy opisują teraz stan, nie kwoty.** **Dane z checklisty się rozjechały — kwoty z opisów nie do odtworzenia** — Mirabelki mają dziś VAT 8% (nie 23%): „netto*” = 3955,37 (3662,38 × 1,08), przypis „… 8%”; „+842,35” z opisu to różnica po 23% (4504,73 − 3662,38). Mateusz Polis 11m12 (196) jest w koszu, więc przełączenie sprawdzone na 210 (Marianna Oklejak, ta sama ulica, 8%): 10 523 netto → 11 364,84 z gwiazdką i przypisem „… 8%” → z powrotem netto, bez gwiazdki (ustawienia przywrócone). Mechanizm działa; **Needs human:** zaktualizować liczby w opisach boxów. **Test disposition:** no automated test · unit — dane staging, nie zachowanie.
 - [ ] **Pytanie zadane 2026-10-23 — prośba właściciela z EX-1091 brzmiała „Razem listy = Razem podsumowania”, plan zostawił listę bez zmian.** **Podgląd inwestora, Mirabelki: „Lista wydatków” sumuje 29 043,54, tabela „Wydatki inwestycyjne” 28 494,18** — wiersz „grzejnik i zawory” w liście pokazuje brutto transakcji (4504,73, jej własne 23%), tabela liczy ją po VAT inwestycji 8% (3955,37); różnica 549,36 widoczna w jednym widoku. **Needs human:** czy lista inwestora ma pokazywać tę samą kwotę co tabela (reachability: tylko wydatek netto na inwestycji brutto, o stawce różnej od VAT inwestycji). **Test disposition:** TDD · unit — spec na wiersz wydatku netto w widoku inwestora.
-
 
 ## 2026-10-23 — design-empty-field-message — „Brak aktywnych kas” w `/design` bez błędu
 
@@ -1987,4 +1948,5 @@ Pełne dowody, verbatim: patrz nagłówek pliku.
 | 2026-10-19 — szerszy dialog „Szczegóły" leada | 2/2 | 2026-10-19 |
 | 2026-10-19 — cancel-rejected-payout — odrzuconą wypłatę anuluje każdy z zarządu | 3/3 | 2026-10-19 |
 | 2026-10-19 — cards-hide-table-controls — „Kolumny” i „Szukaj duplikatów” tylko w widoku tabeli | 3/3 | 2026-10-19 |
-
+| 2026-10-19 — desktop-regression-audit — poprawki z przeklikania desktopu | 2/2 | 2026-10-22 |
+| 2026-10-22 — worker-pdf-own-work-filter — PDF pracownika tylko z pozycjami z wykonaną pracą | 5/5 | 2026-10-22 |

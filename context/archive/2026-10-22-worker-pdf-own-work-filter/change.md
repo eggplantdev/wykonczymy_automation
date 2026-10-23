@@ -1,10 +1,10 @@
 ---
 change_id: worker-pdf-own-work-filter
 title: Worker PDF — opt-in „tylko pozycje z jego wykonaną pracą"
-status: implemented
+status: archived
 created: 2026-10-22
-updated: 2026-10-22
-archived_at: null
+updated: 2026-10-23
+archived_at: 2026-10-23T10:18:31Z
 branch: null
 worktree: null
 ---
