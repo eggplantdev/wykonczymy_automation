@@ -30,7 +30,9 @@ unchanged.
 At brutto settlement (effective rate null):
 - „Pozostało do zapłaty”, „Wydatki inwestycyjne”, the acceptance protocol and the investments list bill a
   netto expense at `netto × (1 + vatRate)`.
-- The breakdown table shows one row per category (no separate „<kategoria> netto” row).
+- Manager view, breakdown table: each „<kategoria> netto” row carries an asterisk, and a footnote under
+  the table reads „* Wydatki netto liczone po stawce VAT inwestycji <stawka>%”. The investor preview
+  stays merged by category, without the asterisk.
 
 At netto settlement with a rate: every figure as today.
 
@@ -83,7 +85,7 @@ specs first.
 
 ### Overview
 
-Every caller passes `vatRate`; the breakdown table merges by category under brutto.
+Every caller passes `vatRate`; under brutto the manager breakdown marks netto rows with an asterisk.
 
 ### Changes Required:
 
@@ -99,14 +101,15 @@ Every caller passes `vatRate`; the breakdown table merges by category under brut
 **Files**: `src/components/kosztorys/summary/tables/materials-breakdown-table.tsx`,
 `src/components/kosztorys/summary/tabs/summary-expenses-tab.tsx`
 
-**Intent**: new prop `vatRate: number`; when `netRate == null`, merge by category
-(`categoryBreakdownRows`).
+**Intent**: new prop `vatRate: number`. When `netRate == null` and not `byCategory`, the netto rows' label
+gets a trailing „*” and a footnote under the table reads „* Wydatki netto liczone po stawce VAT inwestycji
+<stawka>%” (owner request 2026-10-23).
 
 ### Success Criteria:
 
 #### Automated Verification:
 
-- `pnpm exec vitest run src/__tests__/lib/queries/shape-investments.test.ts src/__tests__/lib/kosztorys/acceptance-protocol/settlement.test.ts src/__tests__/components/kosztorys/summary/` — a brutto-mode case bills the netto expense at netto × (1 + VAT); the breakdown merges by category
+- `pnpm exec vitest run src/__tests__/lib/queries/shape-investments.test.ts src/__tests__/lib/kosztorys/acceptance-protocol/settlement.test.ts src/__tests__/components/kosztorys/summary/` — a brutto-mode case bills the netto expense at netto × (1 + VAT); the manager breakdown marks netto rows with „*” and shows the footnote
 
 #### Manual Verification:
 
@@ -138,10 +141,10 @@ Every caller passes `vatRate`; the breakdown table merges by category under brut
 
 #### Automated
 
-- [x] 1.1 Economics and breakdown-rows specs: new brutto-mode cases red, then green
+- [x] 1.1 Economics and breakdown-rows specs: new brutto-mode cases red, then green — 1d6346b80
 
 ### Phase 2: Callers and breakdown table
 
 #### Automated
 
-- [ ] 2.1 shape-investments, acceptance-protocol and summary component specs pass
+- [x] 2.1 shape-investments, acceptance-protocol and summary component specs pass

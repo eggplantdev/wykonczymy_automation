@@ -19,7 +19,7 @@ switched to brutto bills 5698,08. Netto with a rate: unchanged.
 | --- | --- | --- |
 | Amount under brutto | netto × (1 + investment vatRate) | Owner ruling 2026-10-23 |
 | Where the mode is picked | in the pure functions taking `netRate` | The mode toggles optimistically on the client |
-| Breakdown under brutto | one row per category | Single „Kwota” column; a split row adds nothing |
+| Breakdown under brutto | manager view: netto rows get „*” + footnote with the stawka | Owner request 2026-10-23 |
 | „Lista wydatków” | unchanged | It lists the invoices' own figures |
 
 ## Phases at a Glance
@@ -27,7 +27,7 @@ switched to brutto bills 5698,08. Netto with a rate: unchanged.
 | Phase | What it delivers |
 | --- | --- |
 | 1. Billing math | `billedMaterials` / `breakdownRowPair` take `vatRate`, tests first |
-| 2. Callers and breakdown table | every caller passes `vatRate`; category merge under brutto |
+| 2. Callers and breakdown table | every caller passes `vatRate`; asterisk + footnote under brutto |
 
 ## Out of scope
 

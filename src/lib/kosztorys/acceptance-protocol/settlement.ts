@@ -38,7 +38,7 @@ export function protocolSettlement({
 }: ArgsT): ProtocolSettlementT {
   const netRate = effectiveMaterialsNetRate(settlementMode, materialsNetRate)
   const paid = sumDeposits(depositTransactions)
-  const materialsNet = billedMaterials(materials, netRate)
+  const materialsNet = billedMaterials(materials, netRate, vatRate)
   const remainingNet = computeAmountDue(
     laborCostsNet,
     paid,

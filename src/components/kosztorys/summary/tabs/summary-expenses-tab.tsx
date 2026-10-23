@@ -97,6 +97,7 @@ export function SummaryExpensesTab({
           <MaterialsBreakdownTable
             rows={materialsBreakdown}
             netRate={materialsNetRate}
+            vatRate={vatRate}
             byCategory={preview}
           />
         )}
@@ -105,6 +106,7 @@ export function SummaryExpensesTab({
             rows={settledBreakdown}
             caption={SETTLED_TYPE.label}
             netRate={null}
+            vatRate={vatRate}
           />
         )}
       </div>

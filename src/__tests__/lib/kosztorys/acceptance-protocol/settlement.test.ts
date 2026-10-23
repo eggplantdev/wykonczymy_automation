@@ -59,7 +59,7 @@ describe('protocolSettlement', () => {
       discountAmount: 0,
     })
 
-    expect(settlement.materialsNet).toBe(1530)
+    expect(settlement.materialsNet).toBeCloseTo(MATERIALS.grossBase + MATERIALS.netBilled * 1.08)
   })
 
   it('flags an overpaid investment, but not one settled to the grosz', () => {

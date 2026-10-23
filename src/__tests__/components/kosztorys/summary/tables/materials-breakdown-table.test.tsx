@@ -10,6 +10,7 @@ import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 const INVOICE_NET = 4453.33
 const INVOICE_GROSS = 4809.6
 const RECEIPT = 1230
+const VAT = 0.23
 
 const ROWS: MaterialsBreakdownRowT[] = [
   { id: 1, label: 'Materiały budowlane', net: RECEIPT, origin: 'gross' },
@@ -31,7 +32,9 @@ function rowValues(label: string): string[] {
 }
 
 function renderAt(netRate: number | null, byCategory = false) {
-  return render(<MaterialsBreakdownTable rows={ROWS} netRate={netRate} byCategory={byCategory} />)
+  return render(
+    <MaterialsBreakdownTable rows={ROWS} netRate={netRate} vatRate={VAT} byCategory={byCategory} />,
+  )
 }
 
 const MIXED_ROWS: MaterialsBreakdownRowT[] = [ROWS[0], { ...ROWS[1], id: 1, label: ROWS[0].label }]
@@ -68,19 +71,39 @@ describe('MaterialsBreakdownTable — a „… netto" row is the invoice at any 
     ])
   })
 
-  it('with no stawka: a single „Kwota" column, the netto row at its netto', () => {
+  it(`with no stawka: a single „Kwota" column, the netto row starred at netto + the investment's VAT`, () => {
     renderAt(null)
     expect(screen.getByText('Kwota')).toBeInTheDocument()
     expect(screen.queryByText('Brutto')).not.toBeInTheDocument()
-    expect(rowValues('Materiały wykończeniowe netto')).toEqual([formatNet(INVOICE_NET)])
-    expect(rowValues('Razem')).toEqual([formatNet(RECEIPT + INVOICE_NET)])
+    expect(rowValues('Materiały wykończeniowe netto*')).toEqual([
+      formatNet(INVOICE_NET * (1 + VAT)),
+    ])
+    expect(rowValues('Razem')).toEqual([formatNet(RECEIPT + INVOICE_NET * (1 + VAT))])
+    expect(
+      screen.getByText('* Wydatki netto liczone po stawce VAT inwestycji 23%'),
+    ).toBeInTheDocument()
+  })
+
+  it('a saved stawka shows no asterisk and no footnote', () => {
+    renderAt(0.23)
+    expect(screen.queryByText(/\*/)).not.toBeInTheDocument()
+  })
+
+  it('the investor preview (byCategory) shows no asterisk and no footnote', () => {
+    renderAt(null, true)
+    expect(screen.queryByText(/\*/)).not.toBeInTheDocument()
   })
 })
 
 describe('MaterialsBreakdownTable byCategory — the investor never sees a „… netto" row', () => {
   function renderMixed(netRate: number | null, byCategory: boolean) {
     return render(
-      <MaterialsBreakdownTable rows={MIXED_ROWS} netRate={netRate} byCategory={byCategory} />,
+      <MaterialsBreakdownTable
+        rows={MIXED_ROWS}
+        netRate={netRate}
+        vatRate={VAT}
+        byCategory={byCategory}
+      />,
     )
   }
 

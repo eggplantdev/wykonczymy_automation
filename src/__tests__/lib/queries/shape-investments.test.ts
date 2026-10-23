@@ -123,7 +123,7 @@ describe('shapeInvestments', () => {
     expect(row.totalInvestmentExpense).toBe(1020)
   })
 
-  it('leaves the saved rate inert under rozliczenie brutto', () => {
+  it("leaves the saved rate inert under rozliczenie brutto; the netto bucket takes the investment's VAT", () => {
     const financials: InvestmentFinancialsMapT = {
       '5': {
         ...ZERO_FINANCIALS,
@@ -141,7 +141,7 @@ describe('shapeInvestments', () => {
       NO_MAP,
       NO_DEPOSITS,
     )
-    expect(row.totalInvestmentExpense).toBe(1250)
+    expect(row.totalInvestmentExpense).toBeCloseTo(1150 + 100 * (1 + baseInv.vatRate))
   })
 
   it('grosses the bilans on the prace alone and passes the settled spend through', () => {

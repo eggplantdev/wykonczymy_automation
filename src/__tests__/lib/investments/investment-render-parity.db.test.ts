@@ -199,6 +199,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
           billedMaterials(
             { grossBase: detailFin.materialsGrossBase, netBilled: detailFin.materialsNetBilled },
             netRate,
+            inv.vatRate,
           ),
         ],
         ['bilans brutto', listingRow?.balanceGross ?? 0, -detailAmountDue.gross],

@@ -79,7 +79,11 @@ describe('materiały netto pricing off (no saved rate)', () => {
 
 describe('combinedPair („Łącznie")', () => {
   it('prace gross, materiały enter both axes at the billed figure', () => {
-    const combined = combinedPair(1000, faceValue(billedMaterials(justGross(123), 0.23, 0.23)), 0.23)
+    const combined = combinedPair(
+      1000,
+      faceValue(billedMaterials(justGross(123), 0.23, 0.23)),
+      0.23,
+    )
     expect(combined.net).toBeCloseTo(1100)
     // 1230 + 100 — the SAME 100 the netto axis added, not the raw 123 receipt.
     expect(combined.gross).toBeCloseTo(1330)
