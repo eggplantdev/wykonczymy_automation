@@ -9,9 +9,11 @@ import {
 import { TextLink } from '@/components/ui/text-link'
 import type { AiAccuracyCaseScoreT } from '@/lib/kosztorys/ai-accuracy'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { cn } from '@/lib/utils/cn'
+import { accuracyBand } from './accuracy-bands'
 import { formatWholePercent } from './format'
 
-const COLS = `${SUMMARY_NAME_COL} repeat(4, ${SUMMARY_VALUE_COL})`
+const COLS = `${SUMMARY_NAME_COL} repeat(2, ${SUMMARY_VALUE_COL}) minmax(min(5.5rem, 22vw), 11rem) ${SUMMARY_VALUE_COL}`
 
 export function AccuracyCasesTable({ cases }: { cases: AiAccuracyCaseScoreT[] }) {
   return (
@@ -33,8 +35,20 @@ export function AccuracyCasesTable({ cases }: { cases: AiAccuracyCaseScoreT[] })
         <SummaryCell key={`${score.investmentId}-wrong`} className="text-right">
           {formatPLN(score.wrongZl)}
         </SummaryCell>,
-        <SummaryCell key={`${score.investmentId}-right`} className="text-right">
-          {formatWholePercent(score.rightPercent)}
+        <SummaryCell key={`${score.investmentId}-right`}>
+          <span className="flex items-center justify-end gap-3">
+            <span className="bg-muted hidden h-1.5 w-20 overflow-hidden rounded-full sm:block">
+              <span
+                className={cn('block h-full rounded-full', accuracyBand(score.rightPercent).swatch)}
+                style={{ width: `${score.rightPercent}%` }}
+              />
+            </span>
+            <span
+              className={cn('w-12 text-right font-medium', accuracyBand(score.rightPercent).text)}
+            >
+              {formatWholePercent(score.rightPercent)}
+            </span>
+          </span>
         </SummaryCell>,
         <SummaryCell key={`${score.investmentId}-reason`} className="text-right">
           {formatWholePercent(score.noReasonPercent)}
