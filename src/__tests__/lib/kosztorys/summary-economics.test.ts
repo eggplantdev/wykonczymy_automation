@@ -45,16 +45,16 @@ describe('billedMaterialsPair (netto pricing switch)', () => {
 
 describe('billedMaterials', () => {
   it('a saved rate bills the netto price, not the receipt', () => {
-    expect(billedMaterials({ grossBase: 123, netBilled: 0 }, 0.23)).toBeCloseTo(100)
+    expect(billedMaterials({ grossBase: 123, netBilled: 0 }, 0.23, 0.23)).toBeCloseTo(100)
   })
 
   it('the netto-billed bucket enters at face value, never cut a second time', () => {
-    expect(billedMaterials({ grossBase: 123, netBilled: 1234.56 }, 0.23)).toBeCloseTo(1334.56)
+    expect(billedMaterials({ grossBase: 123, netBilled: 1234.56 }, 0.23, 0.23)).toBeCloseTo(1334.56)
   })
 
-  it('no rate bills the raw receipt plus the netto bucket', () => {
-    expect(billedMaterials({ grossBase: 123, netBilled: 10 }, null)).toBe(133)
-    expect(billedMaterials({ grossBase: 12_300, netBilled: 1000 }, null)).toBe(13_300)
+  it("no rate bills the raw receipt plus the netto bucket grossed by the investment's VAT", () => {
+    expect(billedMaterials({ grossBase: 123, netBilled: 1000 }, null, 0.08)).toBeCloseTo(1203)
+    expect(billedMaterials({ grossBase: 12_300, netBilled: 1000 }, null, 0.23)).toBeCloseTo(13_530)
   })
 })
 
@@ -79,7 +79,11 @@ describe('materiały netto pricing off (no saved rate)', () => {
 
 describe('combinedPair („Łącznie")', () => {
   it('prace gross, materiały enter both axes at the billed figure', () => {
-    const combined = combinedPair(1000, faceValue(billedMaterials(justGross(123), 0.23)), 0.23)
+    const combined = combinedPair(
+      1000,
+      faceValue(billedMaterials(justGross(123), 0.23, 0.23)),
+      0.23,
+    )
     expect(combined.net).toBeCloseTo(1100)
     // 1230 + 100 — the SAME 100 the netto axis added, not the raw 123 receipt.
     expect(combined.gross).toBeCloseTo(1330)
@@ -163,7 +167,7 @@ describe('Podsumowanie brutto waterfall (rabat grosses, materiały brutto)', () 
     const laborCostsNetFromKosztorys = laborCostsNet + discountNet // 1000, pre-rabat
     const combined = combinedPair(
       laborCostsNetFromKosztorys,
-      faceValue(billedMaterials(justGross(materialsGross), vat)),
+      faceValue(billedMaterials(justGross(materialsGross), vat, vat)),
       vat,
     )
     const discount = moneyPair(discountNet, vat)
@@ -176,14 +180,14 @@ describe('Podsumowanie brutto waterfall (rabat grosses, materiały brutto)', () 
   })
 })
 
-describe('the netto-billed bucket is frozen against the materiały toggle', () => {
+describe('the netto-billed bucket is frozen against the materiały toggle at a saved rate', () => {
   const VAT = 0.23
   const REDUCTION = 0.08
   const NET_BILLED = 1000
   const GROSS_BASE = 123
 
   const combined = (materials: { grossBase: number; netBilled: number }, rate: number | null) =>
-    combinedPair(1000, faceValue(billedMaterials(materials, rate)), VAT)
+    combinedPair(1000, faceValue(billedMaterials(materials, rate, VAT)), VAT)
 
   it('B1: at a −8% toggle the netto bucket contributes its full amount, not ×0.92', () => {
     const base = combined(justGross(GROSS_BASE), REDUCTION)
@@ -206,9 +210,23 @@ describe('the netto-billed bucket is frozen against the materiały toggle', () =
     expect(withNet.gross - base.gross).toBeCloseTo(NET_BILLED)
   })
 
+  it("without a rate (rozliczenie brutto) it bills netto × (1 + the investment's VAT) on both axes", () => {
+    const paid = { net: 300, gross: 300 }
+    const base = computeAmountDue(1000, paid, justGross(GROSS_BASE), VAT, null)
+    const withNet = computeAmountDue(
+      1000,
+      paid,
+      { grossBase: GROSS_BASE, netBilled: NET_BILLED },
+      VAT,
+      null,
+    )
+    expect(withNet.net - base.net).toBeCloseTo(NET_BILLED * (1 + VAT))
+    expect(withNet.gross - base.gross).toBeCloseTo(NET_BILLED * (1 + VAT))
+  })
+
   it('B5: the billed figure carries the stored netAmount unrounded — list and summary agree', () => {
     const odd = 1234.56
-    expect(billedMaterials({ grossBase: 0, netBilled: odd }, REDUCTION)).toBe(odd)
+    expect(billedMaterials({ grossBase: 0, netBilled: odd }, REDUCTION, VAT)).toBe(odd)
   })
 })
 

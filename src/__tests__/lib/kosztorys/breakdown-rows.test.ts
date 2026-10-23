@@ -5,7 +5,7 @@ import {
   categoryBreakdownRows,
   pricedBreakdownRows,
 } from '@/lib/kosztorys/breakdown-rows'
-import { faceValue } from '@/lib/kosztorys/summary-economics'
+import { billedMaterials } from '@/lib/kosztorys/summary-economics'
 import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 
 // 8% apart, so a brutto the rate derived could never coincide with the invoice's.
@@ -27,6 +27,7 @@ const ROWS: MaterialsBreakdownRowT[] = [
 ]
 
 const RATES = [0.12, 0.23, null]
+const VAT = 0.23
 
 function sums(pairs: { net: number; gross: number }[]) {
   return pairs.reduce(
@@ -52,40 +53,41 @@ const netRow = (net: number, recordedGross: number): MaterialsBreakdownRowT => (
 
 describe('breakdownRowPair (one „Wydatki inwestycyjne" row on both planes)', () => {
   it('a brutto row keeps its receipt and divides down to netto', () => {
-    const p = breakdownRowPair(grossRow(123), 0.23)
+    const p = breakdownRowPair(grossRow(123), 0.23, VAT)
     expect(p.gross).toBe(123)
     expect(p.net).toBeCloseTo(100)
   })
 
   it.each([0.12, 0.23])('a netto row shows the invoice on both planes at a %s rate', (rate) => {
-    expect(breakdownRowPair(netRow(INVOICE.net, INVOICE.gross), rate)).toEqual(INVOICE)
+    expect(breakdownRowPair(netRow(INVOICE.net, INVOICE.gross), rate, VAT)).toEqual(INVOICE)
   })
 
-  it('no rate = one figure per row, the billed one', () => {
-    expect(breakdownRowPair(netRow(INVOICE.net, INVOICE.gross), null)).toEqual(
-      faceValue(INVOICE.net),
-    )
-    expect(breakdownRowPair(grossRow(123), null)).toEqual({ net: 123, gross: 123 })
+  it("no rate = one figure per row: a netto row bills its netto grossed by the investment's VAT", () => {
+    const billed = INVOICE.net * (1 + VAT)
+    const p = breakdownRowPair(netRow(INVOICE.net, INVOICE.gross), null, VAT)
+    expect(p.net).toBeCloseTo(billed)
+    expect(p.gross).toBeCloseTo(billed)
+    expect(breakdownRowPair(grossRow(123), null, VAT)).toEqual({ net: 123, gross: 123 })
   })
 
   it('a negative row keeps its sign — a brutto one its ratio, a netto one its invoice', () => {
-    const gross = breakdownRowPair(grossRow(-123), 0.23)
+    const gross = breakdownRowPair(grossRow(-123), 0.23, VAT)
     expect(gross.gross).toBe(-123)
     expect(gross.net).toBeCloseTo(-100)
 
-    expect(breakdownRowPair(netRow(-100, -108), 0.23)).toEqual({ net: -100, gross: -108 })
+    expect(breakdownRowPair(netRow(-100, -108), 0.23, VAT)).toEqual({ net: -100, gross: -108 })
   })
 })
 
 describe('pricedBreakdownRows — one row per input row', () => {
   it.each(RATES)('at %s each pair is breakdownRowPair of its row', (rate) => {
-    expect(pricedBreakdownRows(ROWS, rate).map((row) => row.pair)).toEqual(
-      ROWS.map((row) => breakdownRowPair(row, rate)),
+    expect(pricedBreakdownRows(ROWS, rate, VAT).map((row) => row.pair)).toEqual(
+      ROWS.map((row) => breakdownRowPair(row, rate, VAT)),
     )
   })
 
   it('suffixes a netto row and keys stay unique', () => {
-    const rows = pricedBreakdownRows(ROWS, 0.23)
+    const rows = pricedBreakdownRows(ROWS, 0.23, VAT)
     expect(rows.map((row) => row.label)).toEqual([
       'Materiały wykończeniowe',
       'Materiały budowlane',
@@ -95,11 +97,27 @@ describe('pricedBreakdownRows — one row per input row', () => {
     ])
     expect(new Set(rows.map((row) => row.key)).size).toBe(rows.length)
   })
+
+  it('without a rate stars only the netto rows', () => {
+    const labels = pricedBreakdownRows(ROWS, null, VAT).map((row) => row.label)
+    expect(labels.filter((label) => label.endsWith('*'))).toEqual([
+      'Materiały wykończeniowe netto*',
+      'Pozostałe koszty netto*',
+    ])
+  })
+
+  it.each(RATES)('at %s the Σ of the netto plane equals billedMaterials', (rate) => {
+    const sumOf = (origin: MaterialsBreakdownRowT['origin']) =>
+      ROWS.filter((row) => row.origin === origin).reduce((sum, row) => sum + row.net, 0)
+    const materials = { grossBase: sumOf('gross'), netBilled: sumOf('netBilled') }
+    const priced = sums(pricedBreakdownRows(ROWS, rate, VAT).map((row) => row.pair))
+    expect(priced.net).toBeCloseTo(billedMaterials(materials, rate, VAT), 6)
+  })
 })
 
 describe('categoryBreakdownRows — one row per category', () => {
   it('merges a category, keeps a netto-only one, orders by name with Korekta last', () => {
-    expect(categoryBreakdownRows(ROWS, 0.23).map((row) => row.label)).toEqual([
+    expect(categoryBreakdownRows(ROWS, 0.23, VAT).map((row) => row.label)).toEqual([
       'Materiały budowlane',
       'Materiały wykończeniowe',
       'Pozostałe koszty',
@@ -107,8 +125,8 @@ describe('categoryBreakdownRows — one row per category', () => {
     ])
   })
 
-  it('a merged category is its brutto receipt priced at the rate plus the frozen invoice', () => {
-    const merged = categoryBreakdownRows(ROWS, 0.23).find(
+  it('a merged category is its brutto receipt priced at the rate plus the invoice', () => {
+    const merged = categoryBreakdownRows(ROWS, 0.23, VAT).find(
       (row) => row.label === 'Materiały wykończeniowe',
     )
     expect(merged?.pair.net).toBeCloseTo(1000 + INVOICE_NET, 2)
@@ -116,15 +134,15 @@ describe('categoryBreakdownRows — one row per category', () => {
   })
 
   it('a negative korekta keeps its sign and its own pricing', () => {
-    const correction = categoryBreakdownRows(ROWS, 0.23).at(-1)
-    expect(correction?.pair).toEqual(breakdownRowPair(ROWS[2], 0.23))
+    const correction = categoryBreakdownRows(ROWS, 0.23, VAT).at(-1)
+    expect(correction?.pair).toEqual(breakdownRowPair(ROWS[2], 0.23, VAT))
     expect(correction?.pair.gross).toBe(-50)
     expect(correction?.pair.net).toBeLessThan(0)
   })
 
   it.each(RATES)('at %s both Σ equal the unmerged rows', (rate) => {
-    const merged = sums(categoryBreakdownRows(ROWS, rate).map((row) => row.pair))
-    const unmerged = sums(pricedBreakdownRows(ROWS, rate).map((row) => row.pair))
+    const merged = sums(categoryBreakdownRows(ROWS, rate, VAT).map((row) => row.pair))
+    const unmerged = sums(pricedBreakdownRows(ROWS, rate, VAT).map((row) => row.pair))
     expect(merged.net).toBeCloseTo(unmerged.net, 6)
     expect(merged.gross).toBeCloseTo(unmerged.gross, 6)
   })

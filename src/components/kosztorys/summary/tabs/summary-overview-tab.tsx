@@ -78,7 +78,7 @@ export function SummaryOverviewTab({
     lossAmount,
     axis: moneyAxis,
   })
-  const materialsBilled = billedMaterials(materials, materialsNetRate)
+  const materialsBilled = billedMaterials(materials, materialsNetRate, vatRate)
   const materialsPair = faceValue(materialsBilled)
   const offPlane = offPlaneDeposits(depositRows, settlementMode)
 

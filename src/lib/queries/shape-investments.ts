@@ -35,6 +35,7 @@ export function shapeInvestments(
     const totalInvestmentExpense = billedMaterials(
       { grossBase: financials.materialsGrossBase, netBilled: financials.materialsNetBilled },
       netRate,
+      inv.vatRate,
     )
     // The v2 bilans IS the panel's „Pozostało do zapłaty", negated
     const depositSums = depositPlaneSumsRecord[String(inv.id)] ?? NO_DEPOSIT_SUMS
