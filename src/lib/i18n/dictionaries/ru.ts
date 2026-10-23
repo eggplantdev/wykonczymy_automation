@@ -631,4 +631,14 @@ export const ru: typeof pl = {
     notFoundDescription: 'Не удалось найти запрашиваемый ресурс',
     backHome: 'Вернуться на главную',
   },
+  aiStagePush: {
+    readyTitle: 'Объект готов к анализу',
+    readyBody: '{{investment}} — можно запустить анализ ИИ.',
+    newInformationTitle: 'Новая информация по объекту',
+    newInformationBody: '{{investment}} — ИИ должен проанализировать его заново.',
+    analyzedTitle: 'Черновик ИИ на проверку',
+    analyzedBody: '{{investment}} — черновик сметы загружен.',
+    reviewDoneTitle: 'Проверка завершена',
+    reviewDoneBody: '{{investment}} — можно собрать причины изменений.',
+  },
 }

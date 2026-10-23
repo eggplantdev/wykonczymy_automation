@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -10,6 +10,8 @@ import {
 import { INVESTMENT_AI_STAGES, type InvestmentAiStageT } from '@/lib/constants/investment-ai-stage'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
+import { flushAfter } from '@/__tests__/stubs/next-server'
+import { notifyAiStageChange } from '@/lib/push/notify-ai-stage'
 
 const MARKER = 'investment-ai-stage-action-db'
 
@@ -37,6 +39,8 @@ describe.skipIf(!ENV_READY)('setInvestmentAiStageAction (DB)', () => {
   beforeEach(async () => {
     await purge()
     id = await createTestInvestment(payload, `${MARKER} stage`)
+    await flushAfter()
+    vi.mocked(notifyAiStageChange).mockReset().mockResolvedValue(undefined)
   })
 
   afterAll(async () => {
@@ -74,5 +78,36 @@ describe.skipIf(!ENV_READY)('setInvestmentAiStageAction (DB)', () => {
 
     expect(result.success).toBe(false)
     expect(await storedStage()).toBeNull()
+  })
+
+  it('notifies once per stage transition, with the investment and the actor', async () => {
+    await setStage(id, 'analyzed')
+    await flushAfter()
+
+    expect(notifyAiStageChange).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(notifyAiStageChange).mock.calls[0][2]).toEqual({
+      investmentId: id,
+      investmentName: `${MARKER} stage`,
+      stage: 'analyzed',
+      actorId: authState.userId,
+    })
+  })
+
+  it('sends nothing when the same stage is saved again', async () => {
+    await setStage(id, 'analyzed')
+    await flushAfter()
+    vi.mocked(notifyAiStageChange).mockClear()
+
+    await setStage(id, 'analyzed')
+    await flushAfter()
+
+    expect(notifyAiStageChange).not.toHaveBeenCalled()
+  })
+
+  it('sends nothing when a refused value leaves the stage as it was', async () => {
+    await setStage(id, 'published' as InvestmentAiStageT)
+    await flushAfter()
+
+    expect(notifyAiStageChange).not.toHaveBeenCalled()
   })
 })

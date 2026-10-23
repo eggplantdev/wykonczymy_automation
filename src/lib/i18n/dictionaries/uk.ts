@@ -631,4 +631,14 @@ export const uk: typeof pl = {
     notFoundDescription: 'Не вдалося знайти потрібний ресурс',
     backHome: 'Повернутися на головну',
   },
+  aiStagePush: {
+    readyTitle: "Об'єкт готовий до аналізу",
+    readyBody: '{{investment}} — можна запустити аналіз ШІ.',
+    newInformationTitle: "Нова інформація щодо об'єкта",
+    newInformationBody: '{{investment}} — ШІ має проаналізувати його заново.',
+    analyzedTitle: 'Чернетка ШІ на перевірку',
+    analyzedBody: '{{investment}} — чернетку кошторису завантажено.',
+    reviewDoneTitle: 'Перевірку завершено',
+    reviewDoneBody: '{{investment}} — можна зібрати причини змін.',
+  },
 }

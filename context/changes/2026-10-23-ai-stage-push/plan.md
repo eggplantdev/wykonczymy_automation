@@ -334,18 +334,18 @@ test DB template rebuilds on its own because a migration changed.
 
 #### Automated
 
-- [x] 1.1 Migration applies on local dev
-- [x] 1.2 Types regenerated with aiPipeline / aiReviewers
-- [x] 1.3 Existing recipient specs pass
+- [x] 1.1 Migration applies on local dev — 761c6f864
+- [x] 1.2 Types regenerated with aiPipeline / aiReviewers — 761c6f864
+- [x] 1.3 Existing recipient specs pass — 761c6f864
 
 ### Phase 2: Notifier and action wiring (test-first)
 
 #### Automated
 
-- [ ] 2.1 Notifier unit spec
-- [ ] 2.2 E-mail → account DB spec
-- [ ] 2.3 Action DB spec extended (transition vs re-save)
-- [ ] 2.4 Both DB specs pass under test:integration
+- [x] 2.1 Notifier unit spec
+- [x] 2.2 E-mail → account DB spec
+- [x] 2.3 Action DB spec extended (transition vs re-save)
+- [x] 2.4 Both DB specs pass under test:integration
 
 ### Phase 3: Loader sets the stage through the app
 

@@ -639,4 +639,14 @@ export const pl = {
     notFoundDescription: 'Nie udało się znaleźć żądanego zasobu',
     backHome: 'Wróć na stronę główną',
   },
+  aiStagePush: {
+    readyTitle: 'Inwestycja gotowa do analizy',
+    readyBody: '{{investment}} — można uruchomić analizę AI.',
+    newInformationTitle: 'Nowe informacje w inwestycji',
+    newInformationBody: '{{investment}} — AI powinno ją przeanalizować ponownie.',
+    analyzedTitle: 'Szkic AI do recenzji',
+    analyzedBody: '{{investment}} — szkic kosztorysu jest wgrany.',
+    reviewDoneTitle: 'Recenzja zakończona',
+    reviewDoneBody: '{{investment}} — można zebrać powody zmian.',
+  },
 }
