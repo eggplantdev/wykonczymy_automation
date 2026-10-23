@@ -1695,6 +1695,23 @@ Zastąpione przez ai-accuracy-page niżej — dashboard claude.ai nie jest już 
 - [ ] Ponowne `accuracy-report-prod.ts` w wykonczymy-ai-cases nie zmienia `accuracy/*.csv`
       (`git status` czysty).
 
+## 2026-10-23 — materials-price-list — „Cennik materiałów” jako podstrona (spike)
+
+- [ ] `/inwestycje` jako menadżer: „Materiały” w pasku obok „Trafność AI” otwiera „Cennik
+      materiałów”; podczas ładowania widać ten tytuł.
+- [ ] Strona: sekcje „Podsumowanie” i „Na co idą pieniądze” zwijają się i po przeładowaniu
+      pamiętają stan; wykres pokazuje rodzaje materiałów z kwotą i podpowiedzią po najechaniu.
+- [ ] „Wszystkie materiały”: przewijanie w dół trzyma nagłówek kolumn na górze, kliknięcie
+      nagłówka sortuje; szeroka tabela przewija się na boki sama, strona nie jedzie w bok.
+- [ ] Filtry „Rodzaj”, „Sklep”, „Kategoria” i wyszukiwarka zawężają listę, licznik „Widoczne
+      materiały” się zgadza; domyślnie widać tylko materiały.
+- [ ] Wiersz materiału kupowanego w kilku sklepach → strona materiału: „Ceny w sklepach” z
+      najtańszym wyróżnionym, „Cena w czasie” w tych samych kolorach sklepów, „Zakupy” z nazwami
+      inwestycji jako linkami do właściwej inwestycji.
+- [ ] Tabela w oknie katalogu prac w edytorze kosztorysu: nagłówek zostaje na górze przy
+      przewijaniu, nic nie nachodzi na wiersze.
+- [ ] Jako EMPLOYEE wejście na `/inwestycje/materialy` przekierowuje, strona się nie pokazuje.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
