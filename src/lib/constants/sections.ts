@@ -24,6 +24,7 @@ export const PAGE_TITLES = {
   registers: 'Kasy',
   investments: 'Inwestycje',
   aiAccuracy: 'Trafność AI w kosztorysach',
+  materials: 'Cennik materiałów',
   leads: 'Zapytania z formularzy',
   workerReports: 'Zgłoszenia prac',
   expenseDrafts: 'Zgłoszenia wydatków',
