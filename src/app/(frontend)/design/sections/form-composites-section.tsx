@@ -227,7 +227,9 @@ export function FormCompositesSection() {
         <EntityComboboxField form={form} variant="investment" items={INVESTMENTS} />
         <EntityComboboxField form={form} variant="worker" items={WORKERS} />
         <EntityComboboxField form={form} variant="holder" items={[]} />
-        <EmptyFieldMessage label="Kasa" message="Brak aktywnych kas" />
+        <form.AppField name="holder">
+          {() => <EmptyFieldMessage label="Kasa" message="Brak aktywnych kas" />}
+        </form.AppField>
       </ShowcaseRow>
       <ShowcaseRow
         title="SourceRegisterField (+ CashRegisterField, ActiveFilterLabel)"
