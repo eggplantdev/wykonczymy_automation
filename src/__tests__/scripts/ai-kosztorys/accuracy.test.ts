@@ -14,6 +14,8 @@ describe('toCsvTables', () => {
           clientPrice: 10,
           changeReason: null,
           description: 'Malowanie',
+          unit: 'm²',
+          sectionId: 1,
         },
       ],
     },
@@ -25,7 +27,7 @@ describe('toCsvTables', () => {
       'case,slug,ai_zl,owner_zl,too_high_zl,too_low_zl\n7,mieszkanie-mokotow,10,30,0,20\n',
     )
     expect(toCsv(csv.reasons)).toBe('case,wrong_zl,no_reason_zl\n7,20,20\n')
-    expect(toCsv(csv.error_types)).toBe('case,missed_zl,extra_zl,qty_zl\n7,0,0,20\n')
+    expect(toCsv(csv.error_types)).toBe('case,missed_zl,extra_zl,qty_zl,variant_zl\n7,0,0,20,0\n')
   })
 
   it('refuses an investment with no ai-cases case', () => {

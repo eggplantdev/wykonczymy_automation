@@ -21,7 +21,9 @@ export async function selectAiAccuracyItems(
       ki.client_price,
       ki.ai_planned_qty,
       ki.change_reason,
-      ki.description
+      ki.description,
+      ki.unit,
+      ki.section_id
     FROM kosztorys_items ki
     JOIN investments inv ON inv.id = ki.investment_id
     WHERE ${inList(sql`inv.ai_stage`, reviewedStages) ?? sql`false`}
@@ -31,7 +33,7 @@ export async function selectAiAccuracyItems(
         SELECT 1 FROM kosztorys_items drafted
         WHERE drafted.investment_id = inv.id AND drafted.ai_planned_qty IS NOT NULL
       )
-    ORDER BY inv.id, ki.id
+    ORDER BY inv.created_at, inv.id, ki.id
   `)
 
   return res.rows.map((row) => ({
@@ -42,5 +44,7 @@ export async function selectAiAccuracyItems(
     aiPlannedQty: numOrNull(row.ai_planned_qty),
     changeReason: textOrNull(row.change_reason),
     description: textOrNull(row.description),
+    unit: textOrNull(row.unit),
+    sectionId: Number(row.section_id),
   }))
 }

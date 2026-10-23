@@ -13,6 +13,8 @@ const item = (overrides: Partial<AiAccuracyItemT>): AiAccuracyItemT => ({
   clientPrice: 10,
   changeReason: null,
   description: 'Malowanie ścian',
+  unit: 'm²',
+  sectionId: 1,
   ...overrides,
 })
 
@@ -30,7 +32,13 @@ describe('scoreCases — per case', () => {
       too_high_zl: 0,
       too_low_zl: 30,
     })
-    expect(error_types[0]).toEqual({ investmentId: 100, missed_zl: 30, extra_zl: 0, qty_zl: 0 })
+    expect(error_types[0]).toEqual({
+      investmentId: 100,
+      missed_zl: 30,
+      extra_zl: 0,
+      qty_zl: 0,
+      variant_zl: 0,
+    })
   })
 
   it('counts a quantity left low on purpose as the AI being right', () => {
@@ -51,7 +59,13 @@ describe('scoreCases — per case', () => {
       item({ aiPlannedQty: 5, plannedQty: 0 }),
       item({ aiPlannedQty: 4, plannedQty: 1 }),
     )
-    expect(error_types[0]).toEqual({ investmentId: 100, missed_zl: 20, extra_zl: 50, qty_zl: 30 })
+    expect(error_types[0]).toEqual({
+      investmentId: 100,
+      missed_zl: 20,
+      extra_zl: 50,
+      qty_zl: 30,
+      variant_zl: 0,
+    })
   })
 
   it('counts wrong złoty without a Powód only when the Powód is blank', () => {
@@ -60,6 +74,64 @@ describe('scoreCases — per case', () => {
       item({ aiPlannedQty: 1, plannedQty: 4, changeReason: 'inny metraż' }),
     )
     expect(reasons[0]).toEqual({ investmentId: 100, wrong_zl: 50, no_reason_zl: 20 })
+  })
+})
+
+describe('scoreCases — wrong variant', () => {
+  const aiVariant = item({
+    description: 'Klejenie paneli winylowych układ prosty',
+    aiPlannedQty: 10,
+    clientPrice: 10,
+  })
+  const ownerVariant = item({
+    description: 'Układanie paneli laminowanych',
+    plannedQty: 10,
+    clientPrice: 8,
+  })
+
+  it('counts the same quantity moved to another pozycja of the same work as the price gap', () => {
+    const { cases, error_types, reasons } = oneCase(aiVariant, ownerVariant)
+    expect(cases[0]).toMatchObject({ ai_zl: 100, owner_zl: 80, too_high_zl: 20, too_low_zl: 0 })
+    expect(error_types[0]).toMatchObject({ missed_zl: 0, extra_zl: 0, qty_zl: 0, variant_zl: 20 })
+    expect(reasons[0]).toMatchObject({ wrong_zl: 20, no_reason_zl: 20 })
+  })
+
+  it('reads the Powód from either pozycja of the pair', () => {
+    const { reasons } = oneCase(aiVariant, { ...ownerVariant, changeReason: 'laminat, nie winyl' })
+    expect(reasons[0]).toMatchObject({ wrong_zl: 20, no_reason_zl: 0 })
+  })
+
+  it.each([
+    ['another kind of work', { description: 'Gruntowanie paneli' }],
+    ['another section', { sectionId: 2 }],
+    ['another unit', { unit: 'mb' }],
+    ['a quantity more than 2% off', { plannedQty: 10.5 }],
+  ])('keeps a pozycja in %s as extra and missed', (_label, overrides) => {
+    const { error_types } = oneCase(aiVariant, { ...ownerVariant, ...overrides })
+    expect(error_types[0]).toMatchObject({ variant_zl: 0, extra_zl: 100 })
+  })
+
+  it('pairs each owner pozycja with one AI pozycja only', () => {
+    const { error_types } = oneCase(aiVariant, { ...aiVariant, clientPrice: 9 }, ownerVariant)
+    expect(error_types[0]).toMatchObject({ variant_zl: 20, extra_zl: 90, missed_zl: 0 })
+  })
+
+  it('leaves the owner pozycja of a pair out of the repeated pozycje', () => {
+    const { repeats } = scoreCases(
+      [1, 2, 3].map((investmentId) => ({
+        investmentId,
+        label: `c${investmentId}`,
+        items: [aiVariant, ownerVariant],
+      })),
+    )
+    expect(repeats).toEqual([
+      {
+        pozycja: 'Klejenie paneli winylowych układ prosty',
+        wrong_in_cases: 3,
+        reasons_written: 0,
+        wrong_zl: 60,
+      },
+    ])
   })
 })
 
@@ -135,21 +207,24 @@ describe('summarizeAccuracy', () => {
     expect(windows.last).toMatchObject({ rightPercent: 96, count: 5 })
   })
 
-  it('shares the wrong złoty between missed, extra and quantity', () => {
+  it('shares the wrong złoty between missed, extra, quantity and variant', () => {
     const { windows } = summarize({
       investmentId: 1,
       label: 'a',
       items: [
         item({ aiPlannedQty: 0, plannedQty: 1 }),
         item({ aiPlannedQty: 3, plannedQty: 0, changeReason: 'klient nie chce' }),
+        item({ aiPlannedQty: 4, plannedQty: 0, description: 'Gładź Q3', clientPrice: 15 }),
+        item({ aiPlannedQty: 0, plannedQty: 4, description: 'Gładź Q4', clientPrice: 10 }),
       ],
     })
     expect(windows.all).toMatchObject({
       missedZl: 10,
       extraZl: 30,
       qtyZl: 0,
-      extraPercent: 75,
-      noReasonPercent: 25,
+      variantZl: 20,
+      extraPercent: 50,
+      noReasonPercent: 50,
     })
   })
 

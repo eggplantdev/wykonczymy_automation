@@ -6,6 +6,8 @@ export type AiAccuracyItemT = {
   clientPrice: number
   changeReason: string | null
   description: string | null
+  unit: string | null
+  sectionId: number
 }
 
 export type AiAccuracyCaseInputT = {
@@ -20,30 +22,97 @@ const UNDERSTATEMENT = /zani|niedosza|powykonaw/i
 const REPEAT_FLOOR = 3
 const TOP_REPEATS = 12
 export const AI_ACCURACY_WINDOW = 5
+const VARIANT_QTY_TOLERANCE = 0.02
+const WORK_VERBS = new Set([
+  'montaż',
+  'demontaż',
+  'wykonanie',
+  'układanie',
+  'klejenie',
+  'podłączenie',
+  'złożenie',
+])
+
+type ErrorKindT = 'none' | 'missed' | 'extra' | 'qty' | 'variant' | 'twin'
 
 type RowT = {
   investmentId: number
   description: string
+  unit: string | null
+  sectionId: number
   reason: string
   ai: number
   own: number
   price: number
+  kind: ErrorKindT
+  signedZl: number
 }
+
+const kindOf = (ai: number, own: number): ErrorKindT =>
+  ai === own ? 'none' : ai === 0 ? 'missed' : own === 0 ? 'extra' : 'qty'
 
 const toRow = (investmentId: number, item: AiAccuracyItemT): RowT => {
   const ai = item.aiPlannedQty ?? 0
   const reason = item.changeReason?.trim() ?? ''
+  const own = UNDERSTATEMENT.test(reason) ? ai : item.plannedQty
   return {
     investmentId,
     description: item.description ?? '',
+    unit: item.unit,
+    sectionId: item.sectionId,
     reason,
     ai,
-    own: UNDERSTATEMENT.test(reason) ? ai : item.plannedQty,
+    own,
     price: item.clientPrice,
+    kind: kindOf(ai, own),
+    signedZl: (ai - own) * item.clientPrice,
   }
 }
 
-const wrongZl = (row: RowT) => Math.abs(row.ai - row.own) * row.price
+const headWord = (description: string) =>
+  description
+    .toLowerCase()
+    .match(/\p{L}{5,}/gu)
+    ?.find((word) => !WORK_VERBS.has(word))
+    ?.slice(0, 5)
+
+const isVariantOf = (extra: RowT, missed: RowT) => {
+  const head = headWord(extra.description)
+  return (
+    missed.sectionId === extra.sectionId &&
+    missed.unit === extra.unit &&
+    Math.abs(missed.own - extra.ai) <= VARIANT_QTY_TOLERANCE * Math.max(missed.own, extra.ai) &&
+    head !== undefined &&
+    head === headWord(missed.description)
+  )
+}
+
+// Without the pairing a wrong variant (panele winylowe for laminowane, same m²) counts twice, the
+// whole AI pozycja as extra and the whole owner pozycja as missed, though the error is the price gap.
+function pairVariants(rows: RowT[]) {
+  const taken = new Set<RowT>()
+  const byValue = rows
+    .filter((row) => row.kind === 'extra')
+    .toSorted((a, b) => b.ai * b.price - a.ai * a.price)
+  for (const extra of byValue) {
+    const twin = rows
+      .filter((row) => row.kind === 'missed' && !taken.has(row) && isVariantOf(extra, row))
+      .toSorted((a, b) => Math.abs(a.own - extra.ai) - Math.abs(b.own - extra.ai))
+      .at(0)
+    if (!twin) continue
+    taken.add(twin)
+    Object.assign(extra, {
+      kind: 'variant',
+      signedZl: extra.ai * extra.price - twin.own * twin.price,
+      reason: extra.reason || twin.reason,
+    })
+    Object.assign(twin, { kind: 'twin', signedZl: 0 })
+  }
+  return rows
+}
+
+const wrongZl = (row: RowT) => Math.abs(row.signedZl)
+const zlOfKind = (kind: ErrorKindT) => (row: RowT) => (row.kind === kind ? wrongZl(row) : 0)
 const sum = (rows: readonly RowT[], of: (row: RowT) => number) =>
   Math.round(rows.reduce((total, row) => total + of(row), 0))
 
@@ -55,7 +124,7 @@ export const shortPozycja = (name: string) =>
 export function scoreCases(cases: readonly AiAccuracyCaseInputT[]) {
   const scored = cases.map((input) => ({
     ...input,
-    rows: input.items.map((item) => toRow(input.investmentId, item)),
+    rows: pairVariants(input.items.map((item) => toRow(input.investmentId, item))),
   }))
 
   const caseRows = scored.map(({ investmentId, label, rows }) => ({
@@ -63,8 +132,8 @@ export function scoreCases(cases: readonly AiAccuracyCaseInputT[]) {
     label,
     ai_zl: sum(rows, (row) => row.ai * row.price),
     owner_zl: sum(rows, (row) => row.own * row.price),
-    too_high_zl: sum(rows, (row) => Math.max(row.ai - row.own, 0) * row.price),
-    too_low_zl: sum(rows, (row) => Math.max(row.own - row.ai, 0) * row.price),
+    too_high_zl: sum(rows, (row) => Math.max(row.signedZl, 0)),
+    too_low_zl: sum(rows, (row) => Math.max(-row.signedZl, 0)),
   }))
 
   const reasons = scored.map(({ investmentId, rows }) => ({
@@ -75,13 +144,14 @@ export function scoreCases(cases: readonly AiAccuracyCaseInputT[]) {
 
   const errorTypes = scored.map(({ investmentId, rows }) => ({
     investmentId,
-    missed_zl: sum(rows, (row) => (row.ai === 0 && row.own > 0 ? wrongZl(row) : 0)),
-    extra_zl: sum(rows, (row) => (row.ai > 0 && row.own === 0 ? wrongZl(row) : 0)),
-    qty_zl: sum(rows, (row) => (row.ai > 0 && row.own > 0 ? wrongZl(row) : 0)),
+    missed_zl: sum(rows, zlOfKind('missed')),
+    extra_zl: sum(rows, zlOfKind('extra')),
+    qty_zl: sum(rows, zlOfKind('qty')),
+    variant_zl: sum(rows, zlOfKind('variant')),
   }))
 
   const groups = groupInOrder(
-    scored.flatMap(({ rows }) => rows).filter((row) => row.ai !== row.own),
+    scored.flatMap(({ rows }) => rows).filter((row) => row.kind !== 'none' && row.kind !== 'twin'),
     (row) => groupKey(row.description),
   )
   const pozycje = [...groups.values()].map((rows) => ({
@@ -141,6 +211,7 @@ type CaseFiguresT = {
   missedZl: number
   extraZl: number
   qtyZl: number
+  variantZl: number
 }
 
 const total = (cases: readonly CaseFiguresT[], of: (figures: CaseFiguresT) => number) =>
@@ -154,7 +225,8 @@ function summarizeWindow(cases: readonly CaseFiguresT[]) {
   const missedZl = total(cases, (figures) => figures.missedZl)
   const extraZl = total(cases, (figures) => figures.extraZl)
   const qtyZl = total(cases, (figures) => figures.qtyZl)
-  const splitZl = missedZl + extraZl + qtyZl
+  const variantZl = total(cases, (figures) => figures.variantZl)
+  const splitZl = missedZl + extraZl + qtyZl + variantZl
   return {
     count: cases.length,
     rightPercent: right,
@@ -166,6 +238,7 @@ function summarizeWindow(cases: readonly CaseFiguresT[]) {
     missedZl,
     extraZl,
     qtyZl,
+    variantZl,
     extraPercent: sharePercent(extraZl, splitZl),
   }
 }
@@ -187,6 +260,7 @@ export function summarizeAccuracy(tables: AiAccuracyTablesT) {
     missedZl: tables.error_types[index].missed_zl,
     extraZl: tables.error_types[index].extra_zl,
     qtyZl: tables.error_types[index].qty_zl,
+    variantZl: tables.error_types[index].variant_zl,
   }))
 
   const cases = figures.map((caseFigures, index) => {

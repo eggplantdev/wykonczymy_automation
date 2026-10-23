@@ -48,7 +48,11 @@ async function run() {
     if (!stage || !AI_ACCURACY_REVIEWED_STAGES.includes(stage)) continue
     const items = await itemsOf(file.investmentId)
     if (!items.some((item) => item.aiPlannedQty !== null)) continue
-    scored.push({ investmentId: file.investmentId, label: file.slug, items })
+    scored.push({
+      investmentId: file.investmentId,
+      label: file.slug,
+      items: items.map((item) => ({ ...item, sectionId: item.section.id })),
+    })
   }
 
   const caseNumberOf = new Map(files.map((file) => [file.investmentId, file.caseNumber]))
