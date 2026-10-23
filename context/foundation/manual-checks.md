@@ -1699,9 +1699,7 @@ Zastąpione przez ai-accuracy-page niżej — dashboard claude.ai nie jest już 
 
 - [ ] `/inwestycje` jako menadżer: „Materiały” w pasku obok „Trafność AI” otwiera „Cennik
       materiałów”; podczas ładowania widać ten tytuł.
-- [ ] Strona: sekcje „Podsumowanie” i „Na co idą pieniądze” zwijają się i po przeładowaniu
-      pamiętają stan; wykres pokazuje rodzaje materiałów z kwotą i podpowiedzią po najechaniu.
-- [ ] „Wszystkie materiały”: przewijanie w dół trzyma nagłówek kolumn na górze, kliknięcie
+- [ ] Tabela materiałów: przewijanie w dół trzyma nagłówek kolumn na górze, kliknięcie
       nagłówka sortuje; szeroka tabela przewija się na boki sama, strona nie jedzie w bok.
 - [ ] Filtry „Rodzaj”, „Sklep”, „Kategoria” i wyszukiwarka zawężają listę, licznik „Widoczne
       materiały” się zgadza; domyślnie widać tylko materiały.
