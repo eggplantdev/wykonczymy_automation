@@ -35,7 +35,7 @@ export function A45OptionsMenuGroup() {
       title="Menu „Opcje”"
       count="4 wystąpienia w 4 plikach · 4 wersje"
       drift={[
-        'Wyzwalacz: Button size="lg" z etykietą max-sm:sr-only (raport) vs size="lg" z etykietą zawsze (podgląd) vs size="sm" (edytor) vs size="icon" z Ellipsis i sr-only „Więcej akcji”, tylko poniżej sm (podgląd pliku).',
+        'Wyzwalacz: Button size="lg" z etykietą max-sm:sr-only (raport) vs size="lg" z etykietą max-sm:sr-only i kwadratem max-sm:w-10 (podgląd) vs size="sm" (edytor) vs size="icon" z Ellipsis i sr-only „Więcej akcji”, tylko poniżej sm (podgląd pliku).',
         'Ikona: Settings w trzech miejscach, Ellipsis w podglądzie pliku.',
         'Treść: DropdownMenuLabel + separatory + MenuItemBody z opisem tylko w edytorze; gdzie indziej płaska lista pozycji.',
         'Szerokość treści: w-80 w edytorze vs domyślna (min-w-[8rem]) wszędzie indziej.',
@@ -98,16 +98,16 @@ export function A45OptionsMenuGroup() {
 
       <AuditVariant
         letter="b"
-        label="podgląd kosztorysu dla klienta — Button lg, etykieta zawsze widoczna; bez przełącznika panelu sum obok (komponent funkcji)"
-        sources={['src/components/kosztorys/editor/preview-header-actions.tsx:57']}
+        label="podgląd kosztorysu dla klienta — Button lg, poniżej sm sama ikona; bez przełącznika panelu sum obok (komponent funkcji)"
+        sources={['src/components/kosztorys/editor/preview-header-actions.tsx:61']}
       >
         <OpenPreview backdrop={false} className="h-48 justify-start">
-          <div className="ml-auto flex shrink-0 items-center gap-2 max-sm:order-last max-sm:grid max-sm:w-full max-sm:auto-cols-fr max-sm:grid-flow-col">
+          <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2 max-sm:order-last max-sm:w-full">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="lg" variant="outline">
+                <Button size="lg" variant="outline" className="max-sm:w-10 max-sm:px-0">
                   <Settings />
-                  Opcje
+                  <span className="max-sm:sr-only">Opcje</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

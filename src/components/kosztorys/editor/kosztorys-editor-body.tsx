@@ -418,6 +418,7 @@ export function KosztorysEditorBody({
                       investmentName={investmentName}
                       workerName={worker?.name}
                       history={investorHistory}
+                      clientView={worker ? undefined : clientView}
                       hasRows={subtotals.length > 0}
                       emptyRowCount={clientEmptyRowIds.size}
                       showAllRows={showAllRows}

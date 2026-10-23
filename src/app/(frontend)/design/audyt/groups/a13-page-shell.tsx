@@ -191,7 +191,7 @@ export function A13PageShellGroup() {
       <AuditVariant
         letter="f"
         label="PreviewHeader: flex-wrap gap-x-4 gap-y-1, dodatkowe sm:px-5, samo border-b, h1 z nazwą inwestycji (akcje odtworzone przyciskiem Opcje)"
-        sources={['src/components/kosztorys/editor/preview-header-actions.tsx:32']}
+        sources={['src/components/kosztorys/editor/preview-header-actions.tsx:35']}
       >
         <header className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-3 sm:px-5 sm:py-5">
           <BrandLogo height={54} priority className="shrink-0 max-sm:h-11" />
