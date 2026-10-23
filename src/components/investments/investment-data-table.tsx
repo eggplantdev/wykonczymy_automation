@@ -136,6 +136,9 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
             <Button asChild size="sm" variant="outline">
               <Link href="/inwestycje/trafnosc-ai">Trafność AI</Link>
             </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/inwestycje/materialy">Materiały</Link>
+            </Button>
             <AddInvestmentDialog presets={presets} />
           </>
         }

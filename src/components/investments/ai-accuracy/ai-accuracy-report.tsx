@@ -51,9 +51,9 @@ export function AiAccuracyReport({ accuracy, excludedNames }: PropsT) {
     <div className="grid max-w-6xl gap-14">
       <div className="grid gap-4">
         <Description withIcon={false} className="max-w-prose leading-relaxed">
-          AI czyta to, co przysłał klient, i wpisuje Przedmiar. Właściciel go sprawdza i poprawia.
-          Porównujemy liczby AI z ostatecznymi liczbami właściciela, przeliczone na złotówki po
-          Cenie j.m. Każdą recenzję i poprawkę widać tu przy następnym wejściu.
+          AI czyta to, co przysłał klient, i proponuje ilości (AI przedmiar). Właściciel je sprawdza
+          i wpisuje swój Przedmiar. Porównujemy jedno z drugim pozycja po pozycji, przeliczone na
+          złotówki po Cenie j.m. Każdą recenzję widać tu przy następnym wejściu.
         </Description>
         <AccuracyHero all={windows.all} last={windows.last} latest={cases.at(-1)} />
       </div>
@@ -69,9 +69,9 @@ export function AiAccuracyReport({ accuracy, excludedNames }: PropsT) {
         <div className="grid gap-2">
           <SectionHeader title="Skąd biorą się błędy" />
           <Description withIcon={false} className="max-w-prose leading-relaxed">
-            AI uczy się tylko z tego, co mu zapiszemy: z zasad w Manualu i z Powodów zmiany.
-            Poprawiona liczba bez powodu to dla AI tylko inna liczba, więc następnym razem robi ten
-            sam błąd.
+            Przy każdej wycenie AI czyta Manual i Komentarze do pracy. Powodów zmiany ani
+            poprawionych liczb nie widzi: poprawka trafia do jego wiedzy dopiero wtedy, gdy ktoś
+            przeniesie jej Powód do Komentarza do pracy albo do Manualu.
           </Description>
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -79,7 +79,7 @@ export function AiAccuracyReport({ accuracy, excludedNames }: PropsT) {
             order={1}
             icon={MessageSquareOff}
             accent="red"
-            title="Poprawka bez Powodu zmiany niczego AI nie uczy"
+            title="Poprawki bez Powodu zmiany nie ma czego przenieść do wiedzy AI"
             stat={formatWholePercent(windows.last.noReasonPercent)}
             statCaption={`złotówek błędu bez powodu w ostatnich ${lastCount}`}
           >
@@ -100,13 +100,14 @@ export function AiAccuracyReport({ accuracy, excludedNames }: PropsT) {
             order={2}
             icon={Repeat}
             accent="orange"
-            title="AI powtarza te same błędy w kolejnych przypadkach"
+            title="Te same pozycje są mylone w wielu wycenach"
             stat={formatWholePercent(accuracy.repeatedSharePercent)}
             statCaption="złotówek błędu w pozycjach pomylonych co najmniej 2 razy"
           >
             <p>
-              To nie są przypadkowe wpadki, tylko stałe nawyki. Jedna zasada w Manualu naprawiłaby
-              je wszędzie naraz.
+              Gładzie, glazura, gruntowanie czy punkty wod-kan są prawie w każdym kosztorysie, więc
+              pomyłki na nich się sumują. Powtórka nie znaczy, że brakuje zasady: najpierw sprawdź
+              Komentarz do pracy tej pozycji.
             </p>
             <AccuracyShareBar
               caption="Jak często AI myli tę samą pozycję"
@@ -124,13 +125,17 @@ export function AiAccuracyReport({ accuracy, excludedNames }: PropsT) {
             order={3}
             icon={PackagePlus}
             accent="pink"
-            title="AI często dodaje pozycje, które właściciel wyrzuca"
+            title="Pozycje, które AI dało, a właściciel wyzerował"
             stat={formatWholePercent(windows.last.extraPercent)}
-            statCaption={`błędu w ostatnich ${lastCount} to pozycje dodane „na wszelki wypadek”`}
+            statCaption={`błędu w ostatnich ${lastCount}`}
           >
             <p>
-              Tego nie da się odgadnąć z rzutu: AI nie wie, czego właściciel nie daje w pierwszej
-              ofercie, dopóki mu tego nie powiemy.
+              Bez Powodu zmiany nie wiadomo, czy praca jest zbędna, czy nie dajemy jej w pierwszej
+              ofercie, więc nie ma czego przenieść do Komentarza do pracy.
+            </p>
+            <p>
+              Zły wariant, czyli ta sama ilość przeniesiona na inną pozycję tej samej pracy, liczymy
+              osobno, jako różnicę wartości obu pozycji.
             </p>
             <AccuracyErrorTypePie
               caption={`Rodzaj błędu, ostatnie ${lastCount}`}
@@ -142,16 +147,17 @@ export function AiAccuracyReport({ accuracy, excludedNames }: PropsT) {
             order={4}
             icon={ArrowDownToLine}
             accent="purple"
-            title="Celowe zaniżanie wygląda jak błąd AI"
+            title="Świadome zaniżenie lub zawyżenie zawsze z Powodem zmiany"
           >
             <p>
-              Właściciel czasem specjalnie zaniża Przedmiar w pierwszej ofercie, żeby nie wystraszyć
-              klienta, a resztę dolicza po wykonaniu. Gdy to zapisze w Powodzie zmiany, nie liczymy
-              tego jako błąd AI.
+              Właściciel czasem specjalnie zaniża Przedmiar w pierwszej ofercie, a resztę dolicza po
+              wykonaniu. Bez Powodu zmiany takiej decyzji nie da się odróżnić od poprawki błędu AI,
+              ani na tej stronie, ani przy przenoszeniu wiedzy do Komentarzy.
             </p>
             <p>
-              Ale zwykle nic nie wpisuje. Wtedy AI widzi tylko „za dużo” i uczy się zaniżać tam,
-              gdzie liczyło dobrze, a wynik liczy mu za to karę.
+              Jeśli Powód zawiera „zaniżam”, „niedoszacowane” albo „powykonawczo”, wynik liczy
+              liczbę AI jako dobrą. Świadomego zawyżenia strona nie rozpoznaje i liczy je jako błąd
+              AI.
             </p>
           </AccuracyCauseCard>
         </div>
@@ -194,12 +200,18 @@ export function AiAccuracyReport({ accuracy, excludedNames }: PropsT) {
         >
           <ul className="grid max-w-prose list-disc gap-2 pt-4 pl-5 text-sm leading-relaxed">
             <li>
-              <b>Celowe zaniżenia bez opisu</b> liczymy jako błąd AI.{' '}
+              <b>Celowe zaniżenia bez Powodu i każde celowe zawyżenie</b> liczymy jako błąd AI.{' '}
+              <span className="text-muted-foreground">Prawdziwy wynik: wyższy.</span>
+            </li>
+            <li>
+              <b>Zły wariant rozpoznajemy tylko wtedy,</b> gdy obie pozycje są w tej samej sekcji,
+              to ta sama praca w tej samej jednostce, a ilości różnią się najwyżej o 2%. Każdą inną
+              zamianę liczymy dwa razy: jako pozycję dodaną i pominiętą.{' '}
               <span className="text-muted-foreground">Prawdziwy wynik: trochę wyższy.</span>
             </li>
             <li>
-              <b>Właściciel widział liczby AI przed swoją wyceną</b> (we wszystkich przypadkach poza
-              pierwszymi dwoma). Jeśli przyjął liczbę AI bez sprawdzenia, liczy się ona jako dobra.{' '}
+              <b>Właściciel zwykle widzi liczby AI przed swoją wyceną.</b> Jeśli przyjął liczbę AI
+              bez sprawdzenia, liczy się ona jako dobra.{' '}
               <span className="text-muted-foreground">Prawdziwy wynik: trochę niższy.</span>
             </li>
             <li>

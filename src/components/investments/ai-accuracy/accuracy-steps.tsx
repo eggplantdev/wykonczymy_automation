@@ -4,19 +4,19 @@ import { Description } from '@/components/ui/description'
 const STEPS = [
   {
     title: 'Powód zmiany przy każdej poprawce',
-    body: 'Wystarczy krótko: „klient nie chce”, „z rzutu wychodzi mniej”, „u nas zawsze 2 warstwy”. Przy celowym zaniżeniu zawsze ten sam dopisek: „celowo zaniżam”. Bez tego żadna z pozostałych rzeczy nie zadziała.',
+    body: 'Wystarczy krótko: „klient nie chce”, „z rzutu wychodzi mniej”, „u nas zawsze 2 warstwy”. Świadome zaniżenie lub zawyżenie zawsze z Powodem, np. „zaniżam, doliczymy po wykonaniu”. Bez Powodu poprawka zostaje w tym jednym kosztorysie.',
   },
   {
-    title: 'Najpierw zasady dla pozycji, które się powtarzają',
-    body: 'Właściciel siada raz na pół godziny i dla każdej pozycji z wykresu wyżej mówi jedną zasadę: kiedy ją dajemy, kiedy nie i jak liczymy ilość. Te zasady trafiają do Manualu. To najtańszy sposób, żeby zbić największą część błędu.',
+    title: 'Przepisać zasady, których AI się nie trzyma',
+    body: 'Dla pozycji z wykresu wyżej przeczytać jej Komentarz do pracy. Jeśli zasada jest, a AI dalej się myli, to albo jest niejasna, albo właściciel wycenia inaczej, niż mówi: wtedy przepisać zasadę, a nie dopisywać drugiej. Jeśli jej nie ma, dopisać ją w Komentarzu tej pozycji. Manual zostaje dla zasad, które nie dotyczą jednej pozycji.',
   },
   {
-    title: 'Przejrzeć pozycje, które AI dodaje, a właściciel wyrzuca',
-    body: 'Spisać, czego nie dajemy w pierwszej ofercie, jeśli klient o to nie prosił, i wpisać to jako zasadę „nie dodawaj, chyba że…”.',
+    title: 'Przy wyzerowanej pozycji napisać, co zamiast',
+    body: 'Gdy AI wybrało zły wariant, Powód mówi, który jest właściwy i kiedy, np. „Q4 tam, gdzie LED świeci na ścianę”. Gdy pozycji w ogóle nie dajemy: „nie dajemy w pierwszej ofercie, chyba że…”.',
   },
   {
     title: 'Wynik po każdym przypadku',
-    body: 'Ta strona pokazuje go od razu po recenzji. Jeśli zmiana w sposobie pracy AI nie podniosła średniej z ostatnich przypadków, nie dokładamy kolejnej, tylko wracamy do punktów 1–3.',
+    body: 'Ta strona pokazuje go od razu po recenzji. Pojedynczy przypadek skacze o kilkadziesiąt punktów, więc o tym, czy zmiana pomogła, mówi dopiero kilka kolejnych przypadków, nie jeden.',
   },
   {
     title: 'Co jakiś czas jeden przypadek „na ślepo”',

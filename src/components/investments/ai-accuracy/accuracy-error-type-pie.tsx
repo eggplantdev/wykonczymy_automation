@@ -23,6 +23,12 @@ export function AccuracyErrorTypePie({
           fill: 'var(--color-chart-pink)',
         },
         {
+          id: 'variant',
+          name: 'AI wybrało zły wariant',
+          value: window.variantZl,
+          fill: 'var(--color-chart-blue)',
+        },
+        {
           id: 'qty',
           name: 'Obaj mają, inna ilość',
           value: window.qtyZl,

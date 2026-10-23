@@ -64,7 +64,7 @@ export function VirtualizedTableBody<TData>({
             />
           ))}
         </colgroup>
-        <TableHeader headerGroups={headerGroups} textSize={textSize} />
+        <TableHeader headerGroups={headerGroups} textSize={textSize} isSticky />
         <tbody>
           {rows.length === 0 ? (
             <EmptyRow colSpan={colCount} />

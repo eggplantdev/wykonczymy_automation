@@ -78,9 +78,7 @@ export function AccuracyMethodCompare({ example }: { example: ExampleT }) {
       </div>
       <p className="max-w-prose text-sm leading-relaxed">
         <b>Skąd ta różnica:</b> w sposobie 1 „za dużo” i „za mało” się znoszą, więc cena końcowa
-        wygląda dobrze, choć większość pozycji jest zła. To jak dwa paragony na 200 zł: jeden za
-        chleb i mleko, drugi za piwo i chipsy. Ta sama suma, zupełnie inne zakupy.{' '}
-        <b>Dlatego zawsze liczymy sposobem 2.</b>
+        wygląda dobrze, choć pozycje się nie zgadzają. <b>Dlatego zawsze liczymy sposobem 2.</b>
       </p>
     </div>
   )
