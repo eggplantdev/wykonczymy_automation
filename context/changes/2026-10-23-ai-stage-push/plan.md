@@ -342,14 +342,14 @@ test DB template rebuilds on its own because a migration changed.
 
 #### Automated
 
-- [x] 2.1 Notifier unit spec
-- [x] 2.2 E-mail → account DB spec
-- [x] 2.3 Action DB spec extended (transition vs re-save)
-- [x] 2.4 Both DB specs pass under test:integration
+- [x] 2.1 Notifier unit spec — 185fcdab8
+- [x] 2.2 E-mail → account DB spec — 185fcdab8
+- [x] 2.3 Action DB spec extended (transition vs re-save) — 185fcdab8
+- [x] 2.4 Both DB specs pass under test:integration — 185fcdab8
 
 ### Phase 3: Loader sets the stage through the app
 
 #### Automated
 
 - [ ] 3.1 DRY run prints SQL without ai_stage, no action call
-- [ ] 3.2 No ai_stage write left in the loader
+- [x] 3.2 No ai_stage write left in the loader
