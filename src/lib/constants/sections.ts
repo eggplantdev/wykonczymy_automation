@@ -23,6 +23,7 @@ export const PAGE_TITLES = {
   transactions: 'Transakcje',
   registers: 'Kasy',
   investments: 'Inwestycje',
+  aiAccuracy: 'Trafność AI w kosztorysach',
   leads: 'Zapytania z formularzy',
   workerReports: 'Zgłoszenia prac',
   expenseDrafts: 'Zgłoszenia wydatków',

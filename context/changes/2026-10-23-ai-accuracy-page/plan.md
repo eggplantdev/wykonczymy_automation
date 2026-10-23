@@ -281,14 +281,14 @@ kosztorys write anywhere expires it — acceptable at this scale.
 
 #### Automated
 
-- [x] 1.1 Scoring + summary spec passes
-- [x] 1.2 CSV spec passes
+- [x] 1.1 Scoring + summary spec passes — 3bb299fd7
+- [x] 1.2 CSV spec passes — 3bb299fd7
 
 ### Phase 2: Live page
 
 #### Automated
 
-- [ ] 2.1 Phase 1 specs still pass
+- [x] 2.1 Phase 1 specs still pass
 
 ### Phase 3: Workflow docs
 
