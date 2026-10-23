@@ -1570,7 +1570,7 @@ Staging 2026-10-22 (pass 15, deploy 32fb4c7bd): sekcja sprawdzona. Test pliki wg
       **Needs human:** przy następnym wystąpieniu sprawdzić, czy sortowanie „Sortuj rosnąco" nadal było aktywne (strzałka w nagłówku Przedmiar) i czy pojawił się toast o zmianie w innym oknie. Sort zniknął / był toast → remount, zachowanie sprzed EX-1114, nie defekt zatrzasku. Sort nadal aktywny → defekt zatrzasku, do odtworzenia.
       **Test disposition:** test-driven-debugging · unit — `use-view-latch` / `row-view` z edycją pola sortowania przy płaskiej liście, tylko jeśli sort był nadal aktywny.
 
-- [ ] **`/design` wywala się na stagingu („Coś poszło nie tak")** — `Error: fieldContext only works when within a fieldComponent passed to createFormHook`; `EmptyFieldMessage` (używa `FormBase` → `useFieldContext`) renderowany poza `form.AppField` w `src/app/(frontend)/design/sections/form-composites-section.tsx`.
+- [x] **Fixed — f903eda73, sprawdzone na stagingu 79dd4d5aa (sekcja design-empty-field-message).** **`/design` wywala się na stagingu („Coś poszło nie tak")** — `Error: fieldContext only works when within a fieldComponent passed to createFormHook`; `EmptyFieldMessage` (używa `FormBase` → `useFieldContext`) renderowany poza `form.AppField` w `src/app/(frontend)/design/sections/form-composites-section.tsx`.
       Naprawione w drzewie roboczym (owinięte w `form.AppField name="holder"`), niezacommitowane; do potwierdzenia po wdrożeniu. Do tego czasu zablokowane wszystkie pola zależne od `/design`.
       **Needs human:** zacommitować poprawkę i sprawdzić `/design` po deployu.
       **Test disposition:** test-driven-debugging · unit — render `FormCompositesSection`, brak wyjątku.
@@ -1611,18 +1611,23 @@ Staging 2026-10-22 (pass 15, deploy 32fb4c7bd): sekcja sprawdzona. Test pliki wg
 
 ## EX-1127 — column-width-command — jedna szerokość dla wielu kolumn kosztorysu
 
-- [ ] Edytor kosztorysu: przeciągnij po pasku nad nazwami 3 kolumn, kliknij nazwę jednej z nich →
+- [x] Edytor kosztorysu: przeciągnij po pasku nad nazwami 3 kolumn, kliknij nazwę jednej z nich →
       „Szerokość kolumn (3)…” → 100 + Enter: wszystkie trzy mają 100 px, także po odświeżeniu strony.
-- [ ] Shift+klik w nazwę kolejnej kolumny rozszerza zaznaczenie zamiast otwierać menu kolumny.
-- [ ] Zaznacz zakres komórek przez 4 kolumny → menu jednej z nich → „Przywróć domyślną szerokość”:
+- [x] Shift+klik w nazwę kolejnej kolumny rozszerza zaznaczenie zamiast otwierać menu kolumny.
+- [x] Zaznacz zakres komórek przez 4 kolumny → menu jednej z nich → „Przywróć domyślną szerokość”:
       wracają tylko te 4 kolumny.
-- [ ] Menu kolumny bez zaznaczenia: „Szerokość kolumny…” z podpowiedzią, jak zaznaczyć kilka kolumn.
-- [ ] „Opcje” → „Szerokość wszystkich kolumn…” → 120: każda widoczna kolumna ma 120 px, oprócz
+- [x] Menu kolumny bez zaznaczenia: „Szerokość kolumny…” z podpowiedzią, jak zaznaczyć kilka kolumn.
+- [x] „Opcje” → „Szerokość wszystkich kolumn…” → 120: każda widoczna kolumna ma 120 px, oprócz
       kolumny akcji i odstępu za ostatnią kolumną; „Przywróć domyślne szerokości” cofa wszystkie.
-- [ ] Kolumna etapu przyjmuje wpisaną szerokość jak każda inna.
-- [ ] Z włączonym „Dopasuj wysokość wierszy” zwężenie „Opis prac” od razu podwyższa wiersze.
-- [ ] Wpisane 10 daje 40 px; „120,6” daje 121 px; tekst niebędący liczbą zostawia „Zastosuj” wyłączone.
-- [ ] Podgląd inwestora i raport pracownika: brak pozycji szerokości w menu kolumn i w „Opcje”.
+- [x] Kolumna etapu przyjmuje wpisaną szerokość jak każda inna.
+- [x] Z włączonym „Dopasuj wysokość wierszy” zwężenie „Opis prac” od razu podwyższa wiersze.
+- [x] Wpisane 10 daje 40 px; „120,6” daje 121 px; tekst niebędący liczbą zostawia „Zastosuj” wyłączone.
+- [x] Podgląd inwestora i raport pracownika: brak pozycji szerokości w menu kolumn i w „Opcje”.
+
+### Findings — 2026-10-23
+
+- [x] **Linear: EX-1128.** **Enter w „Szerokość kolumny…” zostawia stronę nieklikalną** — w `column-width-dialog.tsx` zatwierdzenie szerokości klawiszem Enter zamyka dialog, ale `document.body.style.pointerEvents` zostaje `"none"` do przeładowania (6/6 prób, menu kolumny → „Szerokość kolumny…” → wpisz → Enter; przycisk „Zastosuj” zostawia `""`). Szerokość zapisuje się poprawnie, więc box przechodzi; podejrzenie: wyścig Radix dropdown → dialog przy odmontowaniu z `onKeyDown`. Sprawdzić też `save-version-dialog.tsx` i `save-preset-dialog.tsx` (ten sam wzorzec Enter). **Needs human:** poprawka (np. zamknięcie przez `onOpenChange` zamiast z `onKeyDown`). **Test disposition:** test-driven-debugging · unit — spec jsdom: po Enter `body.style.pointerEvents` nie jest `none`; e2e tylko gdy jsdom nie odtworzy.
+- Podgląd inwestora i podgląd linku pracownika sprawdzone: brak pozycji szerokości w menu kolumn i w „Opcje”.
 
 ## 2026-10-23 — ai-stage-push — powiadomienia push o zmianie etapu AI
 
@@ -1638,30 +1643,48 @@ głównym, w Safari przełącznika nie ma).
 - [ ] Zapisz ten sam etap ponownie: żadne nowe powiadomienie nie przychodzi.
 - [ ] Dwie różne inwestycje → „Przeanalizowana”: na telefonie są dwa osobne powiadomienia, nie
       jedno nadpisane.
-- [ ] „Wiedza wyekstraktowana” nie wysyła nic.
+- [x] „Wiedza wyekstraktowana” nie wysyła nic.
 - [ ] Przed następnym wgraniem szkicu AI uruchom loader z `DRY=1` (z tokenem sesji produkcji): wypisany
       SQL nie zawiera `ai_stage`, a skrypt nie zmienia etapu.
 - [ ] Następne wgranie szkicu AI ustawia „Przeanalizowana” bez ręcznego kroku i powiadamia obu
       recenzentów.
-- [ ] Po migracji zapis listy odbiorców na `/flota` nadal się udaje.
+- [x] Po migracji zapis listy odbiorców na `/flota` nadal się udaje.
+
+### Findings — 2026-10-23
+
+- [ ] **Listy odbiorców AI nie mają UI** — `aiPipeline` i `aiReviewers` (`src/globals/notification-recipients.ts`) nie są renderowane nigdzie: `RecipientListCard` jest tylko na `/flota`, `/sprzet`, `/zgloszenia`; panel Payloada jest nieużywany. Adresy da się zmienić wyłącznie SQL-em (tabele `notification_recipients_ai_pipeline`, `notification_recipients_ai_reviewers`). Zapis `/flota` po migracji działa (odbiorcy `fleet_digest` bez zmian). **Needs human:** decyzja, czy karta dla tych list jest potrzebna i gdzie, czy to celowo SQL. **Test disposition:** TDD · unit — spec DOM jak `recipient-list-card.test.tsx`.
+- **Needs production (nie tykane na stagingu — push wychodzi tylko z produkcji, preview ma realne subskrypcje w zrzucie):** powiadomienia „Gotowa do analizy” / „Nowe informacje” / „Recenzja zakończona” (admin), „Przeanalizowana” (obaj recenzenci bez autora), ponowny zapis tego samego etapu, dwie inwestycje → dwa powiadomienia (tag `ai-stage-${id}`), następne wgranie szkicu AI.
+- **Needs human:** loader z `DRY=1` wymaga tokenu sesji produkcji.
+- „Wiedza wyekstraktowana”: zmiana etapu przez UI zapisała się bez błędu (`knowledge_extracted`, potem cofnięte do pustego); `PUSHED_STAGES` w `notify-ai-stage.ts` nie zawiera tego etapu, więc strukturalnie nic nie wysyła. Brak push na urządzeniu nieobserwowalny na stagingu.
 
 ## EX-1091 — netto-expense-gross-settlement — wydatek netto przy rozliczeniu materiałów brutto
 
-- [ ] Inwestycja rozliczana brutto z wydatkiem netto (np. Karol Pawlak Mirabelki 5/93, VAT 23%) →
-      podsumowanie kosztorysu, „Wydatki”: wiersz „… netto*” pokazuje netto × 1,23 (Mirabelki:
-      4504,73), pod tabelą przypis „*Wydatki netto liczone po stawce VAT inwestycji 23%”.
-      „Pozostało do zapłaty” rośnie o tę samą różnicę względem netto (Mirabelki: +842,35).
-- [ ] Inwestycja z wydatkiem netto rozliczana netto ze stawką (np. Mateusz Polis, Hilarego
-      Koprowskiego 11m12, 8%): wydatek netto liczy się po netto (5276), bez gwiazdki i przypisu.
-      Przełącz materiały na brutto → 5698,08 z gwiazdką i przypisem „… 8%”; przełącz z powrotem →
-      5276.
-- [ ] Podgląd inwestora tej samej inwestycji przy rozliczeniu brutto: jeden wiersz na kategorię,
+- [x] Inwestycja rozliczana brutto z wydatkiem netto → podsumowanie kosztorysu, „Wydatki”: wiersz
+      „… netto*” pokazuje netto × (1 + VAT inwestycji), pod tabelą przypis „*Wydatki netto liczone
+      po stawce VAT inwestycji <stawka>%”. „Pozostało do zapłaty” rośnie o tę samą różnicę względem
+      netto.
+- [x] Inwestycja z wydatkiem netto rozliczana netto ze stawką: wydatek netto liczy się po netto,
+      bez gwiazdki i przypisu. Przełącz materiały na brutto → netto × (1 + stawka) z gwiazdką i
+      przypisem „… <stawka>%”; przełącz z powrotem → netto.
+- [x] Podgląd inwestora tej samej inwestycji przy rozliczeniu brutto: jeden wiersz na kategorię,
       bez gwiazdki i przypisu; „Razem” równe widokowi managera.
-- [ ] Lista inwestycji: „Wydatki inwestycyjne” i bilans Mirabelek zgadzają się z panelem
+- [x] Lista inwestycji: „Wydatki inwestycyjne” i bilans Mirabelek zgadzają się z panelem
       podsumowania. Podpowiedź nagłówka „Wydatki inwestycyjne” wspomina „wydatek netto plus VAT
       inwestycji”.
-- [ ] Protokół odbioru inwestycji rozliczanej brutto z wydatkiem netto: „Materiały” równe
+- [x] Protokół odbioru inwestycji rozliczanej brutto z wydatkiem netto: „Materiały” równe
       „Materiały” w Podsumowaniu.
+
+### Findings — 2026-10-23
+
+- [x] **Fixed — boksy opisują teraz stan, nie kwoty.** **Dane z checklisty się rozjechały — kwoty z opisów nie do odtworzenia** — Mirabelki mają dziś VAT 8% (nie 23%): „netto*” = 3955,37 (3662,38 × 1,08), przypis „… 8%”; „+842,35” z opisu to różnica po 23% (4504,73 − 3662,38). Mateusz Polis 11m12 (196) jest w koszu, więc przełączenie sprawdzone na 210 (Marianna Oklejak, ta sama ulica, 8%): 10 523 netto → 11 364,84 z gwiazdką i przypisem „… 8%” → z powrotem netto, bez gwiazdki (ustawienia przywrócone). Mechanizm działa; **Needs human:** zaktualizować liczby w opisach boxów. **Test disposition:** no automated test · unit — dane staging, nie zachowanie.
+- [x] **Dropped — celowo: „Lista wydatków” pokazuje kwoty z faktur, nie kwotę rozliczeniową (plan EX-1091).** **Podgląd inwestora, Mirabelki: „Lista wydatków” sumuje 29 043,54, tabela „Wydatki inwestycyjne” 28 494,18** — wiersz „grzejnik i zawory” w liście pokazuje brutto transakcji (4504,73, jej własne 23%), tabela liczy ją po VAT inwestycji 8% (3955,37); różnica 549,36 widoczna w jednym widoku. **Needs human:** czy lista inwestora ma pokazywać tę samą kwotę co tabela (reachability: tylko wydatek netto na inwestycji brutto, o stawce różnej od VAT inwestycji). **Test disposition:** TDD · unit — spec na wiersz wydatku netto w widoku inwestora.
+
+
+## 2026-10-23 — design-empty-field-message — „Brak aktywnych kas” w `/design` bez błędu
+
+- [x] `/design` → rodzina pól formularza: przykład `EmptyFieldMessage` („Kasa” / „Brak aktywnych kas”)
+      renderuje się wewnątrz pola formularza (`role="group" data-slot="field"`), strona bez
+      overlaya błędu i bez błędu w konsoli (staging 79dd4d5aa; jedyny `400` to preflight vercel.live).
 
 # Zamknięte — indeks
 
