@@ -1483,9 +1483,13 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [x] Kolejność kolumn przy przełączniku „Brutto”: lista pokazuje tylko kolumny brutto, przeciągnięcie
       zmienia kolejność w podglądzie inwestora.
   _Staging 2026-10-22 (pass 12): lista pokazuje kolumny brutto; przeciągnięcie przeniosło kolumnę w podglądzie. Cofnięte._
-- [x] PDF dla inwestora z zaznaczonymi kolumnami brutto: drukuje wyłącznie netto, w tej samej
-      orientacji co bez nich.
-  _Staging 2026-10-22 (pass 13): inw. 168 jest w Koszu (menu „Inwestor" ukryte), więc na inw. 224 (odznaczone „Ukryj pozycje bez przedmiaru", zaznaczone 3 kolumny brutto): „Wygeneruj ofertę w PDF" (print zastubowany na popupie) → 324 wiersze, nagłówki Opis prac / Przedmiar ofertowy / Jednostka miary / Cena j.m. / Wartość netto, brak „brutto", brak landscape (pion). Ustawienia cofnięte do domyślnych (potwierdzone SQL)._
+- [ ] PDF dla inwestora z zaznaczonymi kolumnami brutto: drukuje te same kolumny co podgląd
+      inwestora (brutto obok netto, także „Etap … brutto”), powyżej 7 kolumn strona pozioma, nic nie
+      ucięte z prawej.
+- [ ] Podgląd inwestora → „Drukuj” w nagłówku: otwiera ten sam wydruk oferty co „Wygeneruj ofertę w
+      PDF” z menu edytora. Na wcześniejszej wersji z historii przycisku „Drukuj” nie ma.
+- [ ] Podgląd inwestora na telefonie (390px): „Opcje” i „Drukuj” to kwadratowe ikony w osobnym
+      wierszu pod nazwą inwestycji, przycisk podsumowania wypełnia resztę wiersza, nic nie ucięte.
 - [x] Inwestycja bez wpisów w etapach, z zaznaczonymi „Wartość brutto (razem etapy)” i „Pozostało
       brutto”: obie schowane w podglądzie inwestora, tak jak ich odpowiedniki netto.
   _Staging 2026-10-22 (pass 12): obie schowane w podglądzie (224). Cofnięte._
