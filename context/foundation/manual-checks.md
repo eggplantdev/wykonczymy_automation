@@ -1609,6 +1609,21 @@ Staging 2026-10-22 (pass 15, deploy 32fb4c7bd): sekcja sprawdzona. Test pliki wg
       formularz wydatku ma „Kasa Big Bag”, nie domyślną kasę konta. To samo dla kontenera: „Kasa
       kontener”. Kasę da się zmienić ręcznie przed zapisem.
 
+## EX-1127 — column-width-command — jedna szerokość dla wielu kolumn kosztorysu
+
+- [ ] Edytor kosztorysu: przeciągnij po pasku nad nazwami 3 kolumn, kliknij nazwę jednej z nich →
+      „Szerokość kolumn (3)…” → 100 + Enter: wszystkie trzy mają 100 px, także po odświeżeniu strony.
+- [ ] Shift+klik w nazwę kolejnej kolumny rozszerza zaznaczenie zamiast otwierać menu kolumny.
+- [ ] Zaznacz zakres komórek przez 4 kolumny → menu jednej z nich → „Przywróć domyślną szerokość”:
+      wracają tylko te 4 kolumny.
+- [ ] Menu kolumny bez zaznaczenia: „Szerokość kolumny…” z podpowiedzią, jak zaznaczyć kilka kolumn.
+- [ ] „Opcje” → „Szerokość wszystkich kolumn…” → 120: każda widoczna kolumna ma 120 px, oprócz
+      kolumny akcji i odstępu za ostatnią kolumną; „Przywróć domyślne szerokości” cofa wszystkie.
+- [ ] Kolumna etapu przyjmuje wpisaną szerokość jak każda inna.
+- [ ] Z włączonym „Dopasuj wysokość wierszy” zwężenie „Opis prac” od razu podwyższa wiersze.
+- [ ] Wpisane 10 daje 40 px; „120,6” daje 121 px; tekst niebędący liczbą zostawia „Zastosuj” wyłączone.
+- [ ] Podgląd inwestora i raport pracownika: brak pozycji szerokości w menu kolumn i w „Opcje”.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
