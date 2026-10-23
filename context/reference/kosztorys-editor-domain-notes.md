@@ -917,12 +917,14 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     z 2026-08-07, która liczyła brutto jako `netto × (1 + stawka)` i ważyła wyłącznie stawki, nie
     zapisaną kwotę `amount` — przy 23% inwestycja 146 pokazywała 5477,60 brutto wobec 4809,60
     na fakturze.
-    **Bez stawki** (brak zapisanej albo rozliczenie brutto) tabela ma jedną kolumnę „Kwota", a wiersz
-    „… netto" pokazuje w niej swoje netto — to kwota, którą płaci klient, więc „Razem" dalej równa
-    się „Materiały" w Podsumowaniu.
-    Zmiana jest tylko w wyświetlaniu: bilans, marża, „Łącznie" i lista inwestycji czytają netto,
-    które się nie zmieniło. A skoro obie kwoty są zapisane, wraca gwarancja, dla której wybrano model
-    „zapisane `netAmount`": brak dryfu zaokrągleń między listą a podsumowaniem.
+    **Bez stawki** (brak zapisanej albo rozliczenie brutto) wydatek netto zostaje przypadkiem
+    specjalnym: klient płaci **netto × (1 + stawka VAT inwestycji)** (właściciel, 2026-10-23 —
+    przy rozliczeniu brutto liczenie samego netto zaniżało materiały). Tabela ma jedną kolumnę
+    „Kwota"; w widoku managera wiersz „… netto*" pokazuje tę kwotę, a przypis pod tabelą mówi
+    „* Wydatki netto liczone po stawce VAT inwestycji N%". „Razem" dalej równa się „Materiały"
+    w Podsumowaniu; „Pozostało do zapłaty", protokół odbioru i lista inwestycji liczą to samo.
+    Przy zapisanej stawce wydatek netto nadal wchodzi po zapisanym netto (`netAmount`), co trzyma
+    gwarancję, dla której wybrano ten model: brak dryfu zaokrągleń między listą a podsumowaniem.
     **„Różnica" znaczy na tych dwóch osiach co innego.** Na wierszu brutto to obniżka materiałowa
     (paragon minus rozliczona kwota) — firma ją daje. Na wierszu „… netto" to VAT z faktury — tego
     firma nie oddaje. „Razem Różnica" sumuje obie pod jedną etykietą; tak było i wcześniej, ale
@@ -945,10 +947,8 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
       Suma odwraca się dopiero, gdy korekty przewyższą zakupy — nierealny kosztorys, niepilnowany
       testem.
     - **Bez stawki breakdown i lista liczą wydatek netto inaczej — celowo.** Wiersz kategorii bierze
-      go po netto (styka się z „Materiały" w Podsumowaniu), lista po brutto z faktury. Odrzucone:
-      breakdown po brutto (zrywa styk z Podsumowaniem i bilansem) oraz stałe Netto / Brutto / Różnica
-      przy fakturze netto (odwraca ustalenie z `zamrozone-brutto-wydatku-netto` i musiałoby objąć też
-      widok managera).
+      go po netto × (1 + VAT inwestycji) (styka się z „Materiały" w Podsumowaniu), lista po brutto
+      z faktury.
   - **Skutek dla rekoncyliacji (strona inwestycji „z kosztorysu"):** porównanie idzie
     **netto ↔ netto** dla obu figur — kosztorys suma prac (netto) ↔ Σ `LABOR_COST`, kosztorys
     rabat (netto) ↔ Σ `RABAT`. Strony kosztorysowej **nie gruntujemy**. To usuwa fałszywy

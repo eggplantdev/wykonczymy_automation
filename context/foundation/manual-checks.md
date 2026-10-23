@@ -1609,6 +1609,23 @@ Staging 2026-10-22 (pass 15, deploy 32fb4c7bd): sekcja sprawdzona. Test pliki wg
       formularz wydatku ma „Kasa Big Bag”, nie domyślną kasę konta. To samo dla kontenera: „Kasa
       kontener”. Kasę da się zmienić ręcznie przed zapisem.
 
+## EX-1091 — netto-expense-gross-settlement — wydatek netto przy rozliczeniu materiałów brutto
+
+- [ ] Inwestycja rozliczana brutto z wydatkiem netto (np. Karol Pawlak Mirabelki 5/93, VAT 23%) →
+      podsumowanie kosztorysu, „Wydatki”: wiersz „… netto*” pokazuje netto × 1,23 (Mirabelki:
+      4504,73), pod tabelą przypis „* Wydatki netto liczone po stawce VAT inwestycji 23%”.
+      „Pozostało do zapłaty” rośnie o tę samą różnicę względem netto (Mirabelki: +842,35).
+- [ ] Inwestycja z wydatkiem netto rozliczana netto ze stawką (np. Mateusz Polis, Hilarego
+      Koprowskiego 11m12, 8%): wydatek netto liczy się po netto (5276), bez gwiazdki i przypisu.
+      Przełącz materiały na brutto → 5698,08 z gwiazdką i przypisem „… 8%”; przełącz z powrotem →
+      5276.
+- [ ] Podgląd inwestora tej samej inwestycji przy rozliczeniu brutto: jeden wiersz na kategorię,
+      bez gwiazdki i przypisu; „Razem” równe widokowi managera.
+- [ ] Lista inwestycji: „Wydatki inwestycyjne” i bilans Mirabelek zgadzają się z panelem
+      podsumowania.
+- [ ] Protokół odbioru inwestycji rozliczanej brutto z wydatkiem netto: „Materiały” równe
+      „Materiały” w Podsumowaniu.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.

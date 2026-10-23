@@ -1,7 +1,7 @@
 ---
 change_id: netto-expense-gross-settlement
 title: Netto expense bills netto plus the investment's VAT when materiały settle brutto
-status: implementing
+status: implemented
 created: 2026-10-23
 updated: 2026-10-23
 archived_at: null

@@ -147,4 +147,4 @@ gets a trailing „*” and a footnote under the table reads „* Wydatki netto 
 
 #### Automated
 
-- [x] 2.1 shape-investments, acceptance-protocol and summary component specs pass
+- [x] 2.1 shape-investments, acceptance-protocol and summary component specs pass — 1c6da8b1a
