@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { AddButton } from '@/components/ui/add-button'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Description } from '@/components/ui/description'
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { ExtraWorkRows } from '@/components/kosztorys/worker-report/extra-work-rows'
 import { blankExtra, extraState } from '@/components/kosztorys/worker-report/extra-state'
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
@@ -37,17 +38,13 @@ export function ExtraWorksDialogButton({ extras, commonUnits, onSave, onRemove }
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={open}>
-        <Plus />
+      <AddButton onClick={open}>
         {t('newWork')}
         {extras.length > 0 && ` (${extras.length})`}
-      </Button>
+      </AddButton>
       <Dialog open={isOpen} onOpenChange={(next) => (next ? setIsOpen(true) : close())}>
         <DialogContent className="sm:max-w-dialog-lg">
-          <div className="flex flex-col gap-1">
-            <DialogTitle>{t('extrasTitle')}</DialogTitle>
-            <DialogDescription>{t('extrasDescription')}</DialogDescription>
-          </div>
+          <DialogHeader title={t('extrasTitle')} description={t('extrasDescription')} />
           <div className="max-h-dialog-scroll overflow-y-auto">
             <ExtraWorkRows
               extras={extras}
@@ -57,12 +54,12 @@ export function ExtraWorksDialogButton({ extras, commonUnits, onSave, onRemove }
               showsMissing={isCloseRefused}
             />
           </div>
-          <div className="flex items-center justify-end gap-3">
+          <DialogFooter className="sm:items-center sm:gap-3">
             {isCloseRefused && hasInvalid && (
-              <p className="text-destructive text-sm">{t('extrasFixErrors')}</p>
+              <Description tone="error">{t('extrasFixErrors')}</Description>
             )}
             <Button onClick={close}>{t('done')}</Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

@@ -8,8 +8,10 @@ import { OptionalLink } from '@/components/ui/optional-link'
 import { TRANSFER_TYPE_LABELS } from '@/lib/constants/transfers'
 import type { RejectedReceiptConfirmationT } from '@/lib/db/receipt-confirmation'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
+import { formatPLDateTime } from '@/lib/utils/format-date'
+import { dateCell } from '@/components/tables/columns/date-cell'
 import { transferHref } from '@/lib/utils/investment-transfers-href'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<RejectedReceiptConfirmationT>()
 
@@ -35,7 +37,7 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptConfir
         </OptionalLink>
       ),
     }),
-    col.accessor('date', { header: 'Data', cell: (info) => formatPLDate(info.getValue()) }),
+    col.accessor('date', { header: 'Data', cell: dateCell }),
     col.accessor('type', {
       header: 'Typ',
       meta: { minWidth: 'min-w-40' },
@@ -62,7 +64,7 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptConfir
         <OptionalLink
           href={receipt.investmentId === null ? undefined : `/inwestycje/${receipt.investmentId}`}
         >
-          {receipt.investmentName ?? '—'}
+          {receipt.investmentName || EMPTY_VALUE}
         </OptionalLink>
       ),
     }),
@@ -78,14 +80,14 @@ export function RejectedReceipts({ receipts }: { receipts: RejectedReceiptConfir
               : `/kasa/${receipt.registerId}`
           }
         >
-          {receipt.registerName ?? '—'}
+          {receipt.registerName || EMPTY_VALUE}
         </OptionalLink>
       ),
     }),
     col.accessor('description', {
       header: 'Opis',
       meta: { minWidth: 'min-w-56' },
-      cell: (info) => <span className="whitespace-pre-line">{info.getValue() || '—'}</span>,
+      cell: (info) => <span className="whitespace-pre-line">{info.getValue() || EMPTY_VALUE}</span>,
     }),
     col.accessor('rejectionReason', {
       header: 'Powód',

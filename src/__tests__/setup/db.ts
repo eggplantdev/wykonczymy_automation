@@ -50,6 +50,9 @@ vi.mock('@/lib/google/transfer-sheet-sync', (importOriginal) =>
 vi.mock('@/lib/push/notify-pending-receipts', (importOriginal) =>
   passThrough(importOriginal, 'notifyPendingReceipts'),
 )
+vi.mock('@/lib/push/notify-ai-stage', (importOriginal) =>
+  passThrough(importOriginal, 'notifyAiStageChange'),
+)
 
 // `db-shared` keeps one module instance for every file, so a role set by the previous file would
 // leak into the next one's actions.

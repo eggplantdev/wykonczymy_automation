@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 
 type PropsT = {
   title: string
@@ -16,7 +17,7 @@ export function SettingsSection({ title, subtitle, hint, children }: PropsT) {
   return (
     <section className="flex flex-col items-start gap-2 px-4 py-3">
       <div className="flex flex-col items-start gap-0.5">
-        <h3 className="text-sm font-semibold">{title}</h3>
+        <h3 className={SUBSECTION_TITLE_CLASS}>{title}</h3>
         <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
           {subtitle}
           {hint && <InfoTooltip content={hint} label={`Więcej o: ${subtitle}`} />}

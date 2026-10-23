@@ -9,6 +9,7 @@ import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { targetLabel } from '@/lib/equipment/rows'
 import type { EquipmentEventRowT } from '@/lib/equipment/types'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<EquipmentEventRowT>()
 
@@ -16,7 +17,7 @@ const COLUMNS = [
   col.accessor('occurredAt', {
     id: 'occurredAt',
     header: 'Data',
-    cell: (info) => <span className="tabular-nums">{formatPLDate(info.getValue())}</span>,
+    cell: (info) => formatPLDate(info.getValue()),
   }),
   col.accessor((row) => targetLabel(row.target), {
     id: 'target',
@@ -25,25 +26,24 @@ const COLUMNS = [
   col.accessor('investmentName', {
     id: 'investment',
     header: 'Inwestycja',
-    cell: (info) => <span>{info.getValue() || '—'}</span>,
+    cell: (info) => info.getValue() || EMPTY_VALUE,
   }),
   col.accessor('note', {
     id: 'note',
     header: 'Notatka',
     enableSorting: false,
-    cell: (info) => <span className="text-muted-foreground">{info.getValue() || '—'}</span>,
+    cell: (info) => info.getValue() || EMPTY_VALUE,
   }),
   col.accessor('createdByName', {
     id: 'createdBy',
     header: 'Wpisał',
-    cell: (info) => <span className="text-muted-foreground">{info.getValue() || '—'}</span>,
+    cell: (info) => info.getValue() || EMPTY_VALUE,
   }),
   col.accessor((row) => row.cost ?? undefined, {
     id: 'cost',
     header: 'Koszt',
-    meta: { align: 'right' },
     sortUndefined: 'last',
-    cell: (info) => <span className="tabular-nums">{formatPLNOrDash(info.row.original.cost)}</span>,
+    cell: (info) => formatPLNOrDash(info.row.original.cost),
   }),
 ]
 

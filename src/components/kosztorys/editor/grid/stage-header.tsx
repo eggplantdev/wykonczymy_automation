@@ -139,7 +139,7 @@ export function StageHeader({
         }
         icon={null}
         triggerClassName={cn(sort && 'text-primary')}
-        triggerTitle="Opcje etapu"
+        tip="Opcje etapu"
       >
         <DropdownMenuLabel>{COPY.planeSectionLabel}</DropdownMenuLabel>
         {TOOL_PLANES.map((plane) => (

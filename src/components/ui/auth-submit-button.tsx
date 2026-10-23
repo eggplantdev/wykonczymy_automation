@@ -1,4 +1,4 @@
-import { LoaderCircle, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
 
@@ -20,25 +20,23 @@ export function AuthSubmitButton({
   return (
     <Button
       type="submit"
-      disabled={isPending || isSuccess}
+      pending={isPending}
+      disabled={isSuccess}
       className={cn(
         'mt-2 transition-colors duration-300',
         isSuccess && 'bg-green-600 hover:bg-green-600',
       )}
     >
-      {isPending && (
-        <>
-          <LoaderCircle className="animate-spin" />
-          {pendingText}
-        </>
-      )}
-      {isSuccess && successText && (
+      {isSuccess && successText ? (
         <>
           <Check />
           {successText}
         </>
+      ) : isPending ? (
+        pendingText
+      ) : (
+        idleText
       )}
-      {!isPending && !isSuccess && idleText}
     </Button>
   )
 }

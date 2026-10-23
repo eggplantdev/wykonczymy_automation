@@ -1,4 +1,5 @@
 import { applyRowConditions, clientConditionIds } from '@/lib/kosztorys/row-conditions/queries'
+import { HAS_MEASURED_QTY_CONDITION_ID } from '@/lib/kosztorys/row-conditions/registry'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 /**
@@ -9,10 +10,16 @@ export function documentRows(
   rows: KosztorysV2RowT[],
   stages: KosztorysStageT[],
   hideEmptyRows: boolean,
+  executedOnly = false,
 ): KosztorysV2RowT[] {
-  return applyRowConditions(rows, clientConditionIds(hideEmptyRows), {
-    stages,
-    hasSettledMaterial: false,
-    divergentPriceRowIds: new Set(),
-  })
+  const conditionIds = clientConditionIds(hideEmptyRows)
+  return applyRowConditions(
+    rows,
+    executedOnly ? new Set([...conditionIds, HAS_MEASURED_QTY_CONDITION_ID]) : conditionIds,
+    {
+      stages,
+      hasSettledMaterial: false,
+      divergentPriceRowIds: new Set(),
+    },
+  )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Bell, BellOff, Loader2 } from 'lucide-react'
+import { Bell, BellOff } from 'lucide-react'
 import { useClientSnapshot } from '@/components/pwa/use-client-snapshot'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from '@/hooks/use-translation'
@@ -11,6 +11,7 @@ import { readPlatform } from '@/lib/pwa/install-state'
 import { logError } from '@/lib/utils/log-error'
 import { toastMessage } from '@/lib/utils/toast'
 import { usePushSubscriptionStore } from '@/stores/push-subscription-store'
+import { Description } from '@/components/ui/description'
 
 const readPermission = () => (isPushSupported() ? Notification.permission : 'unsupported')
 
@@ -31,7 +32,11 @@ export function PushToggle({ className }: PushTogglePropsT) {
   if (!permission || permission === 'unsupported' || subscribed === undefined) return null
 
   if (permission === 'denied' || refused) {
-    return <p className="text-muted-foreground self-center text-sm">{t('pushBlocked')}</p>
+    return (
+      <Description withIcon={false} className="self-center">
+        {t('pushBlocked')}
+      </Description>
+    )
   }
 
   const publicKey = VAPID_PUBLIC_KEY
@@ -59,17 +64,17 @@ export function PushToggle({ className }: PushTogglePropsT) {
       }
     })
 
-  const Icon = isPending ? Loader2 : subscribed ? BellOff : Bell
+  const Icon = subscribed ? BellOff : Bell
 
   return (
     <Button
       size="sm"
       variant="outline"
       className={className}
-      disabled={isPending}
+      pending={isPending}
       onClick={handleClick}
     >
-      <Icon className={isPending ? 'animate-spin' : undefined} />
+      <Icon />
       {subscribed ? t('pushDisable') : t('pushEnable')}
     </Button>
   )

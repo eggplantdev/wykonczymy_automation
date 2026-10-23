@@ -18,6 +18,8 @@ import { AuthLink } from '@/components/ui/auth-link'
 import { ContactLink } from '@/components/ui/contact-link'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { BrandLogo } from '@/components/ui/brand-logo'
+import * as Collapsible from '@/components/ui/collapsible'
+import { Button } from '@/components/ui/button'
 import { LanguageLabel } from '@/components/ui/language-label'
 import type { LanguageT } from '@/lib/i18n/languages'
 import { ShowcaseRow } from '../showcase-row'
@@ -36,6 +38,7 @@ export function NavigationSection() {
   const [page, setPage] = useState(3)
   const [pageSize, setPageSize] = useState(20)
   const [navPage, setNavPage] = useState(12)
+  const [isDisclosureOpen, setIsDisclosureOpen] = useState(false)
   const totalPages = Math.ceil(TOTAL_DOCS / pageSize)
 
   return (
@@ -114,6 +117,23 @@ export function NavigationSection() {
         <ContactLink type="phone" value={undefined} />
         <OptionalLink href={BASE_URL}>OptionalLink z href</OptionalLink>
         <OptionalLink href={null}>OptionalLink bez href</OptionalLink>
+      </ShowcaseRow>
+      <ShowcaseRow
+        title="Collapsible — części"
+        source="ui/collapsible.tsx Root, Trigger, Content, Chevron"
+        className="flex-col items-start"
+      >
+        <Collapsible.Root open={isDisclosureOpen} onOpenChange={setIsDisclosureOpen}>
+          <Collapsible.Trigger asChild>
+            <Button variant="ghost" size="sm">
+              Szczegóły
+              <Collapsible.Chevron open={isDisclosureOpen} />
+            </Button>
+          </Collapsible.Trigger>
+          <Collapsible.Content className="px-3 pt-2 text-sm">
+            Content przyjmuje className na wewnętrznym divie.
+          </Collapsible.Content>
+        </Collapsible.Root>
       </ShowcaseRow>
       <ShowcaseRow title="Marka i język" source="ui/brand-logo.tsx, ui/language-label.tsx">
         <BrandLogo height={40} />

@@ -28,7 +28,7 @@ export function SummaryBreakdownTable({
 }) {
   return (
     <SummaryTable cols={cols}>
-      <SummaryHeaderCell variant="label">Podsumowanie</SummaryHeaderCell>
+      <SummaryHeaderCell>Podsumowanie</SummaryHeaderCell>
       <SummaryMoneyHeaders axis={moneyAxis} />
       <SummaryRow
         label="Robocizna"

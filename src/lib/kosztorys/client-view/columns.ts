@@ -1,5 +1,22 @@
 import type { ColumnGroupT } from '@/lib/kosztorys/columns/column-config'
-import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
+import {
+  STAGES_COLUMN_GROUP,
+  STAGE_VALUE_GROSS_COLUMN_GROUP,
+  STAGE_VALUE_NET_COLUMN_GROUP,
+} from '@/lib/kosztorys/stage-keys'
+
+// Netto money column → its brutto twin on the investor's document. `price` is netto here: the
+// editor's `price` exemption from the money axis does not apply to a document.
+export const CLIENT_GROSS_TWINS: Readonly<Record<string, string>> = {
+  price: 'priceGross',
+  plannedDiscountAmount: 'plannedDiscountAmountGross',
+  discountAmount: 'discountAmountGross',
+  plannedNet: 'plannedGross',
+  currentPlannedNet: 'currentPlannedGross',
+  net: 'gross',
+  remaining: 'remainingGross',
+  [STAGE_VALUE_NET_COLUMN_GROUP]: STAGE_VALUE_GROSS_COLUMN_GROUP,
+}
 
 // `priceMode` is
 // absent here and that absence is load-bearing: the szablon workbench reads
@@ -24,9 +41,10 @@ export const CLIENT_VIEW_GROUPS: readonly ColumnGroupT[] = [
   },
 ]
 
-export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set(
-  CLIENT_VIEW_GROUPS.flatMap((group) => group.keys),
-)
+export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
+  ...CLIENT_VIEW_GROUPS.flatMap((group) => group.keys),
+  ...Object.values(CLIENT_GROSS_TWINS),
+])
 export const CLIENT_DOCUMENT_COLUMNS: readonly string[] = [
   'description',
   'note',
@@ -34,17 +52,25 @@ export const CLIENT_DOCUMENT_COLUMNS: readonly string[] = [
   'currentPlannedQty',
   'unit',
   'price',
+  'priceGross',
   'plannedNet',
+  'plannedGross',
   'currentPlannedNet',
+  'currentPlannedGross',
   STAGES_COLUMN_GROUP,
   'stageQtySum',
   'discountValue',
   'discountType',
   'plannedDiscountAmount',
+  'plannedDiscountAmountGross',
   'discountAmount',
+  'discountAmountGross',
   STAGE_VALUE_NET_COLUMN_GROUP,
+  STAGE_VALUE_GROSS_COLUMN_GROUP,
   'net',
+  'gross',
   'donePercent',
   'plannedDonePercent',
   'remaining',
+  'remainingGross',
 ]

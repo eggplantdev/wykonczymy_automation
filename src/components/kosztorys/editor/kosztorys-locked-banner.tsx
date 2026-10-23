@@ -1,5 +1,6 @@
 import { Lock } from 'lucide-react'
 import type { InvestmentLockT } from '@/lib/constants/investment-lock'
+import { Description } from '@/components/ui/description'
 
 const LOCK_COPY: Record<InvestmentLockT, string> = {
   completed:
@@ -10,12 +11,13 @@ const LOCK_COPY: Record<InvestmentLockT, string> = {
 
 export function KosztorysLockedBanner({ lock }: { lock: InvestmentLockT }) {
   return (
-    <p
+    <Description
       role="status"
-      className="text-muted-foreground bg-muted/50 border-border flex shrink-0 items-center gap-2 border-b px-4 py-2 text-xs"
+      icon={Lock}
+      size="xs"
+      className="bg-muted/50 border-border shrink-0 items-center gap-2 border-b px-4 py-2"
     >
-      <Lock className="size-3.5 shrink-0" aria-hidden />
-      <span>{LOCK_COPY[lock]}</span>
-    </p>
+      {LOCK_COPY[lock]}
+    </Description>
   )
 }

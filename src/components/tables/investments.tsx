@@ -1,9 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import { createColumnHelper, type CellContext } from '@tanstack/react-table'
 import { pluralize } from '@/lib/utils/polish-plural'
-import { formatPLN } from '@/lib/utils/format-currency'
+import { formatPLN, formatPLNOrDash } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
@@ -14,6 +13,7 @@ import type { InvestmentRowT } from '@/types/table-rows'
 import { INVESTMENT_HEADER_TIPS } from '@/components/tables/investments-header-tips'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { Button } from '@/components/ui/button'
+import { OptionalLink } from '@/components/ui/optional-link'
 import { InvestmentStatusInlineSelect } from '@/components/investments/investment-status-inline-select'
 import { ContactLink } from '@/components/ui/contact-link'
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
@@ -30,6 +30,8 @@ import { SheetButton } from '@/components/investments/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import { AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 import { AiStageSelect } from '@/components/investments/ai-stage-select'
+import { actionsColumn } from '@/components/tables/columns/actions-column'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<InvestmentRowT>()
 
@@ -47,15 +49,13 @@ export const V2_COLUMN_IDS = [
   'subcontractorRemaining',
 ] as const
 
-// Off `hasKosztorys` rather than `totalLaborCosts !== 0`, which cannot tell the two apart: a rozpiska
-// entered in full but not yet started sums to zero.
 function NoKosztorys() {
-  return <span className="text-muted-foreground text-xs">brak kosztorysu</span>
+  return <span className="text-xs">brak kosztorysu</span>
 }
 
 // A row with an unsettled etap has no amount at all — zero would read as a real figure.
 function UnsettledStages() {
-  return <span className="text-muted-foreground text-xs">ustaw etapy</span>
+  return <span className="text-xs">ustaw etapy</span>
 }
 
 function withheldFigureCell(info: CellContext<InvestmentRowT, number | undefined>) {
@@ -96,9 +96,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
       header: 'Nazwa',
       meta: { minWidth: 'min-w-56' },
       cell: (info) => (
-        <Link href={`/inwestycje/${info.row.original.id}`} className="hover:underline">
-          {info.getValue()}
-        </Link>
+        <OptionalLink href={`/inwestycje/${info.row.original.id}`}>{info.getValue()}</OptionalLink>
       ),
     }),
     col.accessor('createdAt', {
@@ -145,14 +143,14 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
     col.accessor('balanceFromTransactions', {
       id: 'balanceFromTransactions',
       header: 'Bilans netto v1',
-      meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.balanceFromTransactions },
+      meta: { tooltip: INVESTMENT_HEADER_TIPS.balanceFromTransactions },
       cell: (info) => <BalanceCell value={info.getValue()} />,
     }),
     col.accessor(balanceOrUndefined('net'), {
       id: 'balance',
       sortUndefined: 'last',
       header: 'Bilans netto v2',
-      meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.balance },
+      meta: { tooltip: INVESTMENT_HEADER_TIPS.balance },
       cell: (info) => {
         if (!settlesOn(info.row.original, 'net'))
           return <OtherSettlementMode row={info.row.original} />
@@ -163,7 +161,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
       id: 'balanceGross',
       sortUndefined: 'last',
       header: 'Bilans brutto v2',
-      meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.balanceGross },
+      meta: { tooltip: INVESTMENT_HEADER_TIPS.balanceGross },
       cell: (info) => {
         const row = info.row.original
         if (!settlesOn(row, 'gross')) return <OtherSettlementMode row={row} />
@@ -188,7 +186,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
           col.accessor('margin', {
             id: 'margin',
             header: 'Marża v1',
-            meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.margin },
+            meta: { tooltip: INVESTMENT_HEADER_TIPS.margin },
             cell: (info) => <BalanceCell value={info.getValue()} />,
           }),
           col.accessor('marginV2', {
@@ -197,7 +195,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
             // 0 and scatters them among the genuine near-zero margins.
             sortUndefined: 'last',
             header: 'Marża v2',
-            meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.marginV2 },
+            meta: { tooltip: INVESTMENT_HEADER_TIPS.marginV2 },
             cell: withheldFigureCell,
           }),
         ]
@@ -205,13 +203,13 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
     col.accessor('totalLaborCostsFromTransactions', {
       id: 'laborCostsFromTransactions',
       header: 'Robocizna v1',
-      meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.laborCostsFromTransactions },
-      cell: (info) => formatPLN(info.getValue()),
+      meta: { tooltip: INVESTMENT_HEADER_TIPS.laborCostsFromTransactions },
+      cell: (info) => formatPLNOrDash(info.getValue()),
     }),
     col.accessor('totalLaborCosts', {
       id: 'laborCostsFromKosztorys',
       header: 'Robocizna v2',
-      meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.laborCostsFromKosztorys },
+      meta: { tooltip: INVESTMENT_HEADER_TIPS.laborCostsFromKosztorys },
       cell: (info) => {
         // Rounded: both sides are independent float folds, so a fully migrated investment lands a
         // sub-grosz residue apart rather than exactly equal, and the icon would never disappear.
@@ -238,22 +236,22 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
     col.accessor('totalInvestmentExpense', {
       id: 'totalInvestmentExpense',
       header: 'Wydatki inwestycyjne',
-      meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.totalInvestmentExpense },
-      cell: (info) => <span className="font-medium">{formatPLN(info.getValue())}</span>,
+      meta: { tooltip: INVESTMENT_HEADER_TIPS.totalInvestmentExpense },
+      cell: (info) => formatPLN(info.getValue()),
     }),
     col.accessor('totalSettled', {
       id: 'totalSettled',
       header: 'Wydatki wliczone w robociznę',
-      meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.totalSettled },
-      cell: (info) => formatPLN(info.getValue()),
+      meta: { tooltip: INVESTMENT_HEADER_TIPS.totalSettled },
+      cell: (info) => formatPLNOrDash(info.getValue()),
     }),
     ...(isAdminOrOwner
       ? [
           col.accessor('totalPayouts', {
             id: 'totalPayouts',
             header: 'Wypłaty',
-            meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.totalPayouts },
-            cell: (info) => formatPLN(info.getValue()),
+            meta: { tooltip: INVESTMENT_HEADER_TIPS.totalPayouts },
+            cell: (info) => formatPLNOrDash(info.getValue()),
           }),
         ]
       : []),
@@ -261,22 +259,21 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
       id: 'subcontractorRemaining',
       sortUndefined: 'last',
       header: SUBCONTRACTOR_FIGURE_LABELS.remaining,
-      meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.subcontractorRemaining },
+      meta: { tooltip: INVESTMENT_HEADER_TIPS.subcontractorRemaining },
       cell: (info) => {
         const value = info.getValue()
+        // A rozpiska entered in full but not yet started sums to zero, so only `hasKosztorys` tells it apart.
         if (!info.row.original.hasKosztorys) return <NoKosztorys />
         if (value === undefined) return <UnsettledStages />
         const owedWorkers = info.row.original.subcontractorsOwed ?? 0
         return (
           <Button
             variant="link"
-            className="h-auto flex-col items-end gap-0 p-0"
+            size="inline"
+            className="flex-col items-start gap-0"
             onClick={() => onSettle(info.row.original)}
           >
-            <BalanceCell
-              value={value}
-              className={roundToCents(value) === 0 ? 'text-chart-green' : undefined}
-            />
+            <BalanceCell value={value} settled />
             {owedWorkers > 1 && (
               <span className="text-muted-foreground text-xs font-normal">
                 {owedWorkers} {pluralize(owedWorkers, ['pracownika', 'pracowników', 'pracowników'])}
@@ -290,7 +287,7 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
       id: 'address',
       header: 'Adres',
       meta: { minWidth: 'min-w-56' },
-      cell: (info) => info.getValue() || '—',
+      cell: (info) => info.getValue() || EMPTY_VALUE,
     }),
     col.accessor('phone', {
       id: 'phone',
@@ -306,44 +303,32 @@ export function getInvestmentColumns({ userRole, onSettle, onOrder }: Investment
     col.accessor('contactPerson', {
       id: 'contactPerson',
       header: 'Osoba kontaktowa',
-      cell: (info) => info.getValue() || '—',
+      cell: (info) => info.getValue() || EMPTY_VALUE,
     }),
     col.accessor('reviewRequested', {
       id: 'reviewRequested',
       header: 'Opinia',
-      cell: (info) => (info.getValue() ? 'Wysłano' : '—'),
+      cell: (info) => (info.getValue() ? 'Wysłano' : EMPTY_VALUE),
     }),
     col.accessor('status', {
       id: 'status',
       header: 'Status',
-      meta: { align: 'right' },
       enableSorting: true,
-      cell: (info) => (
-        <div className="flex justify-end">
-          <InvestmentStatusInlineSelect investment={info.row.original} hideChevron />
-        </div>
-      ),
+      cell: (info) => <InvestmentStatusInlineSelect investment={info.row.original} hideChevron />,
     }),
-    col.display({
-      id: 'actions',
-      header: 'Akcje',
-      meta: { align: 'right' },
-      cell: (info) => (
-        <div className="flex items-center justify-end gap-1">
-          {isOfferedForBooking(info.row.original) && (
-            <RowActionButton
-              icon={Truck}
-              label={ORDER_ACTION_LABEL}
-              onClick={() => onOrder(info.row.original)}
-            />
-          )}
-          {isLockedStatus(info.row.original.status) && (
-            <RequestReviewButton investment={info.row.original} />
-          )}
-          <EditInvestmentDialog investment={info.row.original} showSiteManager />
-          <TrashInvestmentButton investment={info.row.original} />
-        </div>
-      ),
-    }),
+    actionsColumn<InvestmentRowT>((investment) => (
+      <>
+        {isOfferedForBooking(investment) && (
+          <RowActionButton
+            icon={Truck}
+            label={ORDER_ACTION_LABEL}
+            onClick={() => onOrder(investment)}
+          />
+        )}
+        {isLockedStatus(investment.status) && <RequestReviewButton investment={investment} />}
+        <EditInvestmentDialog investment={investment} showSiteManager />
+        <TrashInvestmentButton investment={investment} />
+      </>
+    )),
   ]
 }

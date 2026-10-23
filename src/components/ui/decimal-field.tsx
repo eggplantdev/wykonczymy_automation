@@ -4,6 +4,7 @@ import { useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { DecimalInput } from '@/components/ui/decimal-input'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
+import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils/cn'
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 import { NOTICE_MS, rejectedEntryMessage } from '@/lib/utils/notice'
@@ -91,12 +92,7 @@ export function DecimalField({
   }
 
   return (
-    <label
-      className={cn(
-        'text-muted-foreground flex gap-1 text-xs',
-        labelAbove ? 'flex-col items-start' : 'items-center',
-      )}
-    >
+    <Label size="xs" tone="muted" className={cn(labelAbove && 'flex-col items-start')}>
       {(label || hint) && (
         <span className="flex items-center gap-1">
           {label}
@@ -123,8 +119,7 @@ export function DecimalField({
           <Button
             type="button"
             variant="outline"
-            size="sm"
-            className="h-7 px-2"
+            size="xs"
             disabled={disabled || !canSave}
             onClick={() => canSave && settle(pending)}
           >
@@ -132,6 +127,6 @@ export function DecimalField({
           </Button>
         )}
       </span>
-    </label>
+    </Label>
   )
 }

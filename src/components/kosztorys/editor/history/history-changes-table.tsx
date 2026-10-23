@@ -23,17 +23,17 @@ const CHANGE_COLUMNS: ColumnDef<ChangeRowT>[] = [
     header: 'Było',
     enableSorting: false,
     cell: ({ getValue }) => (
-      <span className="text-muted-foreground tabular-nums line-through">{getValue<string>()}</span>
+      <span className="text-muted-foreground line-through">{getValue<string>()}</span>
     ),
   },
   {
     accessorKey: 'after',
     header: 'Jest',
     enableSorting: false,
-    cell: ({ getValue }) => <span className="font-medium tabular-nums">{getValue<string>()}</span>,
+    cell: ({ getValue }) => <span className="font-medium">{getValue<string>()}</span>,
   },
 ]
 
 export function HistoryChangesTable({ rows }: { rows: ChangeRowT[] }) {
-  return <DataTable data={rows} columns={CHANGE_COLUMNS} className="w-full" />
+  return <DataTable data={rows} columns={CHANGE_COLUMNS} />
 }

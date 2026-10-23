@@ -1,3 +1,4 @@
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { parseNoteMarkdown } from '@/lib/investments/note-markdown'
 import type { NoteInlineT } from '@/lib/investments/types'
 
@@ -9,7 +10,7 @@ function Inline({ runs }: { runs: NoteInlineT[] }) {
 
 export function InvestmentNoteBody({ note }: { note: string | undefined }) {
   const blocks = note ? parseNoteMarkdown(note) : []
-  if (!blocks.length) return <div>—</div>
+  if (!blocks.length) return <div>{EMPTY_VALUE}</div>
 
   return (
     <div className="flex flex-col gap-2">

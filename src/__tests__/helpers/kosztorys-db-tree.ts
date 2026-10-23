@@ -1,6 +1,8 @@
 import type { Payload } from 'payload'
+import { sql } from '@payloadcms/db-postgres'
 import type { KosztorysItem, KosztorysSection, KosztorysStage } from '@/payload-types'
 import { getDb } from '@/lib/db/get-db'
+import { numOrNull } from '@/lib/db/row-coerce'
 import { insertStageMembers } from '@/lib/db/stage-split'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { StageSplitT } from '@/lib/kosztorys/types'
@@ -137,4 +139,12 @@ export async function createKosztorysTree(
   }
 
   return { sectionIds, itemIds, stageIds }
+}
+
+export async function catalogueLinkOf(payload: Payload, itemId: number): Promise<number | null> {
+  const db = await getDb(payload)
+  const { rows } = await db.execute(
+    sql`SELECT catalogue_item_id FROM kosztorys_items WHERE id = ${itemId}`,
+  )
+  return numOrNull(rows[0]?.catalogue_item_id)
 }

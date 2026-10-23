@@ -18,6 +18,9 @@ export const ru: typeof pl = {
     saving: 'Сохранение…',
     keepOpen: 'Не закрывать после сохранения',
     formHasErrors: 'Форма содержит ошибки',
+    loading: 'Загрузка',
+    loadingData: 'Загрузка…',
+    confirm: 'Подтвердить',
   },
   notices: {
     unknownToken: 'Эта ссылка устарела или была отозвана. Попросите у руководителя новую.',
@@ -595,7 +598,7 @@ export const ru: typeof pl = {
     addInvoice: 'Добавить счёт',
     isPlan: 'Для анализа AI',
     planHint:
-      'Отметьте, если AI должен анализировать эти файлы — планы, проекты, обзорные фото. Неотмеченные AI не видит.',
+      'AI анализирует эти файлы — планы, проекты, обзорные фото. Снимите отметку, если AI не должен их видеть.',
     markForAi: 'Отметить для анализа AI',
     markedForAi: 'Отмечен для анализа AI',
     markedForAiToast: 'Файл отмечен для анализа AI',
@@ -627,5 +630,15 @@ export const ru: typeof pl = {
     notFoundTitle: 'Не найдено',
     notFoundDescription: 'Не удалось найти запрашиваемый ресурс',
     backHome: 'Вернуться на главную',
+  },
+  aiStagePush: {
+    readyTitle: 'Объект готов к анализу',
+    readyBody: '{{investment}} — можно запустить анализ ИИ.',
+    newInformationTitle: 'Новая информация по объекту',
+    newInformationBody: '{{investment}} — ИИ должен проанализировать его заново.',
+    analyzedTitle: 'Черновик ИИ на проверку',
+    analyzedBody: '{{investment}} — черновик сметы загружен.',
+    reviewDoneTitle: 'Проверка завершена',
+    reviewDoneBody: '{{investment}} — можно собрать причины изменений.',
   },
 }

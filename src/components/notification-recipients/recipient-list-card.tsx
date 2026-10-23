@@ -55,7 +55,7 @@ export function RecipientListCard({
         </Description>
       )}
       {emails.length === 0 ? (
-        <Description tone="error" size="xs" className="mt-2">
+        <Description tone="error" withIcon size="xs" className="mt-2">
           Nikt nie dostanie tych powiadomień — wysyłka zgłosi błąd.
         </Description>
       ) : (

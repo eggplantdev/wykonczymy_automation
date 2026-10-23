@@ -1,18 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { Badge, BadgeButton, BADGE_OUTLINE_TONES, type BadgeToneT } from '@/components/ui/badge'
+import { Badge, BadgeButton, BADGE_TONES, type BadgeToneT } from '@/components/ui/badge'
 import { DecisionProgressBadge } from '@/components/ui/decision-progress-badge'
 import { CardChip } from '@/components/transfers/cards/card-chip'
 import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
 import { DotBadge } from '@/components/ui/dot-badge'
-import { CountBadge } from '@/components/ui/count-badge'
 import { BadgeSelect } from '@/components/ui/badge-select'
+import { EnvBadgeShell } from '@/components/ui/env-badge-shell'
 import { COLOR_TOKENS } from '@/styles/color-tokens'
 import { SectionPill } from '@/components/worker-reports/section-pill'
 import { PayoutStatusBadge } from '@/components/receipt-confirmation/payout-status-badge'
 import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
-import { AiProgressBadge, AI_PROGRESS_TONES } from '@/components/investments/ai-progress-badge'
+import { AiProgressBadge } from '@/components/investments/ai-progress-badge'
 import { RoleBadge } from '@/components/users/role-badge'
 import { VehicleStatusBadge } from '@/components/fleet/vehicle-status-badge'
 import { EquipmentStatusBadge } from '@/components/equipment/equipment-status-badge'
@@ -31,9 +31,21 @@ import { cn } from '@/lib/utils/cn'
 import type { TransferRowT } from '@/types/transfers'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
+import { OpenPreview } from '../open-preview'
 
-const TONES = Object.keys(BADGE_OUTLINE_TONES) as BadgeToneT[]
+const TONES = Object.keys(BADGE_TONES) as BadgeToneT[]
+
+const ENV_BADGES = [
+  { env: 'development', db: 'wykonczymy-db:5433' },
+  { env: 'preview', db: 'neondb@ep-preview' },
+  { env: 'production' },
+] as const
 const DECISIONS = ['pending', 'accepted', 'rejected'] as const
+
+const TONE_OPTIONS = TONES.map((tone) => ({
+  value: tone,
+  badge: <Badge tone={tone}>{tone}</Badge>,
+}))
 
 export function BadgesSection() {
   const transfersTranslator = useTranslation('transfers')
@@ -51,12 +63,19 @@ export function BadgesSection() {
           </Badge>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow title="Badge — wszystkie tony, obrys" source='<Badge tone appearance="outline">'>
-        {TONES.map((tone) => (
-          <Badge key={tone} tone={tone} appearance="outline">
-            {tone}
-          </Badge>
-        ))}
+      <ShowcaseRow title="Badge — obrys" source='<Badge appearance="outline">'>
+        <Badge appearance="outline">outline</Badge>
+      </ShowcaseRow>
+      <ShowcaseRow title="Badge — pełny" source='<Badge appearance="solid">'>
+        <Badge appearance="solid">solid</Badge>
+      </ShowcaseRow>
+      <ShowcaseRow title="Badge — pigułka z akcją" source='<Badge shape="pill" onRemove>'>
+        <Badge appearance="outline" shape="pill" onRemove={() => {}} removeLabel="Usuń">
+          Filtr
+        </Badge>
+        <Badge tone="section" shape="pill">
+          Łazienka
+        </Badge>
       </ShowcaseRow>
       <ShowcaseRow title="DotBadge — cała paleta" source="ui/dot-badge.tsx">
         {COLOR_TOKENS.map((color) => (
@@ -170,32 +189,50 @@ export function BadgesSection() {
           </span>
         ))}
       </ShowcaseRow>
-      <ShowcaseRow
-        title="AI etap — obrys (trigger selecta)"
-        source="investments/ai-stage-select.tsx"
-      >
-        {AI_PROGRESS_STEPS.map((step) => (
-          <Badge key={step} tone={AI_PROGRESS_TONES[step]} appearance="outline">
-            {step}
-          </Badge>
-        ))}
-      </ShowcaseRow>
       <ShowcaseRow title="BadgeButton (klikalny badge)" source="ui/badge.tsx">
         <BadgeButton tone="positive">Aktywny</BadgeButton>
         <BadgeButton tone="muted">Nieaktywny</BadgeButton>
       </ShowcaseRow>
       <ShowcaseRow title="BadgeSelect (select z badge jako triggerem)" source="ui/badge-select.tsx">
+        <BadgeSelect value={selectedTone} onValueChange={setSelectedTone} options={TONE_OPTIONS} />
         <BadgeSelect
           value={selectedTone}
           onValueChange={setSelectedTone}
-          options={TONES.map((tone) => ({ value: tone, badge: <Badge tone={tone}>{tone}</Badge> }))}
+          options={TONE_OPTIONS}
+          hideChevron
         />
+        <OpenPreview backdrop={false}>
+          <BadgeSelect
+            value={selectedTone}
+            onValueChange={setSelectedTone}
+            options={TONE_OPTIONS}
+          />
+        </OpenPreview>
       </ShowcaseRow>
-      <ShowcaseRow title="CountBadge (licznik, własna pigułka)" source="ui/count-badge.tsx">
+      <ShowcaseRow
+        title="Znacznik środowiska (w aplikacji przypięty do dołu; PROD się nie renderuje)"
+        source="ui/env-badge-shell.tsx, ui/env-badge.tsx"
+      >
+        {ENV_BADGES.map((badge) => (
+          <EnvBadgeShell
+            key={badge.env}
+            env={badge.env}
+            db={'db' in badge ? badge.db : undefined}
+            title={`Środowisko: ${badge.env}`}
+            className="static translate-x-0"
+          />
+        ))}
+      </ShowcaseRow>
+      <ShowcaseRow title="Licznik (pełna pigułka)" source='<Badge appearance="solid" shape="pill">'>
         {[1, 12, 120].map((count) => (
-          <span key={count} className="flex w-16">
-            <CountBadge count={count} />
-          </span>
+          <Badge
+            key={count}
+            appearance="solid"
+            shape="pill"
+            className="h-5 min-w-5 justify-center tabular-nums"
+          >
+            {count > 99 ? '99+' : count}
+          </Badge>
         ))}
       </ShowcaseRow>
     </ShowcaseSection>

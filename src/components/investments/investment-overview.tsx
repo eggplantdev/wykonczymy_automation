@@ -2,6 +2,8 @@
 
 import { Lock } from 'lucide-react'
 import { InfoList } from '@/components/ui/info-list'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
+import { cn } from '@/lib/utils/cn'
 import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
 import { InvestmentAiNotes } from '@/components/investments/investment-ai-notes'
 import { InvestmentNotes } from '@/components/investments/investment-notes'
@@ -19,6 +21,7 @@ import { investmentLockOf, isOfferedForBooking } from '@/lib/constants/investmen
 import { useOrderSettings, useReferenceData } from '@/hooks/use-reference-data'
 import type { InvestmentWithDetailsT } from '@/types/reference-data'
 import type { MediaFileT } from '@/types/media'
+import { Description } from '@/components/ui/description'
 
 type PropsT = {
   investment: InvestmentWithDetailsT
@@ -34,10 +37,9 @@ export function InvestmentOverview({ investment, trashed, assets, showKosztorysB
   return (
     <>
       {trashed && (
-        <p role="status" className="text-muted-foreground flex items-center gap-2 text-sm">
-          <Lock className="size-4 shrink-0" aria-hidden />
+        <Description role="status" icon={Lock} className="items-center gap-2">
           Inwestycja jest w koszu — tylko do odczytu. Aby ją zmienić, przywróć ją z Kosza.
-        </p>
+        </Description>
       )}
       <div className="flex flex-wrap items-center gap-2">
         {!trashed && <EditInvestmentDialog investment={investment} showSiteManager showLabel />}
@@ -84,7 +86,9 @@ export function InvestmentOverview({ investment, trashed, assets, showKosztorysB
         <InvestmentAiNotes aiNotes={investment.aiNotes} />
         {assets && (
           <section className="flex flex-col gap-2">
-            <h2 className="flex min-h-7 items-center text-sm font-medium">Zdjęcia i pliki</h2>
+            <h2 className={cn('flex min-h-7 items-center', SUBSECTION_TITLE_CLASS)}>
+              Zdjęcia i pliki
+            </h2>
             <InvestmentAssetsControl investmentId={investment.id} assets={assets} />
           </section>
         )}

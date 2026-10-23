@@ -1,3 +1,5 @@
+'use client'
+
 import type { LucideIcon } from 'lucide-react'
 import { Button, type ButtonPropsT } from '@/components/ui/button'
 import { SimpleTooltip } from '@/components/ui/tooltip'
@@ -24,6 +26,7 @@ export function RowActionButton({
   tone = 'neutral',
   className,
   disabled,
+  pending,
   ...props
 }: RowActionButtonPropsT) {
   const isLabelled = useRowActionLabels()
@@ -31,7 +34,7 @@ export function RowActionButton({
   const variant =
     tone === 'destructive'
       ? isOutlined
-        ? 'outlineDestructive'
+        ? 'destructiveOutline'
         : 'ghostDestructive'
       : isOutlined
         ? 'outline'
@@ -44,6 +47,7 @@ export function RowActionButton({
         variant={variant}
         className={className}
         disabled={disabled}
+        pending={pending}
         aria-label={label}
         {...props}
       >
@@ -60,6 +64,7 @@ export function RowActionButton({
       className={cn(!isLabelled && 'px-1.5', className)}
       aria-label={label}
       disabled={disabled}
+      pending={pending}
       {...props}
     >
       <Icon />
@@ -69,7 +74,7 @@ export function RowActionButton({
 
   return (
     <SimpleTooltip content={tooltip ?? label}>
-      {disabled ? <span tabIndex={0}>{button}</span> : button}
+      {disabled || pending ? <span tabIndex={0}>{button}</span> : button}
     </SimpleTooltip>
   )
 }

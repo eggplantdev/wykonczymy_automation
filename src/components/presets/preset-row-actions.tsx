@@ -26,7 +26,7 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
   }
 
   return (
-    <div className="flex items-center justify-end gap-1">
+    <div className="flex items-center gap-1">
       <EditButton
         label="Zmień nazwę szablonu"
         onClick={() => {

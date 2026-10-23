@@ -28,7 +28,7 @@ export function CatalogueRowActions({ item, categorySuggestions, templateNames }
   }
 
   return (
-    <div className="flex items-center justify-end gap-1">
+    <div className="flex items-center gap-1">
       <EditCatalogueItemDialog
         item={item}
         categorySuggestions={categorySuggestions}

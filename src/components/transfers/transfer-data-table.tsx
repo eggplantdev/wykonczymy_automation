@@ -2,8 +2,6 @@
 
 import { useSearchParams } from 'next/navigation'
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
-import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination/pagination-footer'
 import { TransferFilters } from '@/components/transfers/transfer-filters'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
@@ -102,32 +100,26 @@ export function TransferDataTable({ data, paginationMeta, config }: TransferData
             ? (rows) => <TransferCardList rows={rows} uncoloredAmounts={uncoloredAmounts} />
             : undefined
         }
-        toolbar={({ table, columnVisibility: cv, ...order }) => (
-          <DataTableToolbar
-            className="mt-8"
-            title={title}
-            columns={
-              view === 'table' && <ColumnToggle table={table} columnVisibility={cv} {...order} />
-            }
-            actions={
-              <>
-                <TransferViewSwitch view={view} onChange={setView} className="max-sm:col-span-2" />
-                {invoiceDownload && <InvoiceDownloadDialog fetchRows={fetchRows} />}
-                {duplicateFinder && view === 'table' && (
-                  <DuplicateFinderDialog
-                    findGroups={(range) => findExpenseDuplicateGroups(config.query.where, range)}
-                  />
-                )}
-                {print && (
-                  <PrintTransfersButton
-                    fetchRows={fetchRows}
-                    table={table}
-                    title={translator.t('title')}
-                  />
-                )}
-              </>
-            }
-          />
+        toolbarClassName="mt-8"
+        title={title}
+        columnToggle={view === 'table'}
+        actions={(table) => (
+          <>
+            <TransferViewSwitch view={view} onChange={setView} className="max-sm:col-span-2" />
+            {invoiceDownload && <InvoiceDownloadDialog fetchRows={fetchRows} />}
+            {duplicateFinder && view === 'table' && (
+              <DuplicateFinderDialog
+                findGroups={(range) => findExpenseDuplicateGroups(config.query.where, range)}
+              />
+            )}
+            {print && (
+              <PrintTransfersButton
+                fetchRows={fetchRows}
+                table={table}
+                title={translator.t('title')}
+              />
+            )}
+          </>
         )}
       />
       <PaginationFooter paginationMeta={paginationMeta} baseUrl={baseUrl} />

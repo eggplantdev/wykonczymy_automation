@@ -5,6 +5,8 @@
 // The statements name only the AI columns (ai_planned_qty / ai_missing_data / ai_assumptions) on an
 // existing pozycja, so no owner field can be written. Matching reads production through the app; only
 // the write goes to the database. A draft row whose sekcja is missing stops the run before any write.
+// „Przeanalizowana” is set afterwards through `setInvestmentAiStageAction`, never in the SQL: only the
+// app sends the reviewers' push.
 //   TOKEN_FILE=… CASE=18-<slug> [ROUND=N] [DRY=1] node --env-file=.env --import tsx \
 //     scripts/ai-kosztorys/load-draft-sql-prod.ts
 //
@@ -18,7 +20,14 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { assertRoundDraft, hasRoundBlock, ROUND_BLOCK_SEPARATOR } from '@/lib/kosztorys/ai-round'
 import { sectionItemKey } from '@/lib/kosztorys/sheet-import/item-key'
-import { assertRoundFieldsDeployed, CASES_ROOT, itemsOf, sectionsOf } from './prod-client'
+import {
+  assertRoundFieldsDeployed,
+  callAction,
+  CASES_ROOT,
+  itemsOf,
+  resolveActions,
+  sectionsOf,
+} from './prod-client'
 
 type DraftRowT = {
   section: string
@@ -33,6 +42,7 @@ type DraftRowT = {
 
 const ROUND = process.env.ROUND ? Number(process.env.ROUND) : undefined
 const DRY = process.env.DRY === '1'
+const STAGE_PAGE = '/inwestycje'
 const CASE_DIR = path.join(CASES_ROOT, 'cases', process.env.CASE ?? '')
 
 const text = (value: string | null | undefined) =>
@@ -110,7 +120,6 @@ async function run() {
            client_price, planned_qty, discount_value, ai_planned_qty, ai_missing_data, ai_assumptions)
          VALUES\n${inserts.join(',\n')};`
         : '',
-      `UPDATE investments SET ai_stage = 'analyzed', updated_at = now() WHERE id = ${investmentId};`,
     ].join('\n')
   }
   function roundSql() {
@@ -139,7 +148,6 @@ async function run() {
            client_price, planned_qty, discount_value, ai_planned_qty, ai_new_information, ai_recheck)
          VALUES\n${roundInserts.join(',\n')};`
         : '',
-      `UPDATE investments SET ai_stage = 'analyzed', updated_at = now() WHERE id = ${investmentId};`,
     ].join('\n')
   }
 
@@ -156,10 +164,23 @@ async function run() {
 
   const url = process.env.DB_POSTGRES_URL_PROD
   if (!url) throw new Error('DB_POSTGRES_URL_PROD missing')
+  await resolveActions(STAGE_PAGE, ['setInvestmentAiStageAction'])
   const out = execFileSync('psql', [url, '-X', '-1', '-v', 'ON_ERROR_STOP=1', '-f', file], {
     encoding: 'utf8',
   })
   console.log(out.trim())
+
+  try {
+    await callAction('setInvestmentAiStageAction', STAGE_PAGE, [investmentId, 'analyzed'])
+    console.log(
+      `#${investmentId}: etap AI → Przeanalizowana (push do recenzentów tylko, gdy etap się zmienił)`,
+    )
+  } catch (err) {
+    console.error(
+      `DRAFT LOADED, BUT THE STAGE WAS NOT SET — set „Przeanalizowana” on #${investmentId} by hand in the app; do not re-run the loader.`,
+    )
+    throw err
+  }
 }
 
 run().catch((err) => {

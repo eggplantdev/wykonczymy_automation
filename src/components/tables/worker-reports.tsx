@@ -8,6 +8,8 @@ import { useTranslation } from '@/hooks/use-translation'
 import type { ReportListRowT } from '@/lib/db/worker-reports'
 import { workerReportSort } from '@/lib/kosztorys/worker-report/sortable-columns'
 import { formatPLDateTime } from '@/lib/utils/format-date'
+import { formatDecision } from '@/lib/utils/format-decision'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<ReportListRowT>()
 
@@ -62,8 +64,7 @@ export function useWorkerReportColumns({
     col.accessor('lineCount', {
       header: t('works'),
       enableSorting: sortable('lineCount'),
-      meta: { align: 'right' },
-      cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
+      cell: (info) => info.getValue(),
     }),
     col.accessor('status', {
       header: tDrafts('status'),
@@ -75,10 +76,8 @@ export function useWorkerReportColumns({
       enableSorting: false,
       cell: ({ row: { original: report } }) =>
         report.decidedAt
-          ? [formatPLDateTime(report.decidedAt, locale), report.decidedByName]
-              .filter(Boolean)
-              .join(' · ')
-          : '—',
+          ? formatDecision(report.decidedAt, report.decidedByName, locale)
+          : EMPTY_VALUE,
     }),
     ...(actions
       ? [

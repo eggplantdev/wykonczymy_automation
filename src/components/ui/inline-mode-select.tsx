@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import { SimpleSelect, type SelectOptionT } from '@/components/ui/simple-select'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
+import { Label } from '@/components/ui/label'
 
 type PropsT = {
   label: string
@@ -26,7 +27,9 @@ export function InlineModeSelect({
   const hint = lockedReason ?? description
   return (
     <div className="flex items-center gap-1.5">
-      <span className="text-muted-foreground text-xs">{label}</span>
+      <Label size="xs" tone="muted">
+        {label}
+      </Label>
       <SimpleSelect
         value={value}
         onValueChange={onValueChange}

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { TextButton } from '@/components/ui/text-link'
 import { cn } from '@/lib/utils/cn'
 
 type AuthLinkPropsT = {
@@ -9,14 +10,8 @@ type AuthLinkPropsT = {
 
 export function AuthLink({ href, children, className }: AuthLinkPropsT) {
   return (
-    <Link
-      href={href}
-      className={cn(
-        'text-muted-foreground hover:text-foreground text-center text-sm transition-colors',
-        className,
-      )}
-    >
-      {children}
-    </Link>
+    <TextButton asChild className={cn('justify-center text-center text-sm', className)}>
+      <Link href={href}>{children}</Link>
+    </TextButton>
   )
 }

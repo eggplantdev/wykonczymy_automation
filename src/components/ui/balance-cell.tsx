@@ -1,15 +1,23 @@
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { roundToCents } from '@/lib/utils/round-to-cents'
+import { isNegativeMoney, roundToCents } from '@/lib/utils/round-to-cents'
 
 type BalanceCellPropsT = {
   value: number
+  settled?: boolean
   className?: string
 }
 
-export function BalanceCell({ value, className }: BalanceCellPropsT) {
+export function BalanceCell({ value, settled = false, className }: BalanceCellPropsT) {
   return (
-    <span className={cn('font-medium', roundToCents(value) < 0 && 'text-destructive', className)}>
+    <span
+      className={cn(
+        'font-medium tabular-nums',
+        isNegativeMoney(value) && 'text-destructive',
+        settled && roundToCents(value) === 0 && 'text-chart-green',
+        className,
+      )}
+    >
       {formatPLN(value)}
     </span>
   )

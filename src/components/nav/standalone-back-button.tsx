@@ -13,12 +13,12 @@ export function StandaloneBackButton() {
   return (
     <Button
       variant="ghost"
-      size="icon"
-      className="standalone:max-sm:inline-flex hidden size-11"
+      size="iconTouch"
+      className="standalone:max-sm:inline-flex hidden"
       aria-label={t('back')}
       onClick={goBack}
     >
-      <ArrowLeft className="size-7" />
+      <ArrowLeft />
     </Button>
   )
 }

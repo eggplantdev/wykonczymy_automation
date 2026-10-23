@@ -32,5 +32,10 @@ export const NotificationRecipients: GlobalConfig = {
       pl: 'Powiadomienia o gwarancjach sprzętu',
     }),
     recipientList('opsAlerts', { en: 'Ops alerts', pl: 'Alerty techniczne' }),
+    recipientList('aiPipeline', { en: 'AI stages', pl: 'Powiadomienia o etapach AI' }),
+    recipientList('aiReviewers', {
+      en: 'AI drafts to review',
+      pl: 'Powiadomienia o szkicach AI do recenzji',
+    }),
   ],
 }

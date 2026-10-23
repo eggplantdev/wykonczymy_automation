@@ -3,6 +3,11 @@
 import { useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
+import { BORDERED_LIST_CLASS } from '@/components/ui/panel'
+import { EYEBROW_CLASS } from '@/components/ui/section-header'
+import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
+import { cn } from '@/lib/utils/cn'
 import { WorkerReportStatusBadge } from '@/components/worker-reports/worker-report-status-badge'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import type { WorkerReportSummaryT } from '@/lib/kosztorys/worker-report/types'
@@ -13,11 +18,16 @@ type PropsT = { reports: WorkerReportSummaryT[]; onOpen: (reportId: number) => v
 
 type GroupingT = 'date' | 'worker'
 
+const GROUPING_OPTIONS: OptionT<GroupingT>[] = [
+  { value: 'date', label: 'Wg daty' },
+  { value: 'worker', label: 'Wg pracownika' },
+]
+
 export function WorkerReportsList({ reports, onOpen }: PropsT) {
   const [grouping, setGrouping] = useState<GroupingT>('date')
 
   if (reports.length === 0) {
-    return <p className="text-muted-foreground py-8 text-sm">Brak zgłoszeń wykonanych prac.</p>
+    return <EmptyState size="inline" title="Brak zgłoszeń wykonanych prac." />
   }
 
   const groups = Map.groupBy(
@@ -27,35 +37,25 @@ export function WorkerReportsList({ reports, onOpen }: PropsT) {
 
   return (
     <div className="flex min-h-0 flex-col gap-3">
-      <div className="flex gap-1">
-        <Button
-          size="sm"
-          variant={grouping === 'date' ? 'secondary' : 'ghost'}
-          onClick={() => setGrouping('date')}
-        >
-          Wg daty
-        </Button>
-        <Button
-          size="sm"
-          variant={grouping === 'worker' ? 'secondary' : 'ghost'}
-          onClick={() => setGrouping('worker')}
-        >
-          Wg pracownika
-        </Button>
-      </div>
+      <ToggleGroup
+        options={GROUPING_OPTIONS}
+        value={grouping}
+        onChange={setGrouping}
+        variant="muted"
+      />
       <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">
         {[...groups.entries()].map(([groupKey, groupReports]) => (
           <section key={groupKey}>
-            <h3 className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
-              {groupKey}
-            </h3>
-            <ul className="divide-border divide-y rounded-md border">
+            <h3 className={cn(EYEBROW_CLASS, 'mb-1')}>{groupKey}</h3>
+            <ul className={BORDERED_LIST_CLASS}>
               {groupReports.map((report) => (
                 <li key={report.id}>
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="listRow"
+                    align="start"
                     onClick={() => onOpen(report.id)}
-                    className="hover:bg-muted/50 flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm"
+                    className="hover:bg-muted/50 gap-3 py-2.5 text-left"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="font-medium">
@@ -76,7 +76,7 @@ export function WorkerReportsList({ reports, onOpen }: PropsT) {
                     </span>
                     <WorkerReportStatusBadge {...report} />
                     <ChevronRight className="text-muted-foreground size-4" />
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>

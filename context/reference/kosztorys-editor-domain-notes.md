@@ -358,14 +358,11 @@ Reguły, które trzymają to razem:
 - **Brak zapisanego zestawu ukrywa zestaw domyślny, nie „nic"** (fail-closed). Przechowywany jest
   zestaw UKRYTY, więc NULL albo nie-tablica czytane jako „nic nie ukryte" serwowałyby całą
   allowlistę, z rabatem włącznie.
-- **Nowa kolumna w allowliście pojawia się zaznaczona wszędzie, gdzie zestaw jest zapisany.**
-  Przechowywany jest zestaw UKRYTY, więc każda inwestycja z zapisaną tablicą `hidden_columns` —
-  i domyślny zestaw firmy w `kosztorys_client_view_defaults` — pokaże ją od razu. Kolumna, która ma
-  być domyślnie odznaczona, potrzebuje migracji danych dopisującej jej id do każdej tablicy
-  `hidden_columns` w obu tabelach; NULL już czyta domyślny zestaw z kodu. Tak weszły
-  `currentPlannedNet` (`20261007_1_add_current_planned_qty`) i `note`
-  (`20261008_1_client_view_note_hidden`). Stary kod jest na nią obojętny — `sanitizeClientViewSettings`
-  odrzuca klucz spoza allowlisty — więc migracja może iść przed wdrożeniem albo po nim.
+- **Nowa kolumna w allowliście startuje ze swoim domyślnym stanem z kodu.** Zapis to mapa
+  `{klucz: ukryta}` z wyborem dla każdej oferowanej kolumny, a klucz, którego mapa nie wymienia,
+  czyta się jako domyślny z kodu (`client-view/settings.ts`, `DEFAULT_VISIBLE_COLUMNS`). Kolumna spoza
+  tego zestawu jest więc odznaczona w każdej zapisanej inwestycji i w domyślnym zestawie firmy — bez
+  migracji. Tak weszły kolumny brutto.
 - **Ukrywanie pustych pozycji to jedna reguła, nie dwie** (`client-empty`, `kind: 'client'`):
   pozycja bez przedmiaru **i** bez wykonanej pracy nie wnosi nic do żadnej z dwóch kwot, które
   klient czyta, więc jej ukrycie nie rusza podsumowania. Każdy z dwóch filtrów osobno byłby
@@ -384,9 +381,11 @@ Reguły, które trzymają to razem:
   stoi w kodzie, a nie na końcu. Oferta zapisana przed tą zmianą ma własny wiersz bez kolejności, a wiersz
   inwestycji wygrywa w całości — więc pokazuje kolejność wbudowaną, nie kolejność firmy, dopóki
   właściciel nie kliknie „Przywróć domyślną kolejność".
-- **Na dokumencie inwestora nie ma żadnej kwoty brutto** (właściciel, 2026-09-28). Oferta jest netto,
-  więc kolumny brutto nie da się nawet zaznaczyć w ustawieniach, a znacznik brutto zapisany wcześniej
-  odpada przy sanityzacji.
+- **Kolumny brutto są na dokumencie inwestora opcją, domyślnie wyłączoną** (właściciel, 2026-10-22;
+  odwraca decyzję z 2026-09-28) — także w inwestycji rozliczanej brutto. W ustawieniach przełącznik „Netto | Brutto" zmienia tylko, którą
+  listę kolumn kwotowych widać; zaznaczenia netto i brutto są niezależne, a „Cena j.m." ma swój
+  bliźniak „Cena j.m. brutto". Kolumna brutto chowa się przed pierwszym wpisem w etapie tak samo jak jej
+  netto. **PDF zostaje netto** — kolumna brutto nie ma wpisu na wydruku.
 
 **Podgląd nie zna trybu rozliczenia** (rozstrzygnięte 2026-08-12). `settlementMode` NIE wraca
 jako bramka prawdy. O ujawnieniu decyduje wyłącznie allowlista (i zapisane ustawienie widoku klienta pod
@@ -471,7 +470,14 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   niosą cenę klienta): A4 poziomo, bo każdy etap dokłada dwie kolumny; kwoty z groszami, bo stawka
   7,50 zł zaokrąglona do „8 zł" to inna stawka. Na papier idą te same kolumny, w tej samej
   kolejności, co w podglądzie pracownika — po tej samej regule wpisów, więc „Σ etapów" i „Wartość
-  wykonana" pojawiają się dopiero po pierwszym wpisie.
+  wykonana" pojawiają się dopiero po pierwszym wpisie. Przed drukiem okno pyta „Tylko pozycje z
+  wykonaną pracą" (domyślnie zaznaczone, nie zapisywane): zaznaczone drukuje tylko pozycje, w których
+  etapy pracownika mają wpisy, i sumuje tylko je. Kartka do zgłoszenia prac i link zawsze niosą cały
+  zakres (2026-10-22, prośba właściciela). Wybór nie jest ustawieniem, bo ustawienia widoku pracownika
+  to jeden wiersz dla całej firmy — zapisany przełączyłby PDF każdemu pracownikowi naraz. „Jego praca"
+  to praca na jego etapach: na etapie dzielonym z innymi liczą się też ich wpisy (`stage_progress` nie
+  ma kolumny pracownika). Pozycja, której jedynym wpisem jest ujemna korekta, wypada z wydruku — ten
+  sam warunek „z wykonaną pracą" co filtr w edytorze.
 
 ### Zgłoszenia wykonanych prac — pracownik zgłasza ilości, kierownik przyjmuje (2026-09-30)
 
@@ -915,12 +921,14 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     z 2026-08-07, która liczyła brutto jako `netto × (1 + stawka)` i ważyła wyłącznie stawki, nie
     zapisaną kwotę `amount` — przy 23% inwestycja 146 pokazywała 5477,60 brutto wobec 4809,60
     na fakturze.
-    **Bez stawki** (brak zapisanej albo rozliczenie brutto) tabela ma jedną kolumnę „Kwota", a wiersz
-    „… netto" pokazuje w niej swoje netto — to kwota, którą płaci klient, więc „Razem" dalej równa
-    się „Materiały" w Podsumowaniu.
-    Zmiana jest tylko w wyświetlaniu: bilans, marża, „Łącznie" i lista inwestycji czytają netto,
-    które się nie zmieniło. A skoro obie kwoty są zapisane, wraca gwarancja, dla której wybrano model
-    „zapisane `netAmount`": brak dryfu zaokrągleń między listą a podsumowaniem.
+    **Bez stawki** (brak zapisanej albo rozliczenie brutto) wydatek netto zostaje przypadkiem
+    specjalnym: klient płaci **netto × (1 + stawka VAT inwestycji)** (właściciel, 2026-10-23 —
+    przy rozliczeniu brutto liczenie samego netto zaniżało materiały). Tabela ma jedną kolumnę
+    „Kwota"; w widoku managera wiersz „… netto*" pokazuje tę kwotę, a przypis pod tabelą mówi
+    „*Wydatki netto liczone po stawce VAT inwestycji N%". „Razem" dalej równa się „Materiały"
+    w Podsumowaniu; „Pozostało do zapłaty", protokół odbioru i lista inwestycji liczą to samo.
+    Przy zapisanej stawce wydatek netto nadal wchodzi po zapisanym netto (`netAmount`), co trzyma
+    gwarancję, dla której wybrano ten model: brak dryfu zaokrągleń między listą a podsumowaniem.
     **„Różnica" znaczy na tych dwóch osiach co innego.** Na wierszu brutto to obniżka materiałowa
     (paragon minus rozliczona kwota) — firma ją daje. Na wierszu „… netto" to VAT z faktury — tego
     firma nie oddaje. „Razem Różnica" sumuje obie pod jedną etykietą; tak było i wcześniej, ale
@@ -943,10 +951,8 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
       Suma odwraca się dopiero, gdy korekty przewyższą zakupy — nierealny kosztorys, niepilnowany
       testem.
     - **Bez stawki breakdown i lista liczą wydatek netto inaczej — celowo.** Wiersz kategorii bierze
-      go po netto (styka się z „Materiały" w Podsumowaniu), lista po brutto z faktury. Odrzucone:
-      breakdown po brutto (zrywa styk z Podsumowaniem i bilansem) oraz stałe Netto / Brutto / Różnica
-      przy fakturze netto (odwraca ustalenie z `zamrozone-brutto-wydatku-netto` i musiałoby objąć też
-      widok managera).
+      go po netto × (1 + VAT inwestycji) (styka się z „Materiały" w Podsumowaniu), lista po brutto
+      z faktury.
   - **Skutek dla rekoncyliacji (strona inwestycji „z kosztorysu"):** porównanie idzie
     **netto ↔ netto** dla obu figur — kosztorys suma prac (netto) ↔ Σ `LABOR_COST`, kosztorys
     rabat (netto) ↔ Σ `RABAT`. Strony kosztorysowej **nie gruntujemy**. To usuwa fałszywy
@@ -1184,6 +1190,10 @@ Owner: ceny i treść prac w szablonach są 1:1 z katalogu prac; zła cena w sza
 - Tłumaczenia w zgłoszeniu pracy dalej czyta kopia w pozycji kosztorysu — link ich nie dotyczy.
 - Istniejące pozycje dostały link jednorazowo, po opisie + j.m. (skrypt jednorazowy, usunięty
   przy tabelach szablonu — żyje w historii git); wiersz szablonu tylko przy zgodności we wszystkich polach katalogu.
+- **„Popraw literówki" (i jej skrypt masowy) podpina link, gdy poprawiony tekst trafia w klucz wpisu**
+  (2026-10-22). Wypełnia tylko pusty albo martwy link — żywy zostaje. Ręczna edycja komórki i
+  kliknięcie podpowiedzi nie linkują (decyzja właściciela: trafienie przy pisaniu jest zbyt rzadkie,
+  by płacić zapytaniem przy każdej edycji) — taka pozycja paruje się z katalogiem po tekście.
 
 ### Szablon ma własne tabele (2026-10-15)
 
@@ -1594,9 +1604,16 @@ w złą stronę:
   or the client view. While a problem is engaged, unticking its revealed column is a **dead click on
   purpose**: the checkbox shows the stored state (ticked would lie about it; greyed out would need a
   third state nobody asked for).
-- **The latch that keeps a row visible while you fix it bypasses conditions only, never search** — a
-  search is a question asked now. Deferring the refilter until blur was rejected: the row still
-  vanished the moment Tab moved to the next column.
+- **One view latch freezes membership, order and the stage-column set while you type (EX-1114,
+  2026-10-22)** — under a sort, a search phrase or a condition. Cells save per keystroke and the grid
+  keeps the cursor by index, so anything that moves or drops the row (or the etap's column) sends the
+  next digit into another pozycja. Deferring the refilter until blur was rejected: the row still
+  vanished the moment Tab moved to the next column. Only a deliberate action recomputes the view:
+  picking a sort item (re-picking the active one is the refresh — no „Odśwież" button), clearing the
+  sort, editing the phrase, opening „Problemy"/„Filtry", toggling any condition, switching the price
+  view, and „Zapisz kolejność" (which must refresh in the same handler, or the saved order differs
+  from the one on screen). New pozycje join at the end of their sekcja, or of the list under a global
+  sort. Accepted cost: after edits a sorted column shows a stale order until the sort is re-picked.
 - **„Bez ceny j.m." does not switch the view** (owner): the price is typed on the investor side but
   repaired in subcontractor-only columns, so there is no one right view. Same for „z pomiarem do
   rozpisania" and both stage problems.

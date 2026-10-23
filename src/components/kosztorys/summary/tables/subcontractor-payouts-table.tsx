@@ -8,6 +8,7 @@ import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
 import { UNASSIGNED_WORKER_NAME } from '@/lib/kosztorys/payouts-by-worker'
 import { workerKey } from '@/lib/kosztorys/worker-key'
 import type { PayoutTransactionRowT, SubcontractorPayoutRowT } from '@/types/transfers'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 type PayoutTableRowT = {
   workerId: number | null
@@ -17,35 +18,24 @@ type PayoutTableRowT = {
   description: string | null
 }
 
-const TABLE_HEIGHT = 400
-const ROW_HEIGHT = 36
-
 const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
   {
     accessorKey: 'date',
     header: 'Data',
-    size: 96,
-    cell: ({ getValue }) => (
-      <span className="tabular-nums">{formatPLDate(getValue<string>())}</span>
-    ),
+    cell: ({ getValue }) => formatPLDate(getValue<string>()),
   },
-  { accessorKey: 'workerName', header: 'Pracownik', size: 200 },
+  { accessorKey: 'workerName', header: 'Pracownik' },
   {
     accessorKey: 'description',
     header: 'Opis',
-    size: 320,
     enableSorting: false,
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue<string | null>() || '—'}</span>
-    ),
+    cell: ({ getValue }) => getValue<string | null>() || EMPTY_VALUE,
   },
   {
     accessorKey: 'amount',
     header: 'Kwota',
-    size: 140,
-    meta: { align: 'right' },
     cell: ({ getValue }) => (
-      <span className="text-chart-green tabular-nums">{formatNet(getValue<number>())}</span>
+      <span className="text-chart-green">{formatNet(getValue<number>())}</span>
     ),
   },
 ]
@@ -73,9 +63,7 @@ export function SubcontractorPayoutsTable({
     <DataTable
       data={rows}
       columns={PAYOUT_COLUMNS}
-      enableVirtualization
-      virtualRowHeight={ROW_HEIGHT}
-      virtualContainerHeight={TABLE_HEIGHT}
+      containerClassName="max-h-100"
       initialSorting={[{ id: 'date', desc: true }]}
       getRowHref={(row) =>
         row.workerId === null

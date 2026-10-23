@@ -2,6 +2,7 @@ import { firstNoteLine } from '@/lib/utils/invoice-note'
 import type { TelmakDocT } from '@/lib/telmak/parse-telmak'
 import type { TelmakAppRowT, TelmakResultRowT, TelmakStatusT } from '@/lib/telmak/compare-telmak'
 import type { PreviewFileT } from '@/types/media'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 export type TelmakPackageFileT = { doc: TelmakDocT; file: File; preview: PreviewFileT }
 
@@ -22,7 +23,7 @@ export function toTelmakCheckRow(r: TelmakResultRowT, pkg: TelmakPackageFileT[])
   return {
     status: r.status,
     rows: r.rows,
-    document: r.doc?.number ?? firstNoteLine(r.rows[0]?.invoiceNote) ?? '—',
+    document: r.doc?.number ?? firstNoteLine(r.rows[0]?.invoiceNote) ?? EMPTY_VALUE,
     issueDate: r.doc?.date ?? null,
     docAmount: r.doc?.amount ?? null,
     appAmount: r.appAmount,

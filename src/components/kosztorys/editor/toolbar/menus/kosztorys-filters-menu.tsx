@@ -8,7 +8,7 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 
 export function KosztorysFiltersMenu() {
   const { toggles, clear } = useKosztorysFilterMenu()
-  const { refreshProblemRows } = useKosztorysEditorContext()
+  const { refreshView } = useKosztorysEditorContext()
 
   if (toggles.length === 0) return null
 
@@ -21,7 +21,7 @@ export function KosztorysFiltersMenu() {
       contentClassName="w-112"
       toggles={toggles}
       onClearToggles={clear}
-      onOpen={refreshProblemRows}
+      onOpen={refreshView}
     />
   )
 }

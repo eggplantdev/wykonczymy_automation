@@ -1,10 +1,13 @@
+import { AuthLink } from '@/components/ui/auth-link'
+
 type AuthPageLayoutPropsT = {
   title: string
   description?: string
+  backHref?: string
   children: React.ReactNode
 }
 
-export function AuthPageLayout({ title, description, children }: AuthPageLayoutPropsT) {
+export function AuthPageLayout({ title, description, backHref, children }: AuthPageLayoutPropsT) {
   return (
     <div className="w-full max-w-sm px-4">
       <h1
@@ -16,6 +19,11 @@ export function AuthPageLayout({ title, description, children }: AuthPageLayoutP
         <p className="text-muted-foreground mb-6 text-center text-sm">{description}</p>
       )}
       {children}
+      {backHref && (
+        <AuthLink href={backHref} className="mt-4 block">
+          Powrót do logowania
+        </AuthLink>
+      )}
     </div>
   )
 }

@@ -1,5 +1,5 @@
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { formatPLDate } from '@/lib/utils/format-date'
-import { cn } from '@/lib/utils/cn'
 import { targetLabel } from '@/lib/equipment/rows'
 import type { EquipmentLocationT } from '@/lib/equipment/types'
 
@@ -16,15 +16,14 @@ const onAxis = (location: EquipmentLocationT, axis?: LocationAxisT) =>
   axis === undefined || (axis === 'person') === (location.kind === 'holder')
 
 export function LocationCell({ location, locatedAt, live, axis }: LocationCellPropsT) {
-  if (!onAxis(location, axis)) {
-    return <span className="text-muted-foreground text-xs">—</span>
+  if (!onAxis(location, axis) || (location.kind === 'unknown' && !live)) {
+    return EMPTY_VALUE
   }
 
   if (location.kind === 'unknown') {
     return (
-      <span className={cn('text-xs', live ? 'text-destructive' : 'text-muted-foreground')}>
-        {live ? 'Nie wiadomo gdzie' : '—'}
-      </span>
+      // eslint-disable-next-line local/no-hand-rolled-ui -- table-cell status colour, not an error message
+      <span className="text-destructive text-xs">Nie wiadomo gdzie</span>
     )
   }
 

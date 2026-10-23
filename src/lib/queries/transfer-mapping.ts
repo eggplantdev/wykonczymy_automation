@@ -8,6 +8,7 @@ import type { MediaInfoT } from '@/lib/queries/media'
 import { resolveInvoiceFiles } from '@/lib/media/invoice-field'
 import type { UploadFieldT } from '@/lib/media/upload-field'
 import type { TransferRowT } from '@/types/transfers'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 type NameMapT = Map<number, string>
 
@@ -124,6 +125,6 @@ function isTrashed(ids: Set<number>, field: unknown): boolean {
 }
 
 function lookupName(map: NameMapT, field: unknown): string {
-  if (typeof field === 'number') return map.get(field) ?? '—'
+  if (typeof field === 'number') return map.get(field) ?? EMPTY_VALUE
   return getRelationName(field)
 }

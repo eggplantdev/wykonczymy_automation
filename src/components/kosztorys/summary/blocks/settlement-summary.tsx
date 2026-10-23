@@ -18,6 +18,7 @@ import {
   type KosztorysReconciliationT,
   type ReconT,
 } from '@/lib/kosztorys/reconciliation'
+import { Description } from '@/components/ui/description'
 
 const mismatchTooltip = (recon: ReconT, subject: string) =>
   reconciliationTooltip(recon, subject, formatNet)
@@ -93,7 +94,11 @@ export function SettlementSummary({
               investmentId={investmentId}
               preview={preview}
             />
-            {group.footnote && <p className="text-muted-foreground text-xs">{group.footnote}</p>}
+            {group.footnote && (
+              <Description withIcon={false} size="xs">
+                {group.footnote}
+              </Description>
+            )}
           </div>
         ))}
       </div>

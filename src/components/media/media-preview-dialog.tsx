@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Spinner } from '@/components/ui/loader/spinner'
+import { OverlayLoading } from '@/components/ui/loader/page-loading'
 import { useFileArchive } from '@/hooks/use-file-archive'
 import { usePdfObjectUrl } from '@/hooks/use-pdf-object-url'
 import { preloadPreviewNeighbours } from './preload-preview-neighbours'
@@ -34,6 +34,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import type { PreviewFileT, PreviewLabelsT } from '@/types/media'
+import { Description } from '@/components/ui/description'
 
 // Every surface carrying a preview trigger statically imports this dialog, so a bare import would
 // ship the ~160 KB zoom engine to users who never open a preview.
@@ -233,9 +234,7 @@ export function MediaPreviewDialog({
 
         <div className="relative flex min-h-0 w-full flex-1 items-center justify-center">
           {((isImage && loadedImageUrl !== active?.url) || pdf?.status === 'loading') && (
-            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-              <Spinner />
-            </div>
+            <OverlayLoading />
           )}
           {active && isImage && (
             // `key` is what resets the zoom: a remount per page drops scale, offset and the
@@ -259,12 +258,12 @@ export function MediaPreviewDialog({
             />
           )}
           {pdf?.status === 'error' && (
-            <p className="text-muted-foreground text-sm">{t('previewLoadFailed')}</p>
+            <Description withIcon={false}>{t('previewLoadFailed')}</Description>
           )}
           {active && !isImage && !isPdf && (
-            <p className="text-muted-foreground text-sm">{t('previewUnavailable')}</p>
+            <Description withIcon={false}>{t('previewUnavailable')}</Description>
           )}
-          {!active && <p className="text-muted-foreground text-sm">{labels.empty}</p>}
+          {!active && <Description withIcon={false}>{labels.empty}</Description>}
         </div>
 
         <div

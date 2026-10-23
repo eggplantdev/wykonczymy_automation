@@ -23,7 +23,7 @@ export function ColumnTotalRow({
           {label}
         </td>
       )}
-      <td className="text-right font-bold tabular-nums">{children}</td>
+      <td className="font-bold tabular-nums">{children}</td>
       {visibleColumnIds.slice(index + 1).map((id) => (
         <td key={id} />
       ))}

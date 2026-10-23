@@ -3,7 +3,8 @@
 import type { Row } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/cn'
 import { TransferCard } from '@/components/transfers/cards/transfer-card'
-import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/transfers/cards/card-list-classes'
+import { EmptyState } from '@/components/ui/empty-state'
+import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/ui/panel'
 import { useTranslation } from '@/hooks/use-translation'
 import type { TransferRowT } from '@/types/transfers'
 
@@ -16,7 +17,7 @@ type PropsT = {
 export function TransferCardList({ rows, uncoloredAmounts, className }: PropsT) {
   const { t } = useTranslation('filters')
   if (rows.length === 0) {
-    return <p className="text-muted-foreground py-8 text-center text-sm">{t('noData')}</p>
+    return <EmptyState size="inline" title={t('noData')} />
   }
 
   return (

@@ -496,14 +496,13 @@ export function ExpenseForm({
           lineItems={lineItems}
         />
       ) : (
-        <div className="mt-6">
-          <FormFooter
-            label="Zapisz"
-            disabled={isIngesting || isGenerating || isPrefillReading || isSaveBlocked}
-            awaitingAnswer={missingInvoiceDialog.open}
-            secondaryAction={secondaryAction}
-          />
-        </div>
+        <FormFooter
+          className="mt-6"
+          label="Zapisz"
+          disabled={isIngesting || isGenerating || isPrefillReading || isSaveBlocked}
+          awaitingAnswer={missingInvoiceDialog.open}
+          secondaryAction={secondaryAction}
+        />
       )}
       <ConfirmDialog {...missingInvoiceDialog} />
     </FormShell>

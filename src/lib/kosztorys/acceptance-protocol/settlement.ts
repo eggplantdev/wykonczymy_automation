@@ -6,7 +6,7 @@ import {
   laborCostsNetPreDiscount,
   type MaterialsT,
 } from '@/lib/kosztorys/summary-economics'
-import { roundToCents } from '@/lib/utils/round-to-cents'
+import { isNegativeMoney } from '@/lib/utils/round-to-cents'
 import type { DepositTransactionRowT } from '@/types/transfers'
 import type {
   ProtocolSettlementT,
@@ -38,7 +38,7 @@ export function protocolSettlement({
 }: ArgsT): ProtocolSettlementT {
   const netRate = effectiveMaterialsNetRate(settlementMode, materialsNetRate)
   const paid = sumDeposits(depositTransactions)
-  const materialsNet = billedMaterials(materials, netRate)
+  const materialsNet = billedMaterials(materials, netRate, vatRate)
   const remainingNet = computeAmountDue(
     laborCostsNet,
     paid,
@@ -55,7 +55,7 @@ export function protocolSettlement({
     paidNet: paid.net,
     lossNet: lossAmount,
     remainingNet,
-    isOverpaid: roundToCents(remainingNet) < 0,
+    isOverpaid: isNegativeMoney(remainingNet),
   }
 }
 

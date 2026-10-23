@@ -7,6 +7,8 @@ import type { UserRowT } from '@/types/table-rows'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { RoleBadge } from '@/components/users/role-badge'
 import { Badge, BadgeButton } from '@/components/ui/badge'
+import { BalanceCell } from '@/components/ui/balance-cell'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
 import { HintedValue } from '@/components/tables/hinted-value'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
@@ -15,6 +17,8 @@ import { cn } from '@/lib/utils/cn'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashWorkerAction } from '@/lib/actions/worker-trash'
 import { describeWorkerTrash } from '@/lib/workers/describe-trash'
+import { actionsColumn } from '@/components/tables/columns/actions-column'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<UserRowT>()
 
@@ -43,7 +47,7 @@ function PayoutRemainingCell({
   view: WorkerColumnFiguresT | undefined
   onSettle: () => void
 }) {
-  if (!view) return <span className="text-muted-foreground">—</span>
+  if (!view) return EMPTY_VALUE
   const lines = PAYOUT_LINES.map((line) => {
     const bucket = view[line.bucket]
     const count = line.kind === 'owed' ? bucket.owedCount : bucket.overpaidCount
@@ -51,11 +55,16 @@ function PayoutRemainingCell({
   }).filter((line) => line.count > 0)
   const withheldCount = view.active.withheldCount + view.completed.withheldCount
   return (
-    <span className="inline-flex flex-col items-end">
+    <span className="inline-flex flex-col items-start">
       {/* The withheld hint stays outside: its tooltip trigger is a button of its own. */}
-      <Button variant="link" className="h-auto flex-col items-end gap-0 p-0" onClick={onSettle}>
+      <Button
+        variant="link"
+        size="inline"
+        className="flex-col items-start gap-0"
+        onClick={onSettle}
+      >
         {lines.length === 0 ? (
-          <span className="text-chart-green">{formatPLN(0)}</span>
+          <BalanceCell value={0} settled />
         ) : (
           lines.map((line) => (
             <span key={line.label} className={cn('font-normal', line.className)}>
@@ -109,7 +118,6 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
     col.accessor('active', {
       id: 'active',
       header: 'Status',
-      meta: { align: 'right' },
       cell: (info) => {
         const isActive = info.getValue()
         const tone = isActive ? 'positive' : 'muted'
@@ -130,7 +138,6 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
         id: 'payoutRemaining',
         sortUndefined: 'last',
         header: SUBCONTRACTOR_FIGURE_LABELS.remaining,
-        meta: { align: 'right' },
         cell: (info) => (
           <PayoutRemainingCell
             view={info.row.original.payoutRemaining}
@@ -142,37 +149,30 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
     col.accessor('defaultCashRegisterName', {
       id: 'defaultCashRegister',
       header: 'Domyślna kasa',
-      cell: (info) => info.getValue() ?? '—',
+      cell: (info) => info.getValue() ?? EMPTY_VALUE,
     }),
     col.accessor((row) => row.registerNames.length, {
       id: 'registers',
       header: 'Kasy',
-      meta: { align: 'right' },
       cell: (info) =>
         info.getValue() === 0 ? (
-          '—'
+          EMPTY_VALUE
         ) : (
-          <span title={info.row.original.registerNames.join(', ')}>{info.getValue()}</span>
+          <SimpleTooltip content={info.row.original.registerNames.join(', ')}>
+            <span>{info.getValue()}</span>
+          </SimpleTooltip>
         ),
     }),
-    col.display({
-      id: 'actions',
-      header: 'Akcje',
-      meta: { align: 'right' },
-      cell: (info) =>
-        info.row.original.canManage && (
-          <div className="flex items-center justify-end gap-1">
-            <TrashRowButton
-              label="Usuń pracownika"
-              description={describeWorkerTrash(
-                info.row.original.name,
-                info.row.original.registerNames,
-              )}
-              trash={() => trashWorkerAction(info.row.original.id)}
-              trashed="Pracownik przeniesiony do kosza."
-            />
-          </div>
+    actionsColumn<UserRowT>(
+      (worker) =>
+        worker.canManage && (
+          <TrashRowButton
+            label="Usuń pracownika"
+            description={describeWorkerTrash(worker.name, worker.registerNames)}
+            trash={() => trashWorkerAction(worker.id)}
+            trashed="Pracownik przeniesiony do kosza."
+          />
         ),
-    }),
+    ),
   ]
 }

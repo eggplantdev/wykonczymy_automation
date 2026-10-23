@@ -1,8 +1,6 @@
 'use client'
 
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
-import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { getInvestmentWithoutSheetColumns } from '@/components/tables/sheets'
 import type { InvestmentWithoutSheetRowT } from '@/types/table-rows'
@@ -25,12 +23,8 @@ export function InvestmentsWithoutSheetTable({ data }: PropsT) {
       columns={columns}
       storageKey="investments-without-sheet"
       initialSorting={INITIAL_SORTING}
-      toolbar={({ table, columnVisibility: cv, ...order }) => (
-        <DataTableToolbar
-          search={{ value: searchTerm, onChange: setSearchTerm }}
-          columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-        />
-      )}
+      search={{ value: searchTerm, onChange: setSearchTerm }}
+      columnToggle
     />
   )
 }

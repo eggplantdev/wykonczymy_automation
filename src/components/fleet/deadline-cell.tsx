@@ -17,15 +17,15 @@ type DeadlineCellPropsT = {
  */
 export function DeadlineCell({ deadline, muted }: DeadlineCellPropsT) {
   if (deadline.exempt) {
-    return <span className="text-muted-foreground text-xs">bezterminowo</span>
+    return <span className={cn('text-xs', muted && 'text-muted-foreground')}>bezterminowo</span>
   }
 
   if (!deadline.hasEvent) {
-    return <span className="text-muted-foreground text-xs">brak danych</span>
+    return <span className={cn('text-xs', muted && 'text-muted-foreground')}>brak danych</span>
   }
 
   if (!deadline.nextDueAt || deadline.daysLeft === null) {
-    return <span className="text-muted-foreground text-xs">bez terminu</span>
+    return <span className={cn('text-xs', muted && 'text-muted-foreground')}>bez terminu</span>
   }
 
   const urgent = !muted && deadline.bucket === OVERDUE
@@ -33,16 +33,18 @@ export function DeadlineCell({ deadline, muted }: DeadlineCellPropsT) {
 
   return (
     <div className="flex flex-col leading-tight">
+      {/* eslint-disable-next-line local/no-hand-rolled-ui -- table-cell status colour, not an error message */}
       <span
         className={cn(
           'text-sm',
           urgent && 'text-destructive font-medium',
-          warning && 'text-chart-orange font-medium',
+          warning && 'text-warning font-medium',
           muted && 'text-muted-foreground',
         )}
       >
         {formatPLDate(deadline.nextDueAt)}
       </span>
+      {/* eslint-disable-next-line local/no-hand-rolled-ui -- table-cell status colour, not an error message */}
       <span className={cn('text-xs', urgent ? 'text-destructive' : 'text-muted-foreground')}>
         {daysLabel(deadline.daysLeft)}
       </span>

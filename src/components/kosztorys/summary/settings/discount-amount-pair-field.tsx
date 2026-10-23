@@ -3,6 +3,7 @@
 import { type KeyboardEvent, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DecimalInput } from '@/components/ui/decimal-input'
+import { Label } from '@/components/ui/label'
 import { discountNetFromGross, toGross, toNet } from '@/lib/kosztorys/calc'
 import { moneyText } from '@/lib/utils/decimal-text'
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
@@ -61,7 +62,7 @@ export function DiscountAmountPairField({ value, vatRate, disabled = false, onAp
 
   return (
     <div className="text-muted-foreground flex flex-wrap items-center gap-1 text-xs">
-      <label className="flex items-center gap-1">
+      <Label size="xs" tone="muted">
         netto
         <DecimalInput
           value={net}
@@ -72,8 +73,8 @@ export function DiscountAmountPairField({ value, vatRate, disabled = false, onAp
           className="text-chart-green rounded-md"
         />
         zł
-      </label>
-      <label className="flex items-center gap-1">
+      </Label>
+      <Label size="xs" tone="muted">
         brutto
         <DecimalInput
           value={gross}
@@ -84,12 +85,11 @@ export function DiscountAmountPairField({ value, vatRate, disabled = false, onAp
           className="text-chart-green rounded-md"
         />
         zł
-      </label>
+      </Label>
       <Button
         type="button"
         variant="outline"
-        size="sm"
-        className="h-7 px-2"
+        size="xs"
         disabled={disabled || !canApply}
         onClick={apply}
       >

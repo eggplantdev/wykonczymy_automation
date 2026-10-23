@@ -7,6 +7,8 @@ import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashCashRegisterAction } from '@/lib/actions/cash-register-trash'
 import { REGISTER_TYPE_LABELS } from '@/lib/cash-registers/register-types'
 import type { CashRegisterRowT } from '@/types/table-rows'
+import { actionsColumn } from '@/components/tables/columns/actions-column'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<CashRegisterRowT>()
 
@@ -27,18 +29,16 @@ export function getCashRegisterColumns(
     col.accessor('ownerName', {
       id: 'ownerName',
       header: 'Właściciel',
-      cell: (info) => info.getValue() || '—',
+      cell: (info) => info.getValue() || EMPTY_VALUE,
     }),
     col.accessor('balance', {
       id: 'balance',
       header: 'Saldo',
-      meta: { align: 'right' },
       cell: (info) => <BalanceCell value={info.getValue()} />,
     }),
     col.accessor('active', {
       id: 'active',
       header: 'Status',
-      meta: { align: 'right' },
       enableSorting: true,
       cell: (info) => {
         const isActive = info.getValue()
@@ -53,21 +53,16 @@ export function getCashRegisterColumns(
         )
       },
     }),
-    col.display({
-      id: 'actions',
-      header: 'Akcje',
-      meta: { align: 'right' },
-      cell: (info) =>
-        canManage(info.row.original) && (
-          <div className="flex items-center justify-end gap-1">
-            <TrashRowButton
-              label="Usuń kasę"
-              description={`Przenieść „${info.row.original.name}" do kosza? Możesz ją przywrócić z Kosza.`}
-              trash={() => trashCashRegisterAction(info.row.original.id)}
-              trashed="Kasa przeniesiona do kosza."
-            />
-          </div>
+    actionsColumn<CashRegisterRowT>(
+      (register) =>
+        canManage(register) && (
+          <TrashRowButton
+            label="Usuń kasę"
+            description={`Przenieść „${register.name}" do kosza? Możesz ją przywrócić z Kosza.`}
+            trash={() => trashCashRegisterAction(register.id)}
+            trashed="Kasa przeniesiona do kosza."
+          />
         ),
-    }),
+    ),
   ]
 }

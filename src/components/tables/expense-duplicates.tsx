@@ -1,8 +1,8 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import Link from 'next/link'
 import { createColumnHelper } from '@tanstack/react-table'
+import { ExternalLink } from '@/components/ui/external-link'
 import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { documentHref } from '@/lib/expense-duplicates/document-href'
 import { dayOf, isWeakMatch, type MatchReasonT } from '@/lib/expense-duplicates/match'
@@ -10,8 +10,9 @@ import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import type { DuplicateMatchT } from '@/lib/expense-duplicates/types'
 import { cn } from '@/lib/utils/cn'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
-import { formatPLDate } from '@/lib/utils/format-date'
+import { dateCell } from '@/components/tables/columns/date-cell'
 import { firstNoteLine } from '@/lib/utils/invoice-note'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 export type ExpenseDuplicateRowT = DuplicateMatchT & {
   paragonItemId: string
@@ -71,13 +72,9 @@ export function getExpenseDuplicateColumns<R extends DuplicateMatchT>({
           labelMatch?.(row.original) ??
           `${row.original.source === 'transaction' ? 'Transakcja' : 'Zgłoszenie'} #${row.original.id}`
         return linkMatch ? (
-          <Link
-            href={documentHref(row.original)}
-            target="_blank"
-            className="whitespace-nowrap underline underline-offset-4"
-          >
+          <ExternalLink href={documentHref(row.original)} className="whitespace-nowrap">
             {label}
-          </Link>
+          </ExternalLink>
         ) : (
           <span className="whitespace-nowrap">{label}</span>
         )
@@ -87,18 +84,16 @@ export function getExpenseDuplicateColumns<R extends DuplicateMatchT>({
     col.accessor((row) => dayOf(row) ?? row.date, {
       id: 'date',
       header: 'Data',
-      cell: (info) => formatPLDate(info.getValue()),
+      cell: (info) => dateCell(info),
     }),
     col.accessor((row) => row.amount, {
       id: 'amount',
       header: 'Kwota',
-      meta: { align: 'right' },
       cell: (info) => formatPLNOrDash(info.getValue()),
     }),
     col.display({
       id: 'preview',
       header: 'Podgląd',
-      meta: { align: 'center' },
       cell: ({ row }) =>
         row.original.pages.length > 0 && (
           <MediaPreviewButton
@@ -112,19 +107,19 @@ export function getExpenseDuplicateColumns<R extends DuplicateMatchT>({
     col.accessor((row) => row.investmentName, {
       id: 'investmentName',
       header: 'Inwestycja',
-      cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? '—'}</span>,
+      cell: (info) => <span className="whitespace-nowrap">{info.getValue() || EMPTY_VALUE}</span>,
     }),
     col.accessor((row) => row.submitterName, {
       id: 'submitterName',
       header: 'Kto',
-      cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? '—'}</span>,
+      cell: (info) => <span className="whitespace-nowrap">{info.getValue() || EMPTY_VALUE}</span>,
     }),
     col.accessor((row) => row.registerName, {
       id: 'registerName',
       header: 'Kasa',
-      cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? '—'}</span>,
+      cell: (info) => <span className="whitespace-nowrap">{info.getValue() || EMPTY_VALUE}</span>,
     }),
-    col.accessor((row) => row.documentNumber ?? firstNoteLine(row.invoiceNote) ?? '—', {
+    col.accessor((row) => row.documentNumber ?? firstNoteLine(row.invoiceNote) ?? EMPTY_VALUE, {
       id: 'document',
       header: 'Dokument',
       cell: (info) => <span className="whitespace-nowrap">{info.getValue()}</span>,

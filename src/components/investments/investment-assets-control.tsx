@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { MediaUploadDialog } from '@/components/dialogs/media-upload-dialog'
 import { MediaPreviewTrigger } from '@/components/media/media-preview-trigger'
@@ -61,7 +61,7 @@ export function InvestmentAssetsControl({ investmentId, assets }: InvestmentAsse
             className="text-foreground h-8 w-fit gap-1.5 text-xs"
           />
         )}
-        {isUploading && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
+        {isUploading && <GradientSpinner />}
       </div>
 
       <MediaUploadDialog

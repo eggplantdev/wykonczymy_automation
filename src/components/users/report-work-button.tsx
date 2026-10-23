@@ -33,7 +33,7 @@ export function ReportWorkButton({ targets, label, pickerTitle, className }: Pro
           {label}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
+      <DialogContent className="sm:max-w-dialog-sm" aria-describedby={undefined}>
         <DialogHeader title={pickerTitle} />
         <div className="flex flex-col gap-2">
           {targets.map((target) => (

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
+import { Button, type ButtonPropsT } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
+import { TextButton } from '@/components/ui/text-link'
 
 type ExternalLinkVariantT = 'text' | 'button'
 
@@ -7,24 +9,36 @@ type ExternalLinkPropsT = {
   href: string
   children: ReactNode
   variant?: ExternalLinkVariantT
+  size?: ButtonPropsT['size']
+  buttonVariant?: ButtonPropsT['variant']
   className?: string
 }
 
-const VARIANT_CLASSES = {
-  text: 'text-muted-foreground hover:text-foreground text-xs underline',
-  button:
-    'bg-primary text-primary-foreground hover:bg-primary/90 inline-flex min-h-11 items-center rounded-md px-4 py-2 text-sm font-medium',
-} as const
-
-export function ExternalLink({ href, children, variant = 'text', className }: ExternalLinkPropsT) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={cn(VARIANT_CLASSES[variant], className)}
-    >
+export function ExternalLink({
+  href,
+  children,
+  variant = 'text',
+  size = 'touch',
+  buttonVariant,
+  className,
+}: ExternalLinkPropsT) {
+  const anchor = (
+    <a href={href} target="_blank" rel="noopener noreferrer">
       {children}
     </a>
+  )
+
+  if (variant === 'button') {
+    return (
+      <Button asChild size={size} variant={buttonVariant} className={className}>
+        {anchor}
+      </Button>
+    )
+  }
+
+  return (
+    <TextButton asChild className={cn('underline', className)}>
+      {anchor}
+    </TextButton>
   )
 }

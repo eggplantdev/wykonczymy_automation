@@ -1,12 +1,7 @@
 'use client'
 
 import { faceValue } from '@/lib/kosztorys/summary-economics'
-import {
-  SummaryHeaderCell,
-  SummaryLabelCell,
-  SummaryTable,
-  SummaryValueCell,
-} from '@/components/ui/summary-grid'
+import { SummaryHeaderCell, SummaryCell, SummaryTable } from '@/components/ui/summary-grid'
 import { SummaryRow } from '@/components/kosztorys/summary/grid/summary-row'
 import { MARGIN_TABLE_COLS } from '@/components/kosztorys/summary/tables/margin-table-cols'
 import { Description } from '@/components/ui/description'
@@ -42,7 +37,7 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
         {DESCRIPTION}
       </Description>
       <SummaryTable cols={MARGIN_TABLE_COLS} className="w-fit">
-        <SummaryHeaderCell variant="label">Marża rzeczywista</SummaryHeaderCell>
+        <SummaryHeaderCell>Marża rzeczywista</SummaryHeaderCell>
         <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
         <SummaryRow label="Robocizna" line={faceValue(totalLaborCosts)} axis="net" />
@@ -71,10 +66,10 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
         )}
         {margin === null ? (
           <>
-            <SummaryLabelCell weight="bold">Marża</SummaryLabelCell>
-            <SummaryValueCell weight="bold" note={{ text: WITHHELD_NOTE, tone: 'error' }}>
+            <SummaryCell weight="bold">Marża</SummaryCell>
+            <SummaryCell weight="bold" note={{ text: WITHHELD_NOTE, tone: 'error' }}>
               Ustaw rozliczenie etapów
-            </SummaryValueCell>
+            </SummaryCell>
           </>
         ) : (
           <SummaryRow label="Marża" line={faceValue(margin)} axis="net" bold danger={margin < 0} />
@@ -90,7 +85,7 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
               {PAYOUT_GAP_DESCRIPTION}
             </Description>
             <SummaryTable cols={MARGIN_TABLE_COLS} className="w-fit">
-              <SummaryHeaderCell variant="label">Rozliczenie z ekipą</SummaryHeaderCell>
+              <SummaryHeaderCell>Rozliczenie z ekipą</SummaryHeaderCell>
               <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
               <SummaryRow

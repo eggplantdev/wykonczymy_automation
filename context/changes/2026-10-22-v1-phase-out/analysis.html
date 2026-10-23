@@ -1,0 +1,459 @@
+<title>Wygaszanie v1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; state colours (v2 / v1 / unclear / alert) carry the story, everything else stays neutral */
+:root {
+  --bg: #f4f6f4;
+  --surface: #ffffff;
+  --ink: #18211d;
+  --muted: #5a6761;
+  --line: #dce2de;
+  --v2: #1d6b58;
+  --v2-soft: #e2f1ec;
+  --v1: #a35f00;
+  --v1-soft: #fbeedb;
+  --unclear: #595f97;
+  --unclear-soft: #e9eaf6;
+  --none: #a5aea9;
+  --none-soft: #eceeed;
+  --alert: #b0281f;
+  --alert-soft: #fbe6e4;
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body: "Hanken Grotesk", "Helvetica Neue", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111513; --surface: #181e1b; --ink: #e5ebe7; --muted: #98a59f; --line: #29322e;
+    --v2: #5fc4a7; --v2-soft: #16302a; --v1: #e6a54c; --v1-soft: #33260f;
+    --unclear: #a9addd; --unclear-soft: #24263b; --none: #66716b; --none-soft: #222927;
+    --alert: #f07a70; --alert-soft: #3a1c19; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111513; --surface: #181e1b; --ink: #e5ebe7; --muted: #98a59f; --line: #29322e;
+  --v2: #5fc4a7; --v2-soft: #16302a; --v1: #e6a54c; --v1-soft: #33260f;
+  --unclear: #a9addd; --unclear-soft: #24263b; --none: #66716b; --none-soft: #222927;
+  --alert: #f07a70; --alert-soft: #3a1c19; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 15px/1.55 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 72px;
+}
+main { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 4.5vw, 2.9rem); line-height: 1.05; font-weight: 700; }
+h2 { font-size: 1.45rem; font-weight: 700; }
+h3 { font-size: 1.02rem; font-weight: 600; font-family: var(--body); }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 500 0.72rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); }
+.lede { color: var(--muted); font-size: 1.05rem; }
+.num, td.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); font-size: 0.86em; }
+section { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.section-head { display: flex; flex-direction: column; gap: 8px; }
+
+/* header */
+header { display: flex; flex-direction: column; gap: 14px; padding-bottom: 28px; border-bottom: 1px solid var(--line); }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--muted); font-size: 0.88rem; }
+.meta span { display: inline-flex; gap: 6px; align-items: center; }
+.meta b { font-weight: 600; color: var(--ink); }
+
+/* headline figures */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 8px; border-top: 3px solid var(--c); }
+.tile .fig { font: 700 2.4rem/1 var(--display); color: var(--c); font-variant-numeric: tabular-nums; }
+.tile .fig small { font-size: 1rem; color: var(--muted); font-weight: 500; }
+.tile .cap { font-weight: 600; }
+.tile .sub { color: var(--muted); font-size: 0.86rem; }
+
+/* status bars */
+.bars { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.bar-row { display: grid; grid-template-columns: 104px minmax(0, 1fr) 40px; gap: 12px; align-items: center; }
+.bar-row .label { font-weight: 600; font-size: 0.9rem; }
+.bar-row .total { text-align: right; color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.track { display: flex; height: 26px; }
+.seg { display: flex; align-items: center; justify-content: center; font: 500 0.76rem/1 var(--mono); min-width: 0; overflow: hidden; }
+.seg:first-child { border-radius: 5px 0 0 5px; }
+.seg:last-child { border-radius: 0 5px 5px 0; }
+.seg:only-child { border-radius: 5px; }
+.seg + .seg { margin-left: 2px; }
+.seg.app { background: var(--v2); color: var(--surface); }
+.seg.sheet { background: var(--v1); color: var(--surface); }
+.seg.none { background: var(--none-soft); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.84rem; color: var(--muted); padding-top: 6px; border-top: 1px solid var(--line); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+/* active groups */
+.groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.group { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.group.wide { grid-column: 1 / -1; }
+.group-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.count { font: 700 1.5rem/1 var(--display); color: var(--c); font-variant-numeric: tabular-nums; }
+.group p { color: var(--muted); font-size: 0.88rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 0.82rem; padding: 3px 9px; border-radius: 999px; background: var(--soft); color: var(--ink); border: 1px solid transparent; }
+.chip.test { border-style: dashed; border-color: var(--muted); background: transparent; color: var(--muted); }
+
+/* findings */
+.findings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.finding { padding: 14px 16px; border-radius: 10px; background: var(--soft); display: flex; flex-direction: column; gap: 6px; }
+.finding .count { font-size: 1.9rem; }
+.finding p { font-size: 0.9rem; }
+
+/* timeline */
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 12px 8px; overflow-x: auto; }
+.chart svg { display: block; width: 100%; min-width: 640px; height: auto; }
+.chart text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+.chart .axis { stroke: var(--line); }
+.chart .grid { stroke: var(--line); stroke-dasharray: 2 4; }
+.chart .marker { stroke: var(--v2); stroke-dasharray: 4 3; stroke-width: 1.5; }
+.chart .marker-label { fill: var(--v2); font-weight: 500; }
+.chart .dot-legacy { fill: var(--v1); }
+.chart .dot-double { fill: var(--alert); }
+.chart .dot-stub { stroke: var(--ink); stroke-width: 1.5; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.82rem; color: var(--muted); padding: 8px 8px 4px; }
+.chart-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+
+/* table */
+.table-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: 0.87rem; }
+th { text-align: left; font: 500 0.7rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); padding: 12px 12px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; position: sticky; top: 0; background: var(--surface); }
+td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+tr.double td { background: var(--alert-soft); }
+td.num, th.num { text-align: right; white-space: nowrap; }
+td.date { white-space: nowrap; font-variant-numeric: tabular-nums; }
+td.inv { font-weight: 600; min-width: 200px; }
+td.opis { color: var(--muted); font-style: italic; max-width: 220px; }
+.st { font-size: 0.75rem; color: var(--muted); font-weight: 400; display: block; }
+.pill { display: inline-block; font: 500 0.7rem/1.4 var(--mono); padding: 1px 7px; border-radius: 4px; white-space: nowrap; }
+.pill.legacy { background: var(--v1-soft); color: var(--v1); }
+.pill.double { background: var(--alert); color: var(--surface); }
+.pill.stub { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--muted); margin-left: 6px; }
+.footnote { color: var(--muted); font-size: 0.84rem; }
+
+/* questions + plan */
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.panel ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; counter-reset: n; }
+.panel li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; counter-increment: n; }
+.panel li::before { content: counter(n); font: 500 0.78rem/24px var(--mono); width: 24px; height: 24px; text-align: center; border-radius: 50%; background: var(--soft); color: var(--c); }
+.panel li b { display: block; }
+.panel li span { color: var(--muted); font-size: 0.9rem; }
+.panel li.now b::after { content: "teraz"; font: 500 0.66rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; margin-left: 8px; padding: 2px 6px; border-radius: 4px; background: var(--v2); color: var(--surface); vertical-align: 2px; }
+
+/* asks */
+.asks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ask { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ask .who { font: 500 0.7rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--c); }
+.ask p { color: var(--muted); font-size: 0.9rem; }
+.ask p b { color: var(--ink); font-weight: 600; }
+.why { background: var(--v2-soft); border-radius: 10px; padding: 14px 18px; font-size: 0.95rem; }
+.why b { color: var(--v2); }
+
+.v2 { --c: var(--v2); --soft: var(--v2-soft); }
+.v1 { --c: var(--v1); --soft: var(--v1-soft); }
+.unc { --c: var(--unclear); --soft: var(--unclear-soft); }
+.non { --c: var(--muted); --soft: var(--none-soft); }
+.alr { --c: var(--alert); --soft: var(--alert-soft); }
+
+@media (max-width: 860px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .findings, .two, .groups, .asks { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 480px) {
+  .bar-row { grid-template-columns: 72px minmax(0, 1fr) 32px; gap: 8px; }
+  .tile .fig { font-size: 2rem; }
+}
+</style>
+
+<main>
+  <header>
+    <span class="eyebrow">Wykończymy · zmiana 2026-10-22-v1-phase-out</span>
+    <h1>Gdzie jeszcze żyje v1</h1>
+    <p class="lede">v1 liczy bilans, marżę i robociznę inwestycji z transferów. v2 czyta je z kosztorysu w aplikacji. Zanim zniknie przełącznik v1, ta strona pokazuje, które inwestycje wciąż od v1 zależą.</p>
+    <div class="meta">
+      <span>Źródło <b>zrzut bazy produkcyjnej, 22.10.2026</b></span>
+      <span>Pominięte <b>inwestycje w koszu, anulowane transfery</b></span>
+      <span>Poza zakresem <b>synchronizacja z Arkuszami Google (EX-780)</b></span>
+    </div>
+  </header>
+
+  <section aria-label="Aktywne inwestycje w skrócie">
+    <div class="tiles">
+      <div class="tile v2"><span class="fig">26<small> / 41</small></span><span class="cap">aktywnych na v2</span><span class="sub">wykonane prace wpisane w aplikacji</span></div>
+      <div class="tile v1"><span class="fig">4</span><span class="cap">aktywne wciąż na v1</span><span class="sub">kosztorys w arkuszu, robocizna transferami</span></div>
+      <div class="tile unc"><span class="fig">8</span><span class="cap">aktywnych do wyjaśnienia</span><span class="sub">pełny kosztorys w aplikacji, nic nie wykonano</span></div>
+      <div class="tile alr"><span class="fig">3</span><span class="cap">podwójne wpisy</span><span class="sub">robocizna zaksięgowana obok kosztorysu w aplikacji</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Wszystkie inwestycje</span>
+      <h2>Gdzie jest kosztorys każdej inwestycji</h2>
+      <p class="lede">Paski mają wspólną skalę. Większość zakończonych inwestycji powstała, zanim kosztorys trafił do aplikacji.</p>
+    </div>
+    <div class="bars" id="bars"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">41 aktywnych inwestycji</span>
+      <h2>Która inwestycja gdzie jest prowadzona</h2>
+    </div>
+    <div class="groups">
+      <div class="group v1">
+        <div class="group-head"><span class="count">4</span><h3>Na v1</h3></div>
+        <p>Kosztorys tylko w arkuszu albo jednopozycyjna zaślepka w aplikacji. Najnowszy transfer robocizny jest z 06.08, więc mogą być już skończone, tylko niezamknięte.</p>
+        <div class="chips">
+          <span class="chip">Dom Dziekanów Polski Czarodziejskie Góry</span><span class="chip">Okocimska 9</span><span class="chip">Sierakowskiego 3/81</span><span class="chip">11 Listopada 40</span>
+        </div>
+      </div>
+      <div class="group unc">
+        <div class="group-head"><span class="count">8</span><h3>Do wyjaśnienia</h3></div>
+        <p>Pełny kosztorys w aplikacji, żadnych wykonanych prac. Albo prace jeszcze nie ruszyły, albo wciąż są prowadzone w arkuszu. Decyduje właściciel.</p>
+        <div class="chips">
+          <span class="chip">Andrzej Wądołowski Żółkiewskiego 3/1</span><span class="chip">Jacek Gołoś Angorska 14/3</span><span class="chip">Magdalena Garbacik Tytoniowa 20/39</span><span class="chip">Marcin Tkaczuk Stanisławowska 3/30</span><span class="chip">Mateusz Ku Terespolska 4/394</span><span class="chip">Mateusz Polis Koprowskiego 11m12</span><span class="chip">Tomasz Woźniak Siedliska</span><span class="chip test">Konrad Testy (testowa)</span>
+        </div>
+      </div>
+      <div class="group v2 wide">
+        <div class="group-head"><span class="count">26</span><h3>Na v2</h3></div>
+        <p>Wykonane prace wpisane w kosztorys w aplikacji, najnowsze z dzisiaj.</p>
+        <div class="chips" id="v2-chips"></div>
+      </div>
+      <div class="group non wide">
+        <div class="group-head"><span class="count">3</span><h3>Bez robocizny</h3></div>
+        <p>Brak kosztorysu i transferów robocizny. Usunięcie v1 ich nie dotyczy.</p>
+        <div class="chips">
+          <span class="chip">Kijowska 17 dwa mieszkania materiały</span><span class="chip">Mieszkanie Bartek Chodakowska</span><span class="chip">telmak</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">24 transfery · 24 inwestycje</span>
+      <h2>Transfery robocizny na inwestycjach v2</h2>
+      <p class="lede">Każda z tych inwestycji ma kosztorys w aplikacji i wciąż ma zaksięgowany transfer robocizny. v2 te transfery pomija: zasilają tylko v1 i ikonę rozjazdu na liście inwestycji.</p>
+    </div>
+
+    <div class="findings">
+      <div class="finding v1"><span class="count">21</span><h3>Pozostałości</h3><p>Zaksięgowane, zanim inwestycja miała kosztorys w aplikacji. Robociznę rozliczono z arkusza, a inwestycja przeszła do aplikacji później, głównie przy imporcie 27.08.</p></div>
+      <div class="finding alr"><span class="count">3</span><h3>Podwójne wpisy</h3><p>Ewa Biernat Bernardyńska 12/19, Emilianów Zawadzka 37, Foksal 12/14. Wszystkie zaksięgował 01.10 Bartek Antonik, gdy kosztorys już istniał. Jedna partia, od tamtej pory nic.</p></div>
+      <div class="finding non"><span class="count">8</span><h3>Kosztorysy-zaślepki</h3><p>1–5 pozycji, czyli kwota ryczałtowa, a nie prawdziwy kosztorys. 11 Listopada 40 pokazuje 471 819 zł na v1 i 0 zł na v2, bo nic w nim nie jest wykonane.</p></div>
+    </div>
+
+    <div class="chart" role="img" aria-label="Oś czasu transferów robocizny, marzec–październik 2026">
+      <svg id="timeline" viewBox="0 0 960 200" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="chart-legend">
+        <span><i style="background:var(--v1)"></i>pozostałość (przed kosztorysem w aplikacji)</span>
+        <span><i style="background:var(--alert)"></i>podwójny wpis (po)</span>
+        <span><i style="background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink)"></i>obwódka: kosztorys-zaślepka</span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Inwestycja</th>
+            <th>Transfer</th>
+            <th class="num">Robocizna</th>
+            <th>Opis</th>
+            <th>Zaksięgował</th>
+            <th>Kosztorys od</th>
+            <th class="num">Pozycje</th>
+            <th class="num">Wykonane</th>
+            <th>Rodzaj</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="footnote">„Kosztorys od” to data utworzenia najstarszej pozycji w aplikacji. Kosztorys odbudowany później pokaże późniejszą datę, więc liczba pozostałości to górna granica.</p>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Dla zespołu</span>
+      <h2>Co pomoże wygasić v1</h2>
+    </div>
+    <p class="why"><b>Po co to robimy.</b> Dziś każda inwestycja ma dwie robocizny i dwie marże: z transferów (v1) i z kosztorysu (v2). Gdy v1 zniknie, zostaje jedna liczba, liczona z kosztorysu, bez rozjazdów i bez zgadywania, która jest prawdziwa.</p>
+    <div class="asks">
+      <div class="ask v2">
+        <span class="who">Wszyscy, którzy księgują</span>
+        <h3>Robocizna tylko w kosztorysie, nie transferem</h3>
+        <p>Wykonane prace zaznaczajcie w etapach kosztorysu. Transfer robocizny <b>nie zmienia już żadnej liczby na v2</b>, a na v1 dubluje robociznę.</p>
+      </div>
+      <div class="ask v1">
+        <span class="who">Prowadzący inwestycje</span>
+        <h3>Zamykajcie skończone inwestycje</h3>
+        <p><b>Dom Dziekanów Polski, Okocimska 9, Sierakowskiego 3/81</b> są aktywne, a ostatnia robocizna jest sprzed sierpnia. Jeśli prace się skończyły, zmieńcie status na Zakończona.</p>
+      </div>
+      <div class="ask unc">
+        <span class="who">Prowadzący inwestycje</span>
+        <h3>Powiedzcie, gdzie są odhaczane prace</h3>
+        <p><b>8 aktywnych inwestycji</b> ma pełny kosztorys w aplikacji, ale nic wykonanego. Jeśli prace trwają i są odhaczane w arkuszu, trzeba je przenieść do aplikacji.</p>
+      </div>
+      <div class="ask non">
+        <span class="who">Prowadzący inwestycje</span>
+        <h3>Uzupełnijcie kosztorysy-zaślepki</h3>
+        <p><b>11 Listopada 40</b> ma jedną pozycję i nic wykonanego, więc v2 pokazuje 0 zł robocizny zamiast 471 819 zł. Zaznaczcie wykonanie albo wpiszcie prawdziwe pozycje.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="two">
+      <div class="panel unc">
+        <span class="eyebrow">Dla właściciela</span>
+        <h2>Otwarte pytania</h2>
+        <ol>
+          <li><div><b>8 aktywnych inwestycji do wyjaśnienia</b><span>Prace jeszcze nie ruszyły czy wciąż są prowadzone w arkuszu?</span></div></li>
+          <li><div><b>4 inwestycje na v1</b><span>Dokończyć je w arkuszu czy wpisać kosztorys?</span></div></li>
+          <li><div><b>3 podwójne wpisy z 01.10</b><span>Celowy znacznik rozliczenia czy pomyłka do anulowania?</span></div></li>
+        </ol>
+      </div>
+      <div class="panel v2">
+        <span class="eyebrow">Kolejność</span>
+        <h2>Plan</h2>
+        <ol>
+          <li class="now"><div><b>Ukryć przełącznik v1/v2</b><span>Na stronie inwestycji. <span class="mono">?widok=v1</span> dalej działa z adresu.</span></div></li>
+          <li><div><b>Zamknąć księgowanie robocizny i rabatu</b><span>Usunąć oba typy z okna transferu.</span></div></li>
+          <li><div><b>Rozstrzygnąć stare inwestycje</b><span>Według odpowiedzi właściciela.</span></div></li>
+          <li><div><b>Usunąć widoki v1</b><span>Widok na stronie inwestycji, kolumny i przełącznik warstw na liście, ikona rozjazdu, obliczenia v1.</span></div></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const STATUS_BARS = [
+  { label: 'Zakończona', app: 22, sheet: 22, none: 53 },
+  { label: 'Wycena', app: 41, sheet: 0, none: 6 },
+  { label: 'Aktywna', app: 35, sheet: 3, none: 3 },
+  { label: 'Planowana', app: 5, sheet: 0, none: 2 },
+  { label: 'Odrzucona', app: 4, sheet: 0, none: 0 },
+];
+
+const V2_ACTIVE = [
+  'Namysłowska Bartłomiej Ziółkowski 3/34', 'Południowa 30/31 - kinga moszyńska', 'Wesoła, Kilinskiego 24',
+  'Gryka-Deszczyński Kopernika 2a Marki', 'Marcela Mrowiec Redutowa 7/649', 'Kulisiewicza 16',
+  'Agnieszka Zochowska ul. Człuchowska', 'Jolanta Garula Łukowska 46/76', 'Sowińskiego 49b/ Daniel Sporysz',
+  'Siennicka 50/160 Iza Nowicka', 'Kijowska 17/87 - Igor', 'Jakubowska 10/13 Hanna Nowińska', 'Foksal 12/14',
+  'Stanisławów Drugi Kwiatowa 5', 'Inna Chorna Postępu 4a', 'Emilianów Zawadzka 37 / Urszula Duda',
+  'Kolejowa 15/9', 'Wymiana prysznica Ostródzka 56h', 'Kijowska 17/77 - Dima', 'Karol Pawlak Mirabelki 5/93',
+  'Topiel 6', 'Powsińska 70 + koński jar', 'Cezary Marszałkowska - kamil', 'Altowa 12', 'Przedpole 8a/28',
+  'Belgijska 9/201 Agnieszka Mucko',
+];
+
+// [investment, status, pozycje, executed, kosztorysSince, transferDate, amount, opis, bookedBy, after]
+const TRANSFERS = [
+  ['11 Listopada 40', 'active', 1, 0, '2026-10-19', '2026-03-18', 471819, 'wszystkie etapy', 'Adrian Furmańczyk', false],
+  ['Al. Rzeczypospolitej 21/25', 'completed', 373, 0, '2026-08-30', '2026-03-18', 41782, 'Wszystkie 3 etapy', 'Adrian Furmańczyk', false],
+  ['kiwi 8', 'completed', 302, 63, '2026-08-27', '2026-03-18', 65921, 'podsumowanie całości robocizna netto', 'Adrian Furmańczyk', false],
+  ['Wołoska 3/302', 'completed', 309, 99, '2026-08-27', '2026-03-18', 95004, 'robocizna wszystkie etapy bez ostatniego', 'Bartek Antonik', false],
+  ['Altowa 12', 'active', 2, 2, '2026-10-02', '2026-05-19', 351425, 'robocizna netto', 'Bartek Antonik', false],
+  ['Siennicka 50/152', 'completed', 293, 65, '2026-08-27', '2026-06-05', 80251, 'Wszystkie etapy', 'Adrian Furmańczyk', false],
+  ['Białostocka 5', 'completed', 5, 5, '2026-10-01', '2026-06-18', 149255, 'robocizna netto do 6 etapu', 'Bartek Antonik', false],
+  ['Włodarzewska 70j/8', 'completed', 300, 18, '2026-08-27', '2026-06-18', 3786, '', 'Bartek Antonik', false],
+  ['Potrzebna 55', 'completed', 1, 1, '2026-10-03', '2026-07-08', 32070, 'robocizna brutto', 'Bartek Antonik', false],
+  ['Sulmierzycka 6/29 - poprawki', 'completed', 380, 19, '2026-08-27', '2026-07-13', 14493, 'robocizna', 'Bartek Antonik', false],
+  ['Kaloryczna 1/54', 'completed', 385, 76, '2026-09-30', '2026-08-06', 66075, 'etap 1 i 2', 'Adrian Furmańczyk', false],
+  ['Powsińska 70 + koński jar', 'active', 4, 3, '2026-10-01', '2026-08-06', 73387, '', 'Adrian Furmańczyk', false],
+  ['Południowa 30/31 - kinga moszyńska', 'active', 386, 93, '2026-09-29', '2026-08-06', 80206, '', 'Adrian Furmańczyk', false],
+  ['Przedpole 8a/28', 'active', 5, 1, '2026-10-14', '2026-08-06', 93374, '', 'Adrian Furmańczyk', false],
+  ['Rechniewskiego 13/68', 'completed', 1, 1, '2026-10-14', '2026-08-06', 39303, '', 'Adrian Furmańczyk', false],
+  ['Ryżowa 44 Marcin Nurzyński', 'completed', 301, 49, '2026-08-27', '2026-08-06', 61305, '', 'Adrian Furmańczyk', false],
+  ['Siennicka 50/160 Iza Nowicka', 'active', 297, 47, '2026-09-30', '2026-08-06', 66904, '', 'Adrian Furmańczyk', false],
+  ['Urocza 6a/1', 'completed', 330, 110, '2026-10-01', '2026-09-11', 136184, '', 'Adrian Furmańczyk', false],
+  ['Ząbkowska Pan krokodyl - zastępcza', 'completed', 1, 1, '2026-10-21', '2026-09-23', 984, '', 'Bartek Antonik', false],
+  ['Sowińskiego 49b/ Daniel Sporysz', 'active', 380, 51, '2026-09-29', '2026-09-24', 67330, '', 'Adrian Furmańczyk', false],
+  ['Ewa Biernat Bernardyńska 12/19', 'completed', 377, 37, '2026-09-30', '2026-10-01', 26887, '', 'Bartek Antonik', true],
+  ['Emilianów Zawadzka 37 / Urszula Duda', 'active', 300, 37, '2026-09-28', '2026-10-01', 17362, '', 'Bartek Antonik', true],
+  ['Bartosz Żelkowski Bernardyńska 12/13', 'completed', 374, 33, '2026-10-09', '2026-10-01', 2379, '', 'Bartek Antonik', false],
+  ['Foksal 12/14', 'active', 287, 46, '2026-09-29', '2026-10-01', 61741, '', 'Bartek Antonik', true],
+];
+
+const STUB_MAX = 5;
+const STATUS_PL = { active: 'aktywna', completed: 'zakończona' };
+const pln = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' zł';
+const dmy = (iso) => { const [y, m, d] = iso.split('-'); return `${d}.${m}.${y}`; };
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function renderBars() {
+  const max = Math.max(...STATUS_BARS.map((b) => b.app + b.sheet + b.none));
+  const seg = (cls, n, total) => n ? `<div class="seg ${cls}" style="width:${(n / total) * 100}%" title="${n}">${n >= 3 ? n : ''}</div>` : '';
+  const rows = STATUS_BARS.map((b) => {
+    const total = b.app + b.sheet + b.none;
+    return `<div class="bar-row"><span class="label">${b.label}</span>
+      <div><div class="track" style="width:${(total / max) * 100}%">${seg('app', b.app, total)}${seg('sheet', b.sheet, total)}${seg('none', b.none, total)}</div></div>
+      <span class="total">${total}</span></div>`;
+  }).join('');
+  document.getElementById('bars').innerHTML = rows +
+    `<div class="legend"><span><i style="background:var(--v2)"></i>w aplikacji</span><span><i style="background:var(--v1)"></i>tylko w arkuszu</span><span><i style="background:var(--none-soft);box-shadow:inset 0 0 0 1px var(--line)"></i>brak kosztorysu</span></div>`;
+}
+
+function renderChips() {
+  document.getElementById('v2-chips').innerHTML = V2_ACTIVE.map((n) => `<span class="chip">${esc(n)}</span>`).join('');
+}
+
+function renderTimeline() {
+  const svg = document.getElementById('timeline');
+  const W = 960, left = 24, right = 24, base = 160, step = 16, r = 6;
+  const t0 = Date.parse('2026-03-01'), t1 = Date.parse('2026-11-01');
+  const x = (iso) => left + ((Date.parse(iso) - t0) / (t1 - t0)) * (W - left - right);
+  let out = `<line class="axis" x1="${left}" x2="${W - right}" y1="${base + 10}" y2="${base + 10}"/>`;
+  const months = ['mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź'];
+  months.forEach((m, i) => {
+    const iso = `2026-${String(i + 3).padStart(2, '0')}-01`;
+    const mx = x(iso);
+    out += `<line class="grid" x1="${mx}" x2="${mx}" y1="20" y2="${base + 10}"/><text x="${mx + 4}" y="${base + 28}">${m}</text>`;
+  });
+  const imp = x('2026-08-27');
+  out += `<line class="marker" x1="${imp}" x2="${imp}" y1="14" y2="${base + 10}"/><text class="marker-label" x="${imp - 6}" y="12" text-anchor="end">27.08 import arkusz → aplikacja</text>`;
+  const stacks = {};
+  TRANSFERS.forEach(([name, , items, , , date, amount, , by, after]) => {
+    const k = stacks[date] = (stacks[date] || 0) + 1;
+    const cy = base - (k - 1) * step;
+    const stub = items <= STUB_MAX ? ' dot-stub' : '';
+    out += `<circle class="${after ? 'dot-double' : 'dot-legacy'}${stub}" cx="${x(date)}" cy="${cy}" r="${r}"><title>${esc(name)} · ${dmy(date)} · ${pln(amount)} · ${esc(by)}</title></circle>`;
+  });
+  Object.entries(stacks).filter(([, n]) => n > 1).forEach(([date, n]) => {
+    out += `<text x="${x(date)}" y="${base - n * step - 2}" text-anchor="middle">${date.slice(8)}.${date.slice(5, 7)}</text>`;
+  });
+  svg.innerHTML = out;
+}
+
+function renderRows() {
+  document.getElementById('rows').innerHTML = TRANSFERS.map(([name, status, items, exec, since, date, amount, opis, by, after]) => `
+    <tr class="${after ? 'double' : ''}">
+      <td class="inv">${esc(name)}<span class="st">${STATUS_PL[status]}</span></td>
+      <td class="date">${dmy(date)}</td>
+      <td class="num">${pln(amount)}</td>
+      <td class="opis">${opis ? esc(opis) : '—'}</td>
+      <td>${esc(by)}</td>
+      <td class="date">${dmy(since)}</td>
+      <td class="num">${items}${items <= STUB_MAX ? '<span class="pill stub">zaślepka</span>' : ''}</td>
+      <td class="num">${exec}</td>
+      <td>${after ? '<span class="pill double">podwójny wpis</span>' : '<span class="pill legacy">pozostałość</span>'}</td>
+    </tr>`).join('');
+}
+
+renderBars();
+renderChips();
+renderTimeline();
+renderRows();
+</script>

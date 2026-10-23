@@ -229,6 +229,10 @@
   production (2026-08-19). No scheduled jobs against a large mirror; cap bursts.
 - SMTP host = the certificate's name (`mail.wykonczymy.com.pl`); check with `openssl s_client`;
   redeploy after an env change. A failed send needs an alert, not a log line (EX-958).
+- Rotating the mailbox password in the hosting panel breaks prod mail (`535 Incorrect authentication
+data`) until `EMAIL_PASS` is updated and prod redeployed — the second outage noticed only by a user
+  (2026-10-21). `EMAIL_PASS` is one record shared by all Vercel environments: `vercel env update`, never
+  `env rm` + `add`. Verify the new password with a nodemailer `verify()` before pushing it.
 
 ## Webhooks fail loud and verify over raw bytes
 
@@ -322,6 +326,8 @@
   re-run the full build per hypothesis, never `pkill` by pattern.
 - A cold `pnpm test:e2e` rebuilds `.next-e2e` only when a file the build reads changed
   (`scripts/e2e-build.sh`); editing a spec alone reuses the build.
+- `test:e2e:warm` never runs `db:reset:test`: a reset under the running warm server leaves its
+  `unstable_cache` serving figures from rows the reset removed. Reset, then restart the server.
 - Helpers: waits in `e2e/support/wait.ts`, UI drivers in `e2e/drivers/*` (cmdk:
   `pickComboOption`). Playwright can't import the Payload graph — seed via a subprocess; wait for
   hydration (`waitForHydration`); `workers: 1`; seeds pass `context: { skipRevalidation: true }`.

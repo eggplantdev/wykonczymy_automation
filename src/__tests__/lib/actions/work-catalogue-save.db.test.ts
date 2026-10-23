@@ -5,7 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { authState } from '@/__tests__/stubs/get-current-user-jwt'
 import { firstUserId } from '@/__tests__/helpers/user'
-import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { catalogueLinkOf, createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { ENV_READY, bootTestPayload } from '@/__tests__/helpers/payload'
 
@@ -205,14 +205,6 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
     expect(rows[0].category).toBeNull()
   })
 
-  const linkedEntryOf = async (itemId: number) => {
-    const result = await db.execute(
-      sql`SELECT catalogue_item_id FROM kosztorys_items WHERE id = ${itemId}`,
-    )
-    const id = result.rows[0]?.catalogue_item_id
-    return id === null || id === undefined ? null : Number(id)
-  }
-
   it('zmieniony opis to nowa praca: stara zostaje, pozycja przepina się na nową', async () => {
     const oldDescription = `Przed zmianą ${suffix}`
     const newDescription = `Po zmianie ${suffix}`
@@ -237,7 +229,7 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
 
     const [created] = await catalogueRow(newDescription)
     expect(Number(created.client_price)).toBe(180)
-    expect(await linkedEntryOf(itemId)).toBe(Number(created.id))
+    expect(await catalogueLinkOf(payload, itemId)).toBe(Number(created.id))
   })
 
   it('po przemianowaniu w katalogu ta sama praca aktualizuje zapamiętany wpis', async () => {
@@ -266,7 +258,7 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
     const [updated] = await catalogueRow(newDescription)
     expect(Number(updated.id)).toBe(Number(entry.id))
     expect(Number(updated.client_price)).toBe(210)
-    expect(await linkedEntryOf(itemId)).toBe(Number(entry.id))
+    expect(await catalogueLinkOf(payload, itemId)).toBe(Number(entry.id))
   })
 
   it('odmawia zapisu pracy bez opisu', async () => {

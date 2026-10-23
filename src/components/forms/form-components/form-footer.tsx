@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { CheckboxRow } from '@/components/ui/checkbox-row'
+import { Description } from '@/components/ui/description'
 import { useFormContext } from '../hooks/form-context'
 import { useFormStatus } from '../hooks/use-form-status'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
@@ -52,17 +53,20 @@ export default function FormFooter({
           </Button>
           {secondaryAction}
           {showKeepOpen && (
-            <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm select-none">
-              <Checkbox
-                checked={keepOpen}
-                onCheckedChange={(checked) => setKeepOpen(checked === true)}
-              />
+            <CheckboxRow
+              variant="plain"
+              checked={keepOpen}
+              onCheckedChange={setKeepOpen}
+              className="ml-auto select-none"
+            >
               {t('keepOpen')}
-            </label>
+            </CheckboxRow>
           )}
         </div>
         {isInvalid && (
-          <p className="text-destructive mt-2 text-sm font-medium">{t('formHasErrors')}</p>
+          <Description tone="error" className="mt-2 font-medium">
+            {t('formHasErrors')}
+          </Description>
         )}
       </footer>
       <Loader loading={isSubmitting && !awaitingAnswer} portal />

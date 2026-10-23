@@ -4,10 +4,10 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
+import { isNegativeMoney } from '@/lib/utils/round-to-cents'
 import { formatNet } from '@/lib/kosztorys/format'
 import { PLANE_LABELS, SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { SubcontractorSummaryT } from '@/lib/kosztorys/subcontractor-summary'
@@ -28,20 +28,20 @@ export function SubcontractorHeadlineSummary({
 }) {
   return (
     <SummaryTable cols={`${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`} className="w-fit">
-      <SummaryHeaderCell variant="label">Podsumowanie podwykonawców</SummaryHeaderCell>
+      <SummaryHeaderCell>Podsumowanie podwykonawców</SummaryHeaderCell>
       <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
       {showPlanes && (
         <div className="contents">
-          <SummaryLabelCell>{PLANE_LABELS.w_tools}</SummaryLabelCell>
-          <SummaryValueCell>{formatNet(due.wTools)}</SummaryValueCell>
+          <SummaryCell>{PLANE_LABELS.w_tools}</SummaryCell>
+          <SummaryCell>{formatNet(due.wTools)}</SummaryCell>
 
-          <SummaryLabelCell>{PLANE_LABELS.own_tools}</SummaryLabelCell>
-          <SummaryValueCell>{formatNet(due.ownTools)}</SummaryValueCell>
+          <SummaryCell>{PLANE_LABELS.own_tools}</SummaryCell>
+          <SummaryCell>{formatNet(due.ownTools)}</SummaryCell>
         </div>
       )}
 
-      <SummaryLabelCell
+      <SummaryCell
         weight="bold"
         hints={
           due.hasUnconfirmedPlane
@@ -50,25 +50,25 @@ export function SubcontractorHeadlineSummary({
         }
       >
         {SUBCONTRACTOR_FIGURE_LABELS.due}
-      </SummaryLabelCell>
-      <SummaryValueCell weight="bold">{formatNet(due.combined)}</SummaryValueCell>
+      </SummaryCell>
+      <SummaryCell weight="bold">{formatNet(due.combined)}</SummaryCell>
 
       {summary.bonusTotal !== 0 && (
         <div className="contents">
-          <SummaryLabelCell weight="medium">{SUBCONTRACTOR_FIGURE_LABELS.bonus}</SummaryLabelCell>
-          <SummaryValueCell weight="medium">{formatNet(summary.bonusTotal)}</SummaryValueCell>
+          <SummaryCell weight="medium">{SUBCONTRACTOR_FIGURE_LABELS.bonus}</SummaryCell>
+          <SummaryCell weight="medium">{formatNet(summary.bonusTotal)}</SummaryCell>
         </div>
       )}
 
-      <SummaryLabelCell weight="medium">{SUBCONTRACTOR_FIGURE_LABELS.payouts}</SummaryLabelCell>
-      <SummaryValueCell tone="success" weight="medium">
+      <SummaryCell weight="medium">{SUBCONTRACTOR_FIGURE_LABELS.payouts}</SummaryCell>
+      <SummaryCell tone="success" weight="medium">
         {formatNet(summary.payoutsTotal)}
-      </SummaryValueCell>
+      </SummaryCell>
 
-      <SummaryLabelCell weight="bold">{SUBCONTRACTOR_FIGURE_LABELS.remaining}</SummaryLabelCell>
-      <SummaryValueCell tone={summary.remaining < 0 ? 'error' : 'default'} weight="bold">
+      <SummaryCell weight="bold">{SUBCONTRACTOR_FIGURE_LABELS.remaining}</SummaryCell>
+      <SummaryCell tone={isNegativeMoney(summary.remaining) ? 'error' : 'default'} weight="bold">
         {formatNet(summary.remaining)}
-      </SummaryValueCell>
+      </SummaryCell>
     </SummaryTable>
   )
 }

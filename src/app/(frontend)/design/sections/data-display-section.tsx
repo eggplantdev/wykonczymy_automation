@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ComponentProps } from 'react'
+import { useState } from 'react'
 import { Bar, BarChart, XAxis } from 'recharts'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { SignedMoneyDisplay } from '@/components/ui/signed-money-display'
@@ -11,48 +11,15 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { SlicePie } from '@/components/ui/slice-pie'
 import { PieSliceLegend, type PieSliceT } from '@/components/ui/pie-legend'
-import Icon from '@/components/ui/icons/icon'
-import ArrowIcon from '@/components/ui/icons/arrow-icon'
-import DropdownIcon from '@/components/ui/icons/dropdown-icon'
-import MenuDotsIcon from '@/components/ui/icons/menu-dots-icon'
+import {
+  ReportRow,
+  ReportTable,
+} from '@/components/kosztorys/editor/dialogs/report/sheet-report-parts'
 import { formatPercent } from '@/lib/kosztorys/format'
-import { formatPLN } from '@/lib/utils/format-currency'
+import { formatPLN, formatSignedPLN } from '@/lib/utils/format-currency'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
-
-type IconPropsT = ComponentProps<typeof Icon>
-type IconNameT = IconPropsT['iconName']
-type IconSizeT = NonNullable<IconPropsT['size']>
-type ArrowDirectionT = ComponentProps<typeof ArrowIcon>['direction']
-type DropdownDirectionT = ComponentProps<typeof DropdownIcon>['direction']
-
-const ICON_NAMES = Object.keys({
-  arrowLeft: true,
-  arrowRight: true,
-  dropdownDown: true,
-  menuDots: true,
-} satisfies Record<IconNameT, true>) as IconNameT[]
-
-const ICON_SIZES = Object.keys({
-  xxs: true,
-  xs: true,
-  sm: true,
-  md: true,
-  lg: true,
-} satisfies Record<IconSizeT, true>) as IconSizeT[]
-
-const ARROW_DIRECTIONS = Object.keys({
-  up: true,
-  right: true,
-  down: true,
-  left: true,
-} satisfies Record<ArrowDirectionT, true>) as ArrowDirectionT[]
-
-const DROPDOWN_DIRECTIONS = Object.keys({
-  down: true,
-  up: true,
-} satisfies Record<DropdownDirectionT, true>) as DropdownDirectionT[]
 
 const BALANCES = [12500, 0, -830.5]
 
@@ -81,6 +48,9 @@ export function DataDisplaySection() {
         {BALANCES.map((value) => (
           <BalanceCell key={value} value={value} />
         ))}
+        {BALANCES.map((value) => (
+          <BalanceCell key={`settled-${value}`} value={value} settled />
+        ))}
         <SignedMoneyDisplay amount={12500} label="Saldo" />
         <SignedMoneyDisplay amount={-830.5} label="Saldo" tooltip="Suma zaznaczonych" />
         <SignedMoneyDisplay
@@ -88,6 +58,32 @@ export function DataDisplaySection() {
           label="Zaznaczone"
           selectionCount={{ selected: 3, total: 12 }}
         />
+      </ShowcaseRow>
+      <ShowcaseRow title="formatSignedPLN" source="lib/utils/format-currency.ts">
+        {BALANCES.map((value) => (
+          <span key={value} className="text-sm tabular-nums">
+            {formatSignedPLN(value)}
+          </span>
+        ))}
+      </ShowcaseRow>
+      <ShowcaseRow
+        title="ReportTable — nagłówki {content, className}"
+        source="kosztorys/editor/dialogs/report/sheet-report-parts.tsx"
+      >
+        <div className="w-full max-w-md">
+          <ReportTable
+            headers={[
+              'Pozycja',
+              { content: 'Ilość', className: 'w-20' },
+              { content: 'Kwota', className: 'text-foreground font-medium' },
+            ]}
+          >
+            <ReportRow
+              label="Płytki"
+              cells={[{ content: '12 m²' }, { content: formatPLN(1200) }]}
+            />
+          </ReportTable>
+        </div>
       </ShowcaseRow>
       <ShowcaseRow title="DecisionProgressBadge" source="ui/decision-progress-badge.tsx">
         <DecisionProgressBadge accepted={7} rejected={2} pending={4} />
@@ -120,32 +116,6 @@ export function DataDisplaySection() {
           caption="Koszty inwestycji"
         />
         <PieSliceLegend slices={SLICES} formatShare={formatPercent} />
-      </ShowcaseRow>
-      <ShowcaseRow
-        title="Icon — nazwa × rozmiar"
-        source="ui/icons/icon.tsx"
-        className="flex-col items-start"
-      >
-        {ICON_NAMES.map((iconName) => (
-          <div key={iconName} className="flex items-center gap-3">
-            <code className="text-muted-foreground w-28 text-xs">{iconName}</code>
-            {ICON_SIZES.map((size) => (
-              <Icon key={size} iconName={iconName} size={size} />
-            ))}
-          </div>
-        ))}
-      </ShowcaseRow>
-      <ShowcaseRow
-        title="Ikony kierunkowe"
-        source="ui/icons/arrow-icon.tsx, ui/icons/dropdown-icon.tsx, ui/icons/menu-dots-icon.tsx"
-      >
-        {ARROW_DIRECTIONS.map((direction) => (
-          <ArrowIcon key={direction} direction={direction} />
-        ))}
-        {DROPDOWN_DIRECTIONS.map((direction) => (
-          <DropdownIcon key={direction} direction={direction} />
-        ))}
-        <MenuDotsIcon />
       </ShowcaseRow>
     </ShowcaseSection>
   )

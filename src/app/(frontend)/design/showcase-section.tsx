@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { SHOWCASE_SECTIONS, type ShowcaseSectionIdT } from './showcase-sections'
 
 type ShowcaseSectionPropsT = {
@@ -7,12 +8,16 @@ type ShowcaseSectionPropsT = {
 }
 
 export function ShowcaseSection({ id, children }: ShowcaseSectionPropsT) {
-  const label = SHOWCASE_SECTIONS.find((section) => section.id === id)?.label
+  const label = SHOWCASE_SECTIONS.find((section) => section.id === id)?.label ?? id
 
   return (
-    <section id={id} className="scroll-mt-4 pt-8 first:pt-0">
-      <h2 className="border-b-2 pb-2 text-lg font-semibold">{label}</h2>
+    <CollapsibleSection
+      id={id}
+      title={label}
+      storageKey={`design:${id}`}
+      className="scroll-mt-4 pt-8 first:pt-0"
+    >
       {children}
-    </section>
+    </CollapsibleSection>
   )
 }

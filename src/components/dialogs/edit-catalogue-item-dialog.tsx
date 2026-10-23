@@ -1,5 +1,6 @@
 'use client'
 
+import { Description } from '@/components/ui/description'
 import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
@@ -32,10 +33,10 @@ export function EditCatalogueItemDialog({
       {(onSubmitSuccess, keepOpen) => (
         <>
           {templateNames.length > 0 && (
-            <p className="mb-4 text-sm text-amber-600">
+            <Description tone="warning" withIcon={false}>
               Ta praca jest w szablonach: {templateNames.join(', ')}. Zmiana trafi do każdego z
               nich.
-            </p>
+            </Description>
           )}
           <WorkCatalogueItemForm
             formId={formId}

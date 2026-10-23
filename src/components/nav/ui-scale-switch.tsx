@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from 'react'
 import { ZoomOut } from 'lucide-react'
 import { useTranslation } from '@/hooks/use-translation'
-import { cn } from '@/lib/utils/cn'
+import { ToggleGroup } from '@/components/ui/toggle-group'
 import {
   DEFAULT_UI_SCALE,
   UI_SCALES,
@@ -40,24 +40,13 @@ export function UiScaleSwitch() {
     <div className="flex items-center gap-2">
       <ZoomOut className="text-muted-foreground size-4 shrink-0" />
       <span className="text-sm">{t('uiScale')}</span>
-      <div className="bg-muted ml-auto flex h-8 items-center rounded-md p-0.5">
-        {UI_SCALES.map((scale) => (
-          <button
-            key={scale}
-            type="button"
-            aria-pressed={scale === activeScale}
-            onClick={() => applyScale(scale)}
-            className={cn(
-              'flex h-full items-center rounded-sm px-2.5 text-xs transition-colors',
-              scale === activeScale
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground',
-            )}
-          >
-            {scale}%
-          </button>
-        ))}
-      </div>
+      <ToggleGroup
+        variant="muted"
+        className="ml-auto"
+        options={UI_SCALES.map((scale) => ({ value: String(scale), label: `${scale}%` }))}
+        value={String(activeScale)}
+        onChange={(value) => applyScale(parseUiScale(value))}
+      />
     </div>
   )
 }

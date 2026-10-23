@@ -1,15 +1,16 @@
 'use client'
 
 import { Reorder, motion } from 'framer-motion'
-import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { KnowledgeEntryRow } from '@/components/company-knowledge/knowledge-entry-row'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Description } from '@/components/ui/description'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
+import { Panel } from '@/components/ui/panel'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { Textarea } from '@/components/ui/textarea'
 import { useSearchFilter } from '@/hooks/use-search-filter'
@@ -176,21 +177,18 @@ export function CompanyKnowledgeBook({
           options={SORT_OPTIONS}
           variant="toolbar"
         />
-        <Button
-          variant="outline"
-          size="sm"
+        <AddButton
           disabled={draft?.id === null}
           onClick={() => setDraft({ id: null, topic: '', content: '' })}
         >
-          <Plus />
           Dodaj wpis
-        </Button>
+        </AddButton>
       </div>
-      {draft?.id === null && <div className="border-border rounded-md border p-3">{form}</div>}
+      {draft?.id === null && <Panel className="p-3">{form}</Panel>}
       {!canReorder && (
-        <p className="text-muted-foreground text-xs">
+        <Description size="xs" withIcon={false}>
           Przeciąganie działa w „Własnej kolejności”, bez wyszukiwania.
-        </p>
+        </Description>
       )}
       <motion.div layoutScroll className="min-h-0 overflow-y-auto">
         {sorted.length === 0 ? (

@@ -4,6 +4,8 @@ import { Column } from 'react-datasheet-grid'
 import { ResizableHeader } from '@/components/ui/datasheet-grid/column-resize-handle'
 import { type BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { LAYER_GAP_COLUMN_ID } from '@/lib/kosztorys/grid-column-ids'
+import { isFixedWidth } from '@/lib/kosztorys/column-width-targets'
 
 const DEFAULT_COLUMN_MIN_WIDTH = 130
 
@@ -16,7 +18,7 @@ export function withResize(
   opts: Pick<BuildV2ColumnsOptsT, 'onGuide' | 'onCommitColumn' | 'widths'>,
 ): Column<KosztorysV2RowT> {
   if (!opts.onGuide || !opts.onCommitColumn || !col.id) return col
-  if (col.minWidth != null && col.minWidth === col.maxWidth) return col
+  if (isFixedWidth(col)) return col
   // dsg clamps an unpinned column's rendered width to its minWidth on overflow (many columns >
   // viewport), so this is the actual initial width, not just a drag limit.
   const min = col.minWidth ?? DEFAULT_COLUMN_MIN_WIDTH
@@ -39,7 +41,7 @@ export function withResize(
 }
 
 const layerGapColumn: Column<KosztorysV2RowT> = {
-  id: 'layerGap',
+  id: LAYER_GAP_COLUMN_ID,
   title: <span />,
   basis: 48,
   grow: 0,

@@ -2,9 +2,13 @@
 
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { CopyCheck, Loader2 } from 'lucide-react'
+import { CopyCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { Description } from '@/components/ui/description'
+import { EmptyState } from '@/components/ui/empty-state'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
+import { cn } from '@/lib/utils/cn'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { DateRangePicker } from '@/components/filters/date-range-picker'
 import { DataTable } from '@/components/tables/data-table/data-table'
@@ -94,36 +98,37 @@ export function DuplicateFinderDialog({ findGroups }: DuplicateFinderDialogProps
       </Button>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent
-          className="gap-8 overflow-auto sm:max-h-[94vh] sm:max-w-[96vw]"
+          className="sm:max-w-dialog-3xl gap-8 overflow-auto sm:max-h-[94vh]"
           aria-describedby={undefined}
         >
           <DialogHeader title="Szukaj duplikatów" />
 
           <section className="flex flex-col gap-3">
-            <span className="text-muted-foreground text-sm">
+            <Description withIcon={false}>
               Sprawdza wydatki z zakresu i z filtrów tabeli oraz paragony z nierozpatrzonych
               zgłoszeń — każdy z wydatkami całej firmy, z dowolnego okresu.
-            </span>
+            </Description>
             <div className="flex flex-wrap items-end gap-4">
               <DateRangePicker value={range} onChange={changeRange} stacked />
-              <Button onClick={() => void analyse()} disabled={!canAnalyse}>
-                {state.status === 'loading' && <Loader2 className="animate-spin" />}
+              <Button
+                onClick={() => void analyse()}
+                disabled={!canAnalyse}
+                pending={state.status === 'loading'}
+              >
                 Analizuj
               </Button>
             </div>
             {!isAllTime(range) && !isComplete && (
-              <span className="text-muted-foreground text-sm">
+              <Description withIcon={false}>
                 Wybierz obie daty albo wyczyść zakres, żeby sprawdzić cały okres.
-              </span>
+              </Description>
             )}
-            {isInverted && (
-              <span className="text-destructive text-sm">Nieprawidłowy zakres dat</span>
-            )}
+            {isInverted && <Description tone="error">Nieprawidłowy zakres dat</Description>}
           </section>
 
           {state.status === 'error' && (
             <div className="flex flex-wrap items-center gap-4" role="alert">
-              <span className="text-destructive text-sm">{state.message}</span>
+              <Description tone="error">{state.message}</Description>
               <Button variant="outline" size="sm" onClick={() => void analyse()}>
                 Spróbuj ponownie
               </Button>
@@ -133,13 +138,13 @@ export function DuplicateFinderDialog({ findGroups }: DuplicateFinderDialogProps
           {state.status === 'done' &&
             state.groups.strong.length === 0 &&
             state.groups.weak.length === 0 && (
-              <p className="text-muted-foreground text-sm">Nie znaleziono możliwych duplikatów</p>
+              <EmptyState size="inline" title="Nie znaleziono możliwych duplikatów" />
             )}
 
           {state.status === 'done' &&
             state.groups.strong.map((group) => (
               <section key={group.key} className="flex flex-col gap-2">
-                <h3 className="text-destructive font-medium">
+                <h3 className={cn('text-destructive', SUBSECTION_TITLE_CLASS)}>
                   {reasonsLabel(group.reasons)} · {countLabel(group.members.length)}
                 </h3>
                 <DataTable data={toRows(group)} columns={columns} />
@@ -156,7 +161,7 @@ export function DuplicateFinderDialog({ findGroups }: DuplicateFinderDialogProps
               <div className="flex flex-col gap-6 pt-3">
                 {state.groups.weak.map((group) => (
                   <section key={group.key} className="flex flex-col gap-2">
-                    <h3 className="font-medium">
+                    <h3 className={SUBSECTION_TITLE_CLASS}>
                       {formatPLNOrDash(group.members[0].amount)} ·{' '}
                       {countLabel(group.members.length)}
                     </h3>

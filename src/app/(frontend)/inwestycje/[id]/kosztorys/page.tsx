@@ -8,6 +8,7 @@ import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { SheetButton } from '@/components/investments/sheet-button'
 import { SheetIframeView } from '@/components/sheets/iframe-view'
 import { SyncButton } from '@/components/sheets/sync-button'
+import { Description } from '@/components/ui/description'
 
 export default async function InvestmentKosztorysPage({
   params,
@@ -39,9 +40,9 @@ export default async function InvestmentKosztorysPage({
 
   return (
     <div className="flex flex-col items-center gap-4 py-16 text-center">
-      <p className="text-muted-foreground text-sm">
+      <Description withIcon={false}>
         Inwestycja <strong>{investment.name}</strong> nie ma jeszcze arkusza.
-      </p>
+      </Description>
       {!trashed && <SheetButton investmentId={investmentId} hasSheet={false} />}
     </div>
   )

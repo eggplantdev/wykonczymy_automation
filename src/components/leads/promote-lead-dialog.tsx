@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { TextLink } from '@/components/ui/text-link'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { MediaStrip } from '@/components/media/media-strip'
@@ -21,6 +22,7 @@ import type { LeadRowT } from '@/lib/leads/types'
 import { EMPTY_INVESTMENT_FORM_VALUES } from '@/components/forms/investment-form/empty-form-values'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 import { PICK_LABEL } from '@/components/leads/lead-assets-dialog'
+import { Description } from '@/components/ui/description'
 
 function buildNotes(lead: LeadRowT): string {
   return [
@@ -46,9 +48,9 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
 
   if (lead.investmentId !== null) {
     return (
-      <Link href={`/inwestycje/${lead.investmentId}`} className="text-primary hover:underline">
-        {lead.investmentName ?? 'Inwestycja'}
-      </Link>
+      <TextLink asChild>
+        <Link href={`/inwestycje/${lead.investmentId}`}>{lead.investmentName ?? 'Inwestycja'}</Link>
+      </TextLink>
     )
   }
 
@@ -88,10 +90,10 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
       {(onSubmitSuccess, keepOpen) => (
         <>
           {visibleFiles.length > 0 && (
-            <section className="mb-6 space-y-2">
-              <p className="text-muted-foreground text-sm">
+            <section className="mb-2 space-y-2">
+              <Description withIcon={false}>
                 Przejdą do inwestycji: {chosenIds.length} z {visibleFiles.length}
-              </p>
+              </Description>
               <MediaStrip
                 files={visibleFiles}
                 labels={ASSET_PREVIEW_LABELS}

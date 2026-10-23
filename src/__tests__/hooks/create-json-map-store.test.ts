@@ -69,6 +69,20 @@ describe('createJsonMapStore.update', () => {
   })
 })
 
+describe('createJsonMapStore.setMany', () => {
+  it('writes every entry in one persist and one notify', () => {
+    const backing = stubLocalStorage({ k: '{"a":1}' })
+    const store = createJsonMapStore<number>('k')
+    let notified = 0
+    store.subscribe(() => {
+      notified += 1
+    })
+    store.setMany({ b: 2, c: 2 })
+    expect(JSON.parse(backing.get('k')!)).toEqual({ a: 1, b: 2, c: 2 })
+    expect(notified).toBe(1)
+  })
+})
+
 describe('dropKeys', () => {
   const widths = { stage_7: 100, stageValueNet_7: 120, stageValueGross_7: 140, description: 300 }
 

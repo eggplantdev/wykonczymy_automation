@@ -31,9 +31,7 @@ export function VehicleDetailTabs({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="w-fit">
-        <ToggleGroup options={OPTIONS} value={view} onChange={setView} aria-label="Widok pojazdu" />
-      </div>
+      <ToggleGroup options={OPTIONS} value={view} onChange={setView} aria-label="Widok pojazdu" />
 
       <DateRangePicker value={range} onChange={setRange} />
 

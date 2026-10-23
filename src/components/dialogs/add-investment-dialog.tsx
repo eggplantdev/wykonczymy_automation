@@ -1,7 +1,6 @@
 'use client'
 
-import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { createInvestmentAction } from '@/lib/actions/investments'
@@ -13,12 +12,7 @@ export function AddInvestmentDialog({ presets }: { presets: TemplateMetaT[] }) {
     <FormDialog
       formId="add-investment"
       className="sm:max-w-dialog-md"
-      trigger={
-        <Button variant="outline" size="sm">
-          <Plus />
-          Dodaj
-        </Button>
-      }
+      trigger={<AddButton>Dodaj</AddButton>}
       title="Nowa inwestycja"
     >
       {(onSubmitSuccess, keepOpen) => (

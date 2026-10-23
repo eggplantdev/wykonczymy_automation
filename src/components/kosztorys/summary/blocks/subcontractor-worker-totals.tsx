@@ -7,11 +7,11 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { OptionalLink } from '@/components/ui/optional-link'
+import { isNegativeMoney } from '@/lib/utils/round-to-cents'
 import { formatNet } from '@/lib/kosztorys/format'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
@@ -35,15 +35,15 @@ const STATE_QUALIFIER: Record<
 }
 
 function RemainingCell({ amount, weight }: { amount: number; weight?: 'medium' | 'bold' }) {
-  const isNegative = amount < 0
+  const isNegative = isNegativeMoney(amount)
   return (
-    <SummaryValueCell
+    <SummaryCell
       tone={isNegative ? 'error' : 'default'}
       weight={weight}
       note={isNegative ? { text: 'nadpłacone', tone: 'error' } : undefined}
     >
       {formatNet(amount)}
-    </SummaryValueCell>
+    </SummaryCell>
   )
 }
 
@@ -64,7 +64,7 @@ export function SubcontractorWorkerTotals({
 
   return (
     <SummaryTable cols={`${SUMMARY_LABEL_COL} ${valueCols}`} className="h-fit w-fit">
-      <SummaryHeaderCell variant="label" className="flex items-center justify-between gap-2">
+      <SummaryHeaderCell className="flex items-center justify-between gap-2">
         <span>Podsumowanie pracowników</span>
         {hasOpenPair && (
           <Button type="button" variant="outline" size="sm" onClick={() => setIsSettleOpen(true)}>
@@ -81,7 +81,7 @@ export function SubcontractorWorkerTotals({
         const qualifier = STATE_QUALIFIER[row.state]
         return (
           <div key={workerKey(row.workerId)} className="contents">
-            <SummaryLabelCell weight="medium" note={qualifier}>
+            <SummaryCell weight="medium" note={qualifier}>
               <OptionalLink
                 href={
                   row.workerId === null
@@ -94,23 +94,23 @@ export function SubcontractorWorkerTotals({
               >
                 {row.name}
               </OptionalLink>
-            </SummaryLabelCell>
-            <SummaryValueCell>{formatNet(row.due)}</SummaryValueCell>
-            {showBonus && <SummaryValueCell>{formatNet(row.bonus)}</SummaryValueCell>}
-            <SummaryValueCell tone="success" weight="medium">
+            </SummaryCell>
+            <SummaryCell>{formatNet(row.due)}</SummaryCell>
+            {showBonus && <SummaryCell>{formatNet(row.bonus)}</SummaryCell>}
+            <SummaryCell tone="success" weight="medium">
               {formatNet(row.paid)}
-            </SummaryValueCell>
+            </SummaryCell>
             <RemainingCell amount={row.remaining} weight="medium" />
           </div>
         )
       })}
 
-      <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-      <SummaryValueCell weight="bold">{formatNet(totals.due)}</SummaryValueCell>
-      {showBonus && <SummaryValueCell weight="bold">{formatNet(totals.bonus)}</SummaryValueCell>}
-      <SummaryValueCell tone="success" weight="bold">
+      <SummaryCell weight="bold">Razem</SummaryCell>
+      <SummaryCell weight="bold">{formatNet(totals.due)}</SummaryCell>
+      {showBonus && <SummaryCell weight="bold">{formatNet(totals.bonus)}</SummaryCell>}
+      <SummaryCell tone="success" weight="bold">
         {formatNet(totals.paid)}
-      </SummaryValueCell>
+      </SummaryCell>
       <RemainingCell amount={totals.remaining} weight="bold" />
       <SettlePayoutsDialog
         target={

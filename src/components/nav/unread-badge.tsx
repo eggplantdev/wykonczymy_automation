@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react'
 import { usePathname } from 'next/navigation'
-import { CountBadge } from '@/components/ui/count-badge'
+import { Badge } from '@/components/ui/badge'
 import { isActiveLink } from '@/hooks/use-nav-links'
 import { useUnreadCounts } from '@/hooks/use-unread-counts'
 import type { UnreadStreamT } from '@/types/notifications'
@@ -27,5 +27,16 @@ function UnreadBadgeCount({ stream, path }: { stream: UnreadStreamT; path: strin
   const pathname = usePathname()
 
   const isOwnPage = isActiveLink(pathname, path)
-  return <CountBadge count={isOwnPage && !QUEUE_STREAMS.has(stream) ? 0 : counts[stream]} />
+  const count = isOwnPage && !QUEUE_STREAMS.has(stream) ? 0 : counts[stream]
+  if (count === 0) return null
+
+  return (
+    <Badge
+      appearance="solid"
+      shape="pill"
+      className="ml-auto h-5 min-w-5 justify-center tabular-nums"
+    >
+      {count > 99 ? '99+' : count}
+    </Badge>
+  )
 }

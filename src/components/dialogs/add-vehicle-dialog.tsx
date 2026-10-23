@@ -1,7 +1,6 @@
 'use client'
 
-import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { VehicleForm } from '@/components/forms/vehicle-form/vehicle-form'
 import { createVehicleAction } from '@/lib/actions/fleet'
@@ -21,16 +20,7 @@ const EMPTY_DEFAULTS: VehicleFormValuesT = {
 
 export function AddVehicleDialog() {
   return (
-    <FormDialog
-      formId="add-vehicle"
-      trigger={
-        <Button variant="outline" size="sm">
-          <Plus />
-          Pojazd
-        </Button>
-      }
-      title="Nowy pojazd"
-    >
+    <FormDialog formId="add-vehicle" trigger={<AddButton>Pojazd</AddButton>} title="Nowy pojazd">
       {(onSubmitSuccess, keepOpen) => (
         <VehicleForm
           formId="add-vehicle"

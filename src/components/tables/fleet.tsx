@@ -12,6 +12,8 @@ import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashVehicleAction } from '@/lib/actions/vehicle-trash'
 import { describeVehicleTrash } from '@/lib/fleet/describe-trash'
 import type { FleetRowT } from '@/lib/fleet/types'
+import { actionsColumn } from '@/components/tables/columns/actions-column'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<FleetRowT>()
 
@@ -39,7 +41,7 @@ export function getFleetColumns() {
     col.accessor('tyres', {
       id: 'tyres',
       header: 'Opony',
-      cell: (info) => <span>{info.getValue() || '—'}</span>,
+      cell: (info) => info.getValue() || EMPTY_VALUE,
     }),
     col.accessor((row) => row.activeFlags.length, {
       id: 'flags',
@@ -55,11 +57,8 @@ export function getFleetColumns() {
     col.accessor((row) => row.totalCosts ?? undefined, {
       id: COSTS_COLUMN_ID,
       header: 'Koszty',
-      meta: { align: 'right' },
       sortUndefined: 'last',
-      cell: (info) => (
-        <span className="tabular-nums">{formatPLNOrDash(info.row.original.totalCosts)}</span>
-      ),
+      cell: (info) => formatPLNOrDash(info.row.original.totalCosts),
     }),
     ...SCHEDULED_INSPECTION_TYPES.map((type) =>
       col.accessor(
@@ -92,23 +91,15 @@ export function getFleetColumns() {
     col.accessor('status', {
       id: 'status',
       header: 'Status',
-      meta: { align: 'right' },
       cell: (info) => <VehicleStatusBadge status={info.getValue()} />,
     }),
-    col.display({
-      id: 'actions',
-      header: 'Akcje',
-      meta: { align: 'right' },
-      cell: (info) => (
-        <div className="flex items-center justify-end gap-1">
-          <TrashRowButton
-            label="Usuń pojazd"
-            description={describeVehicleTrash(info.row.original)}
-            trash={() => trashVehicleAction(info.row.original.id)}
-            trashed="Pojazd przeniesiony do kosza."
-          />
-        </div>
-      ),
-    }),
+    actionsColumn<FleetRowT>((vehicle) => (
+      <TrashRowButton
+        label="Usuń pojazd"
+        description={describeVehicleTrash(vehicle)}
+        trash={() => trashVehicleAction(vehicle.id)}
+        trashed="Pojazd przeniesiony do kosza."
+      />
+    )),
   ]
 }

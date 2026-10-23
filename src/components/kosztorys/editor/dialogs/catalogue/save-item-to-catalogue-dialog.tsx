@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { saveItemToCatalogueAction } from '@/lib/actions/work-catalogue'
 import { settleAction } from '@/lib/utils/settle-action'
@@ -78,15 +79,15 @@ export function SaveItemToCatalogueDialog({
       confirmDisabled={!preview || saving}
     >
       {!preview ? (
-        <Description size="xs">Wczytywanie…</Description>
+        <InlineLoading label="Wczytywanie…" className="text-xs" />
       ) : (
         <>
           <div>
             <p className="text-sm font-medium">{preview.candidate.description}</p>
-            <p className="text-muted-foreground text-xs">
+            <Description withIcon={false} size="xs">
               {preview.candidate.unit || 'bez jednostki'}
               {!existing && preview.candidate.category ? ` · ${preview.candidate.category}` : ''}
-            </p>
+            </Description>
           </div>
 
           {existing && (

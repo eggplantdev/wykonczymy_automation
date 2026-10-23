@@ -5,17 +5,26 @@ import {
   CLIENT_VIEW_GROUPS,
   PREVIEW_VISIBLE_COLUMNS,
 } from '@/lib/kosztorys/client-view/columns'
+import { groupsForMoneyFamily, type MoneyFamilyT } from '@/lib/kosztorys/client-view/money-family'
 
 describe('the client-view column groups', () => {
   const grouped = CLIENT_VIEW_GROUPS.flatMap((group) => group.keys)
+  const offered = (family: MoneyFamilyT) =>
+    groupsForMoneyFamily(CLIENT_VIEW_GROUPS, family).flatMap((group) => group.keys)
 
-  it('offers each allowlisted column exactly once', () => {
-    expect(grouped).toHaveLength(PREVIEW_VISIBLE_COLUMNS.size)
-    expect(new Set(grouped)).toEqual(new Set(PREVIEW_VISIBLE_COLUMNS))
+  it('offers each allowlisted column exactly once per money family', () => {
+    for (const family of ['net', 'gross'] as const) {
+      expect(new Set(offered(family)).size).toBe(offered(family).length)
+    }
+    expect(new Set([...offered('net'), ...offered('gross')])).toEqual(
+      new Set(PREVIEW_VISIBLE_COLUMNS),
+    )
   })
 
   it('names every row from the same source as the grid header', () => {
-    for (const key of grouped) expect(COLUMN_LABELS[key]).toBeTypeOf('string')
+    for (const key of [...grouped, ...offered('gross')]) {
+      expect(COLUMN_LABELS[key]).toBeTypeOf('string')
+    }
   })
 
   it('offers the rabat on przedmiar under „Ceny i rabat", beside the rabat it explains', () => {

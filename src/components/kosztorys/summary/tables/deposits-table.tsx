@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment } from 'react'
-import Link from 'next/link'
+import { OptionalLink } from '@/components/ui/optional-link'
 import { DEPOSIT_PLANE_LABELS, DEPOSIT_TYPES } from '@/lib/constants/transfers'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
@@ -18,9 +18,8 @@ import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import type { DepositTransactionRowT } from '@/types/transfers'
 
@@ -46,18 +45,17 @@ export function DepositsTable({
 }) {
   const flagsOffPlane = !preview
   const dateCell = (row: DepositTransactionRowT) => (
-    <SummaryLabelCell className="tabular-nums">
-      {preview ? (
-        formatPLDate(row.date)
-      ) : (
-        <Link
-          href={investmentTransfersHref(investmentId, { types: DEPOSIT_TYPES, id: row.id })}
-          className="hover:underline"
-        >
-          {formatPLDate(row.date)}
-        </Link>
-      )}
-    </SummaryLabelCell>
+    <SummaryCell>
+      <OptionalLink
+        href={
+          preview
+            ? null
+            : investmentTransfersHref(investmentId, { types: DEPOSIT_TYPES, id: row.id })
+        }
+      >
+        {formatPLDate(row.date)}
+      </OptionalLink>
+    </SummaryCell>
   )
 
   const totals = sumDeposits(rows)
@@ -75,10 +73,10 @@ export function DepositsTable({
   return (
     <div className="flex flex-col gap-6">
       <SummaryTable cols={cols} className="w-fit">
-        <SummaryHeaderCell variant="label">Wpłaty</SummaryHeaderCell>
+        <SummaryHeaderCell>Wpłaty</SummaryHeaderCell>
         <SummaryHeaderCell>Netto</SummaryHeaderCell>
         <SummaryHeaderCell>Brutto</SummaryHeaderCell>
-        <SummaryHeaderCell variant="label">Forma wpłaty</SummaryHeaderCell>
+        <SummaryHeaderCell>Forma wpłaty</SummaryHeaderCell>
 
         {rows.map((row) => {
           const pair = depositRowPair(row)
@@ -87,9 +85,9 @@ export function DepositsTable({
           return (
             <Fragment key={row.id}>
               {dateCell(row)}
-              <SummaryValueCell tone={tone}>{formatNet(pair.net)}</SummaryValueCell>
-              <SummaryValueCell tone={tone}>{money(pair.gross)}</SummaryValueCell>
-              <SummaryLabelCell tone={tone}>{planeLabel(row.vatPlane)}</SummaryLabelCell>
+              <SummaryCell tone={tone}>{formatNet(pair.net)}</SummaryCell>
+              <SummaryCell tone={tone}>{money(pair.gross)}</SummaryCell>
+              <SummaryCell tone={tone}>{planeLabel(row.vatPlane)}</SummaryCell>
             </Fragment>
           )
         })}
@@ -97,21 +95,21 @@ export function DepositsTable({
 
       {showPlaneSubtotals && (
         <SummaryTable cols={subtotalCols} className="w-fit">
-          <SummaryHeaderCell variant="label">Wpłaty wg formy</SummaryHeaderCell>
+          <SummaryHeaderCell>Wpłaty wg formy</SummaryHeaderCell>
           <SummaryHeaderCell>Netto</SummaryHeaderCell>
           <SummaryHeaderCell>Brutto</SummaryHeaderCell>
 
           {planeSubtotals.map(({ label, pair }) => (
             <Fragment key={label}>
-              <SummaryLabelCell>{label}</SummaryLabelCell>
-              <SummaryValueCell>{formatNet(pair.net)}</SummaryValueCell>
-              <SummaryValueCell>{money(pair.gross)}</SummaryValueCell>
+              <SummaryCell>{label}</SummaryCell>
+              <SummaryCell>{formatNet(pair.net)}</SummaryCell>
+              <SummaryCell>{money(pair.gross)}</SummaryCell>
             </Fragment>
           ))}
 
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">{formatNet(totals.net)}</SummaryValueCell>
-          <SummaryValueCell>{''}</SummaryValueCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">{formatNet(totals.net)}</SummaryCell>
+          <SummaryCell>{''}</SummaryCell>
         </SummaryTable>
       )}
     </div>

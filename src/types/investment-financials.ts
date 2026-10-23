@@ -9,7 +9,7 @@ export type InvestmentFinancialsT = {
   /** The brutto-billed material sum — the ONLY part the global kosztorys „wszystko netto"
    *  toggle may reduce. */
   materialsGrossBase: number
-  /** Σ `netAmount` of the netto expense type: already a netto figure, frozen against the toggle. */
+  /** Σ `netAmount` of the netto expense type: already a netto figure, which the toggle never reduces. */
   materialsNetBilled: number
   totalIncome: number
   totalLaborCosts: number

@@ -19,6 +19,8 @@ import type {
 } from '@/lib/kosztorys/sheet-import/resolve-rates'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { Description } from '@/components/ui/description'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 type PropsT = {
   mode: RatesReportModeT
@@ -100,7 +102,7 @@ function ConflictFold({
   return (
     <ReportFold summary={mode === 'import' ? `${summary}, wejdą puste` : summary}>
       <RatesByTabTable rows={rows.map(conflictRow)} />
-      <p className="text-muted-foreground text-xs">
+      <Description withIcon={false} size="xs">
         {reason === 'disagree' ? (
           <>
             Obie zakładki „zakres pracy" mają obie kolumny — i „z narzędziami", i „bez narzędzi" —
@@ -119,7 +121,7 @@ function ConflictFold({
           ? 'Te prace wejdą bez stawki wykonawcy (0 zł) i czekają na uzupełnienie.'
           : 'Dla tych prac arkusz nie podaje jednej stawki wykonawcy, więc nie ma z czym porównać kosztorysu.'}{' '}
         Znajdziesz je w kosztorysie przez „Problemy → bez ceny wykonawcy".
-      </p>
+      </Description>
     </ReportFold>
   )
 }
@@ -241,17 +243,17 @@ function TabHeader({ tab, plane }: { tab: string; plane: string }) {
 }
 
 const TONE_CLASS: Record<RateToneT, string> = {
-  taken: 'text-green-600',
-  match: 'text-green-600',
-  differs: 'text-red-600',
+  taken: 'text-chart-green',
+  match: 'text-chart-green',
+  differs: 'text-destructive',
 }
 
 function RateCell({ rate, note, tone }: { rate?: number; note?: string; tone?: RateToneT }) {
-  if (rate === undefined) return <span className="text-muted-foreground">—</span>
+  if (rate === undefined) return EMPTY_VALUE
   const toneClass = tone ? TONE_CLASS[tone] : undefined
   return (
     <>
-      <span className={cn('whitespace-nowrap', toneClass)}>{formatPLN(rate)}</span>
+      <span className={toneClass}>{formatPLN(rate)}</span>
       <span className={cn('block text-xs whitespace-nowrap', toneClass ?? 'text-muted-foreground')}>
         {note}
       </span>
@@ -262,7 +264,7 @@ function RateCell({ rate, note, tone }: { rate?: number; note?: string; tone?: R
 function RatePair({ sheet, app }: { sheet: number; app: number }) {
   return (
     <>
-      <span className={Math.abs(sheet - app) < MONEY_TOLERANCE ? undefined : 'text-amber-600'}>
+      <span className={Math.abs(sheet - app) < MONEY_TOLERANCE ? undefined : 'text-warning'}>
         {formatPLN(sheet)}
       </span>
       <span className="text-muted-foreground block text-xs">{formatPLN(app)} w kosztorysie</span>

@@ -30,7 +30,7 @@ export default function Icon({ size, className, iconName, wrapperClassName }: Pr
   const extraProps = additionalProps[iconName] ?? {}
 
   return (
-    <div className={cn('flex size-4 items-center justify-center', wrapperClassName)}>
+    <div className={cn('flex items-center justify-center', wrapperClassName)}>
       <SelectedIcon size={size} className={className} iconName={iconName} {...extraProps} />
     </div>
   )

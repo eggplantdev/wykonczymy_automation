@@ -3,6 +3,13 @@
 import { useState } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { HintTooltip, SimpleTooltip } from '@/components/ui/tooltip'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import {
@@ -18,6 +25,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuCheckboxRow,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -32,11 +40,13 @@ import {
 import { MenuItemBody } from '@/components/ui/menu-item-body'
 import { DropdownCheckGroups, type DropdownCheckItemT } from '@/components/ui/dropdown-check-groups'
 import { ColumnToggleMenu } from '@/components/ui/column-toggle-menu'
+import { DropdownMenuSection } from '@/components/ui/dropdown-menu-section'
 import type { ColumnToggleItemT } from '@/components/ui/column-order-dialog'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
+import { OpenPreview } from '../open-preview'
 
 const CHECK_GROUP_ITEMS = [
   { id: 'a', label: 'Mokotów', groupLabel: 'Inwestycje' },
@@ -50,6 +60,126 @@ const COLUMNS = [
   { id: 'type', label: 'Typ' },
   { id: 'note', label: 'Opis' },
 ] as const
+
+function SampleSheetContent() {
+  return (
+    <SheetContent>
+      <div className="flex flex-col gap-2 p-4 pr-16">
+        <SheetTitle>Nawigacja</SheetTitle>
+        <SheetDescription>Panel wsuwany z lewej, Esc zamyka.</SheetDescription>
+      </div>
+    </SheetContent>
+  )
+}
+
+function SamplePopoverContent() {
+  return (
+    <PopoverContent>
+      <PopoverHeader>
+        <PopoverTitle>Tytuł</PopoverTitle>
+        <PopoverDescription>Opis zawartości popovera.</PopoverDescription>
+      </PopoverHeader>
+    </PopoverContent>
+  )
+}
+
+type SampleActionsMenuPropsT = {
+  isChecked: boolean
+  onCheckedChange: (checked: boolean) => void
+  radio: string
+  onRadioChange: (value: string) => void
+}
+
+function SampleActionsMenu({
+  isChecked,
+  onCheckedChange,
+  radio,
+  onRadioChange,
+}: SampleActionsMenuPropsT) {
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm">
+          Wszystkie typy pozycji
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-64">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Akcje (DropdownMenuGroup)</DropdownMenuLabel>
+          <DropdownMenuItem>
+            <Pencil />
+            Edytuj
+            <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem variant="destructive">
+            <Trash2 />
+            Usuń
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel inset>Label inset</DropdownMenuLabel>
+        <DropdownMenuItem inset>Pozycja inset</DropdownMenuItem>
+        <DropdownMenuItem disabled>Disabled</DropdownMenuItem>
+        <DropdownMenuItem>
+          <MenuItemBody label="Z opisem" description="MenuItemBody pod etykietą" />
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuCheckboxItem checked={isChecked} onCheckedChange={onCheckedChange}>
+          CheckboxItem
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxRow
+          checked={isChecked}
+          onCheckedChange={onCheckedChange}
+          label="CheckboxRow"
+          trailing="12"
+        />
+        <DropdownMenuSeparator />
+        <DropdownMenuRadioGroup value={radio} onValueChange={onRadioChange}>
+          <DropdownMenuRadioItem value="net">Netto</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="gross">Brutto</DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuSection label="DropdownMenuSection">
+          <DropdownMenuItem>Pozycja w sekcji</DropdownMenuItem>
+        </DropdownMenuSection>
+        <DropdownMenuSeparator />
+        <DropdownMenuSection
+          label="collapseStorageKey"
+          collapseStorageKey="design:dropdown-menu-section"
+        >
+          <DropdownMenuItem>Pozycja w zwijanej sekcji</DropdownMenuItem>
+        </DropdownMenuSection>
+        <DropdownMenuSeparator />
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>Podmenu</DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem>Pozycja</DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+type SampleCheckGroupsMenuPropsT = {
+  items: DropdownCheckItemT[]
+  onSelect: (id: string) => void
+}
+
+function SampleCheckGroupsMenu({ items, onSelect }: SampleCheckGroupsMenuPropsT) {
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm">
+          DropdownCheckGroups
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownCheckGroups items={items} onSelect={onSelect} />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 export function OverlaysSection() {
   const [isChecked, setIsChecked] = useState(true)
@@ -66,6 +196,32 @@ export function OverlaysSection() {
     ...column,
     visible: !hiddenColumns.has(column.id),
   }))
+
+  const actionsMenuProps = {
+    isChecked,
+    onCheckedChange: setIsChecked,
+    radio,
+    onRadioChange: setRadio,
+  }
+  const checkGroupsMenuProps = {
+    items: checkItems,
+    onSelect: (id: string) => setActiveIds((previous) => toggleInSet(previous, id)),
+  }
+  const columnToggleProps = {
+    items: columnItems,
+    onToggle: (id: string) => setHiddenColumns((previous) => toggleInSet(previous, id)),
+    onToggleAll: (visible: boolean) =>
+      setHiddenColumns(new Set(visible ? [] : COLUMNS.map((column) => column.id))),
+    align: 'start' as const,
+    order: {
+      description: 'Przeciągnij, aby zmienić kolejność kolumn.',
+      ranks,
+      baseRanks: {},
+      onSetRank: (key: string, rank: number) =>
+        setRanks((previous) => ({ ...previous, [key]: rank })),
+      onReset: () => setRanks({}),
+    },
+  }
 
   return (
     <ShowcaseSection id="overlays">
@@ -94,6 +250,21 @@ export function OverlaysSection() {
           <InfoTooltip content="Kliknij lub najedź" />
         </span>
       </ShowcaseRow>
+      <ShowcaseRow title="Sheet" source="ui/sheet.tsx">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="sm">
+              Otwórz Sheet
+            </Button>
+          </SheetTrigger>
+          <SampleSheetContent />
+        </Sheet>
+        <OpenPreview className="justify-start p-0">
+          <Sheet>
+            <SampleSheetContent />
+          </Sheet>
+        </OpenPreview>
+      </ShowcaseRow>
       <ShowcaseRow title="Popover" source="ui/popover.tsx">
         <Popover>
           <PopoverTrigger asChild>
@@ -101,96 +272,37 @@ export function OverlaysSection() {
               Otwórz popover
             </Button>
           </PopoverTrigger>
-          <PopoverContent>
-            <PopoverHeader>
-              <PopoverTitle>Tytuł</PopoverTitle>
-              <PopoverDescription>Opis zawartości popovera.</PopoverDescription>
-            </PopoverHeader>
-          </PopoverContent>
+          <SamplePopoverContent />
         </Popover>
+        <OpenPreview backdrop={false}>
+          <SamplePopoverContent />
+        </OpenPreview>
       </ShowcaseRow>
       <ShowcaseRow
         title="DropdownMenu"
-        source="ui/dropdown-menu.tsx, ui/menu-item-body.tsx, ui/dropdown-check-groups.tsx"
+        source="ui/dropdown-menu.tsx, ui/dropdown-menu-section.tsx, ui/menu-item-body.tsx, ui/dropdown-check-groups.tsx"
       >
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              Wszystkie typy pozycji
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-64">
-            <DropdownMenuLabel>Akcje</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <Pencil />
-              Edytuj
-              <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive">
-              <Trash2 />
-              Usuń
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>Disabled</DropdownMenuItem>
-            <DropdownMenuItem>
-              <MenuItemBody label="Z opisem" description="MenuItemBody pod etykietą" />
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem checked={isChecked} onCheckedChange={setIsChecked}>
-              CheckboxItem
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxRow
-              checked={isChecked}
-              onCheckedChange={setIsChecked}
-              label="CheckboxRow"
-              trailing="12"
-            />
-            <DropdownMenuSeparator />
-            <DropdownMenuRadioGroup value={radio} onValueChange={setRadio}>
-              <DropdownMenuRadioItem value="net">Netto</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="gross">Brutto</DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Podmenu</DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem>Pozycja</DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              DropdownCheckGroups
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            <DropdownCheckGroups
-              items={checkItems}
-              onSelect={(id) => setActiveIds((previous) => toggleInSet(previous, id))}
-            />
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <SampleActionsMenu {...actionsMenuProps} />
+        <SampleCheckGroupsMenu {...checkGroupsMenuProps} />
+        <OpenPreview backdrop={false} className="h-152 justify-start gap-x-32">
+          <SampleActionsMenu {...actionsMenuProps} />
+          <SampleCheckGroupsMenu {...checkGroupsMenuProps} />
+        </OpenPreview>
       </ShowcaseRow>
       <ShowcaseRow
-        title="ColumnToggleMenu (+ ColumnOrderDialog)"
+        title="ColumnToggleMenu (+ ColumnOrderDialog), hiddenCount"
         source="ui/column-toggle-menu.tsx"
       >
+        <ColumnToggleMenu {...columnToggleProps} />
+        <ColumnToggleMenu {...columnToggleProps} hiddenCount={3} />
         <ColumnToggleMenu
-          items={columnItems}
-          onToggle={(id) => setHiddenColumns((previous) => toggleInSet(previous, id))}
-          onToggleAll={(visible) =>
-            setHiddenColumns(new Set(visible ? [] : COLUMNS.map((column) => column.id)))
-          }
-          align="start"
-          order={{
-            description: 'Przeciągnij, aby zmienić kolejność kolumn.',
-            ranks,
-            baseRanks: {},
-            onSetRank: (key, rank) => setRanks((previous) => ({ ...previous, [key]: rank })),
-            onReset: () => setRanks({}),
-          }}
+          {...columnToggleProps}
+          collapseStorageKey="design:column-toggle-menu"
+          hint={<InfoTooltip content="Podpowiedź sekcji" />}
         />
+        <OpenPreview backdrop={false} className="h-96 justify-start">
+          <ColumnToggleMenu {...columnToggleProps} order={undefined} />
+        </OpenPreview>
       </ShowcaseRow>
     </ShowcaseSection>
   )

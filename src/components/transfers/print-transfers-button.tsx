@@ -3,7 +3,7 @@
 import { useTransition } from 'react'
 import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'
 import type { Table } from '@tanstack/react-table'
-import { Loader2, Printer } from 'lucide-react'
+import { Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
@@ -76,10 +76,10 @@ export function PrintTransfersButton({ fetchRows, table, title }: PrintTransfers
       variant="outline"
       size="sm"
       onClick={handlePrint}
-      disabled={isPending}
+      pending={isPending}
       aria-label={t('printAria')}
     >
-      {isPending ? <Loader2 className="animate-spin" /> : <Printer />}
+      <Printer />
       {t('print')}
     </Button>
   )

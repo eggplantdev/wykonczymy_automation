@@ -9,12 +9,7 @@ export function WorkerReportsButton() {
   if (!workerReports || workerReports.pendingCount === 0) return null
 
   return (
-    <Button
-      size="sm"
-      variant="outline"
-      className="border-amber-400 bg-amber-50 text-amber-900 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
-      onClick={() => workerReports.openReport()}
-    >
+    <Button size="sm" variant="warningOutline" onClick={() => workerReports.openReport()}>
       <FileUser />
       Zgłoszenia prac ({workerReports.pendingCount})
     </Button>

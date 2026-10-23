@@ -85,7 +85,12 @@ export async function cleanItemTextsAction(investmentId: number): Promise<Action
       if (changed.length === 0) return { success: true, data: 0 }
 
       await captureAutoSnapshot(db, investmentId, user.id)
-      return { success: true, data: await setItemTexts(db, investmentId, changed) }
+      const written = await withPayloadTransaction(
+        payload,
+        async (req) => setItemTexts(await getDb(payload, req), investmentId, changed),
+        { skipRevalidation: true },
+      )
+      return { success: true, data: written }
     },
     ['kosztorysItems'],
   )

@@ -63,18 +63,9 @@ export function DataTableRow<TData>({
       onMouseEnter={handleMouseEnter}
     >
       {cells.map((cell) => {
-        const align = cell.column.columnDef.meta?.align
         const minWidth = cell.column.columnDef.meta?.minWidth
         return (
-          <td
-            key={cell.id}
-            className={cn(
-              'text-foreground px-3 py-2',
-              align === 'right' && 'text-right',
-              align === 'center' && 'text-center',
-              minWidth,
-            )}
-          >
+          <td key={cell.id} className={cn('text-foreground px-3 py-2 tabular-nums', minWidth)}>
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </td>
         )

@@ -1,13 +1,8 @@
-import { Badge, type BadgeToneT } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/badge'
+import { DECISION_TONE } from '@/components/ui/decision-progress-badge'
 import type { PayoutStatusT } from '@/lib/constants/payout-status'
 import type { TranslatorT } from '@/lib/i18n/translations'
 import { payoutStatusLabel } from '@/lib/transfers/transfer-text'
-
-const STATUS_TONES: Record<PayoutStatusT, BadgeToneT> = {
-  pending: 'pending',
-  accepted: 'positive',
-  rejected: 'negative',
-}
 
 type PropsT = {
   status: PayoutStatusT
@@ -17,7 +12,7 @@ type PropsT = {
 
 export function PayoutStatusBadge({ status, cancelled, translator }: PropsT) {
   return (
-    <Badge tone={cancelled ? 'muted' : STATUS_TONES[status]}>
+    <Badge tone={cancelled ? 'muted' : DECISION_TONE[status]}>
       {payoutStatusLabel(status, cancelled, translator)}
     </Badge>
   )

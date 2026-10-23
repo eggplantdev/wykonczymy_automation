@@ -4,6 +4,7 @@ import { roundToCents } from '@/lib/utils/round-to-cents'
 import { isWithinRange } from '@/lib/utils/date-range'
 import { normalizeDocNumber, plDateToIso, type TelmakDocT } from '@/lib/telmak/parse-telmak'
 import type { PreviewFileT } from '@/types/media'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 export type TelmakAppRowT = {
   id: number
@@ -122,7 +123,7 @@ export function compareTelmak(
     if (elsewhere.length > 0)
       issues.push({
         status: 'other-register',
-        text: `w innej kasie: ${elsewhere.map((r) => `#${r.id} ${r.registerName ?? '—'}`).join(', ')}`,
+        text: `w innej kasie: ${elsewhere.map((r) => `#${r.id} ${r.registerName ?? EMPTY_VALUE}`).join(', ')}`,
       })
     if (row.needsFile.length > 0)
       issues.push({ status: 'no-file', text: `bez PDF: ${ids(row.needsFile)}` })

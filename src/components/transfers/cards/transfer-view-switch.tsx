@@ -1,7 +1,7 @@
 'use client'
 
 import { LayoutList, Table2 } from 'lucide-react'
-import { cn } from '@/lib/utils/cn'
+import { ToggleGroup } from '@/components/ui/toggle-group'
 import { useTranslation } from '@/hooks/use-translation'
 import type { TransferViewT } from '@/lib/constants/transfer-view'
 
@@ -16,31 +16,20 @@ type PropsT = {
   className?: string
 }
 
-export function TransferViewSwitch({ view: activeView, onChange, className }: PropsT) {
+export function TransferViewSwitch({ view, onChange, className }: PropsT) {
   const { t } = useTranslation('transfers')
 
   return (
-    <div className={cn('bg-muted flex h-8 w-fit items-center rounded-md p-0.5', className)}>
-      {VIEW_OPTIONS.map(({ view, labelKey, icon: Icon }) => {
-        const isActive = view === activeView
-        const label = t(labelKey)
-        return (
-          <button
-            key={view}
-            type="button"
-            title={label}
-            aria-label={label}
-            aria-pressed={isActive}
-            onClick={() => onChange(view)}
-            className={cn(
-              'flex h-full items-center justify-center rounded-sm px-2.5 transition-colors',
-              isActive ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground',
-            )}
-          >
-            <Icon className="size-4" />
-          </button>
-        )
-      })}
-    </div>
+    <ToggleGroup
+      variant="muted"
+      value={view}
+      onChange={onChange}
+      className={className}
+      options={VIEW_OPTIONS.map(({ view: option, labelKey, icon: Icon }) => ({
+        value: option,
+        label: t(labelKey),
+        icon: <Icon className="size-4" />,
+      }))}
+    />
   )
 }

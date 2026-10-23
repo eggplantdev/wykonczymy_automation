@@ -1,6 +1,13 @@
 import type { Payload } from 'payload'
 
-export const RECIPIENT_LISTS = ['fleetDigest', 'equipmentDigest', 'newLead', 'opsAlerts'] as const
+export const RECIPIENT_LISTS = [
+  'fleetDigest',
+  'equipmentDigest',
+  'newLead',
+  'opsAlerts',
+  'aiPipeline',
+  'aiReviewers',
+] as const
 
 export type RecipientListT = (typeof RECIPIENT_LISTS)[number]
 
@@ -9,6 +16,8 @@ const LIST_LABELS: Record<RecipientListT, string> = {
   equipmentDigest: 'powiadomienia o gwarancjach sprzętu',
   newLead: 'powiadomienia o nowych zgłoszeniach',
   opsAlerts: 'alerty techniczne',
+  aiPipeline: 'powiadomienia o etapach AI',
+  aiReviewers: 'powiadomienia o szkicach AI do recenzji',
 }
 
 export type RecipientListsT = Record<RecipientListT, string[]>

@@ -14,7 +14,7 @@ import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
 
 type PropsT = {
   investmentId: number
-  trigger?: ReactNode
+  trigger: ReactNode
 }
 
 // Create-from-template is not offered: the service account has no Drive quota to create sheets.
@@ -49,8 +49,8 @@ export function SheetSetupDialog({ investmentId, trigger }: PropsT) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger ?? <Button size="sm">Dodaj kosztorys</Button>}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-dialog-sm">
         <DialogHeader title="Kosztorys inwestycji" description="Dodaj istniejący arkusz Google." />
 
         <div className="space-y-6 text-sm">
@@ -78,7 +78,8 @@ export function SheetSetupDialog({ investmentId, trigger }: PropsT) {
             />
             <Button
               onClick={onLink}
-              disabled={pending || !link.trim()}
+              pending={pending}
+              disabled={!link.trim()}
               variant="outline"
               className="w-full"
             >

@@ -4,11 +4,25 @@ import { applyRowConditions } from '@/lib/kosztorys/row-conditions/queries'
 import { sortValueGetter } from '@/lib/kosztorys/columns/sort-value'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-export function filterRows(rows: KosztorysV2RowT[], query: string): KosztorysV2RowT[] {
+export type ViewLatchT = { ids: Set<number>; rank: Map<number, number> }
+
+export function latchViewRows(latch: ViewLatchT, viewRows: KosztorysV2RowT[]): void {
+  for (const row of viewRows) {
+    latch.ids.add(row.id)
+    if (!latch.rank.has(row.id)) latch.rank.set(row.id, latch.rank.size)
+  }
+}
+
+export function filterRows(
+  rows: KosztorysV2RowT[],
+  query: string,
+  latchedIds?: ReadonlySet<number>,
+): KosztorysV2RowT[] {
   const q = query.trim().toLowerCase()
   if (!q) return rows
   return rows.filter(
     (r) =>
+      latchedIds?.has(r.id) ||
       (r.description ?? '').toLowerCase().includes(q) ||
       r.sectionName.toLowerCase().includes(q) ||
       (r.unit ?? '').toLowerCase().includes(q),
@@ -67,7 +81,7 @@ export function buildViewRows(input: {
   divergentPriceRowIds: ReadonlySet<number>
   qtyDoneByRowId?: ReadonlyMap<number, number>
   catalogueRowIds?: { divergent: ReadonlySet<number>; missing: ReadonlySet<number> }
-  latchedRowIds?: ReadonlySet<number>
+  latch?: ViewLatchT
   hasAiDraft?: boolean
   aiColumnsShown?: boolean
 }): KosztorysV2RowT[] {
@@ -82,14 +96,12 @@ export function buildViewRows(input: {
     divergentPriceRowIds,
     qtyDoneByRowId,
     catalogueRowIds,
-    latchedRowIds,
+    latch,
     hasAiDraft,
     aiColumnsShown,
   } = input
-  // The latch bypasses the conditions only — a pozycja held open for editing still leaves the grid
-  // when the search stops matching it
   const filtered = applyRowConditions(
-    filterRows(rows, search),
+    filterRows(rows, search, latch?.ids),
     engagedConditionIds,
     {
       stages,
@@ -100,11 +112,11 @@ export function buildViewRows(input: {
       hasAiDraft,
       aiColumnsShown,
     },
-    latchedRowIds,
+    latch?.ids,
   )
   if (!sort) return filtered
-  const getValue = sortValueGetter(sort.field, view, stages)
-  return sort.scope === 'global'
-    ? sortRows(filtered, getValue, sort.dir)
-    : sortRowsWithinSections(filtered, getValue, sort.dir)
+  const sortInScope = sort.scope === 'global' ? sortRows : sortRowsWithinSections
+  const sorted = sortInScope(filtered, sortValueGetter(sort.field, view, stages), sort.dir)
+  // An unranked row reads as null, so the stable sort puts it after the frozen order.
+  return latch ? sortInScope(sorted, (row) => latch.rank.get(row.id) ?? null, 'asc') : sorted
 }

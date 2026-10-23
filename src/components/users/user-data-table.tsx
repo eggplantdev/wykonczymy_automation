@@ -2,8 +2,6 @@
 
 import { useState } from 'react'
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
-import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { ListFilter } from 'lucide-react'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
@@ -70,23 +68,19 @@ export function UserDataTable({ data, assignableRoles }: UserDataTablePropsT) {
         storageKey="users"
         getRowHref={(row) => `/pracownicy/${row.id}`}
         getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
-        toolbar={({ table, columnVisibility: cv, ...order }) => (
-          <DataTableToolbar
-            search={{ value: searchTerm, onChange: setSearchTerm }}
-            filters={
-              <FilterMultiSelect
-                label="Filtry"
-                icon={ListFilter}
-                triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-                contentClassName="w-80"
-                toggles={toggles}
-                onClearToggles={clear}
-              />
-            }
-            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-            actions={<AddWorkerDialog roles={assignableRoles} />}
+        search={{ value: searchTerm, onChange: setSearchTerm }}
+        filters={
+          <FilterMultiSelect
+            label="Filtry"
+            icon={ListFilter}
+            triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+            contentClassName="w-80"
+            toggles={toggles}
+            onClearToggles={clear}
           />
-        )}
+        }
+        columnToggle
+        actions={<AddWorkerDialog roles={assignableRoles} />}
       />
       <SettlePayoutsDialog target={settleTarget} onClose={() => setSettleTarget(null)} />
     </>

@@ -22,7 +22,7 @@ export function KosztorysProblemsMenu() {
     engagedConditionIds,
     toggleConditionExclusive,
     conditionCounts,
-    refreshProblemRows,
+    refreshView,
     isTemplate,
   } = useKosztorysEditorContext()
 
@@ -36,7 +36,7 @@ export function KosztorysProblemsMenu() {
   const isEngaged = problemToggles.some((toggle) => toggle.active)
 
   return (
-    <DropdownMenu onOpenChange={(open) => open && refreshProblemRows()}>
+    <DropdownMenu onOpenChange={(open) => open && refreshView()}>
       <DropdownMenuTrigger asChild>
         <FilterTriggerButton
           active={isEngaged}

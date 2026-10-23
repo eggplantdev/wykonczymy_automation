@@ -1,21 +1,21 @@
 import { Fragment } from 'react'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { Paperclip } from 'lucide-react'
 import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { emptyHistoryLabel } from '@/lib/fleet/history-window'
 import { INSPECTION_TYPE_LABELS, INSPECTION_TYPES } from '@/lib/fleet/inspection-types'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { formatKm, formatKmOrDash } from '@/lib/utils/format-distance'
 import type { InspectionHistoryEntryT, VehicleDetailT } from '@/lib/fleet/types'
-
-const EMPTY = '—'
+import { Description } from '@/components/ui/description'
 
 const columnsFor = (entries: InspectionHistoryEntryT[]) => ({
   insurer: entries.some((entry) => entry.insurer !== ''),
@@ -38,7 +38,7 @@ function HistoryTable({ entries }: { entries: InspectionHistoryEntryT[] }) {
 
   return (
     <SummaryTable cols={cols} className="w-fit">
-      <SummaryHeaderCell variant="label">Data</SummaryHeaderCell>
+      <SummaryHeaderCell>Data</SummaryHeaderCell>
       <SummaryHeaderCell>Następny termin</SummaryHeaderCell>
       <SummaryHeaderCell>Przebieg</SummaryHeaderCell>
       <SummaryHeaderCell>Od poprzedniego</SummaryHeaderCell>
@@ -49,41 +49,35 @@ function HistoryTable({ entries }: { entries: InspectionHistoryEntryT[] }) {
 
       {entries.map((entry) => (
         <Fragment key={entry.id}>
-          <SummaryLabelCell
-            weight="medium"
-            className="tabular-nums"
-            note={entry.note ? { text: entry.note } : null}
-          >
+          <SummaryCell weight="medium" note={entry.note ? { text: entry.note } : null}>
             {formatPLDate(entry.performedAt)}
-          </SummaryLabelCell>
+          </SummaryCell>
 
-          <SummaryValueCell>
-            {entry.nextDueAt ? formatPLDate(entry.nextDueAt) : EMPTY}
-          </SummaryValueCell>
+          <SummaryCell>{entry.nextDueAt ? formatPLDate(entry.nextDueAt) : EMPTY_VALUE}</SummaryCell>
 
-          <SummaryValueCell>{formatKmOrDash(entry.odometer)}</SummaryValueCell>
+          <SummaryCell>{formatKmOrDash(entry.odometer)}</SummaryCell>
 
-          <SummaryValueCell>
-            {entry.kmSincePrevious !== null ? `+${formatKm(entry.kmSincePrevious)}` : EMPTY}
-          </SummaryValueCell>
+          <SummaryCell>
+            {entry.kmSincePrevious !== null ? `+${formatKm(entry.kmSincePrevious)}` : EMPTY_VALUE}
+          </SummaryCell>
 
-          <SummaryValueCell>{formatPLNOrDash(entry.cost)}</SummaryValueCell>
+          <SummaryCell>{formatPLNOrDash(entry.cost)}</SummaryCell>
 
-          {shown.insurer && <SummaryValueCell>{entry.insurer || EMPTY}</SummaryValueCell>}
+          {shown.insurer && <SummaryCell>{entry.insurer || EMPTY_VALUE}</SummaryCell>}
 
-          {shown.policyNumber && <SummaryValueCell>{entry.policyNumber || EMPTY}</SummaryValueCell>}
+          {shown.policyNumber && <SummaryCell>{entry.policyNumber || EMPTY_VALUE}</SummaryCell>}
 
           {shown.attachments && (
-            <SummaryValueCell>
+            <SummaryCell>
               {entry.attachmentCount > 0 ? (
                 <span className="inline-flex items-center gap-1">
                   <Paperclip className="size-3" />
                   {entry.attachmentCount}
                 </span>
               ) : (
-                EMPTY
+                EMPTY_VALUE
               )}
-            </SummaryValueCell>
+            </SummaryCell>
           )}
         </Fragment>
       ))}
@@ -100,17 +94,17 @@ export function InspectionHistory({
   return (
     <div className="flex flex-col gap-6">
       {INSPECTION_TYPES.map((type) => (
-        <section key={type}>
-          <h2 className="mb-2 text-sm font-semibold">{INSPECTION_TYPE_LABELS[type].pl}</h2>
+        <div key={type}>
+          <h2 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>{INSPECTION_TYPE_LABELS[type].pl}</h2>
 
           {historyByType[type].length === 0 ? (
-            <p className="text-muted-foreground text-xs">
+            <Description withIcon={false} size="xs">
               {emptyHistoryLabel('wpisów', fullHistoryByType[type].length > 0)}
-            </p>
+            </Description>
           ) : (
             <HistoryTable entries={historyByType[type]} />
           )}
-        </section>
+        </div>
       ))}
     </div>
   )

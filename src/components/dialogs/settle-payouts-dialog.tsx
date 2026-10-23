@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { GradientSpinner } from '@/components/ui/gradient-spinner'
+import { Description } from '@/components/ui/description'
+import { Dialog, DialogBody, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { BlockLoading } from '@/components/ui/loader/inline-loading'
 import { SettlePayoutsForm } from '@/components/forms/settle-payouts-form/settle-payouts-form'
 import {
   fetchSettlePayoutRows,
@@ -21,9 +22,9 @@ type SettlePayoutsDialogPropsT = {
 export function SettlePayoutsDialog({ target, onClose }: SettlePayoutsDialogPropsT) {
   return (
     <Dialog open={target !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="sm:max-w-dialog-lg">
         <DialogHeader title={target ? `Rozlicz wypłaty — ${target.name}` : 'Rozlicz wypłaty'} />
-        <div className="mt-6 pr-1">
+        <DialogBody className="mt-6 pr-1">
           {/* Keyed and unmounted on close, so a reopen after a booking — or a result landing for
               a row no longer open — never shows figures the dialog did not just fetch. */}
           {target && (
@@ -33,7 +34,7 @@ export function SettlePayoutsDialog({ target, onClose }: SettlePayoutsDialogProp
               onClose={onClose}
             />
           )}
-        </div>
+        </DialogBody>
       </DialogContent>
     </Dialog>
   )
@@ -63,14 +64,8 @@ function SettleDialogBody({
     }
   }, [target.kind, target.id])
 
-  if (loaded?.error) return <p className="text-destructive text-sm">{loaded.error}</p>
-  if (!loaded?.data) {
-    return (
-      <div className="flex h-40 items-center justify-center">
-        <GradientSpinner className="size-6" />
-      </div>
-    )
-  }
+  if (loaded?.error) return <Description tone="error">{loaded.error}</Description>
+  if (!loaded?.data) return <BlockLoading />
   const { data } = loaded
   return (
     <SettlePayoutsForm

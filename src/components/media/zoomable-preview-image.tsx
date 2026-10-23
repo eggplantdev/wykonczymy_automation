@@ -5,8 +5,9 @@ import Image from 'next/image'
 import { Minus, Plus, Scan } from 'lucide-react'
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
-import { Spinner } from '@/components/ui/loader/spinner'
+import { OverlayLoading } from '@/components/ui/loader/page-loading'
 import { useTranslation } from '@/hooks/use-translation'
+import { Description } from '@/components/ui/description'
 
 type ZoomablePreviewImagePropsT = {
   src: string
@@ -86,16 +87,15 @@ export function ZoomablePreviewImage({
             </div>
           </TransformComponent>
 
-          {isOriginalLoading && (
-            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-              <Spinner />
-            </div>
-          )}
+          {isOriginalLoading && <OverlayLoading />}
 
           {hasOriginalFailed && (
-            <p className="bg-background/85 text-muted-foreground absolute top-2 left-1/2 z-10 -translate-x-1/2 rounded-md border px-3 py-1 text-sm shadow-sm">
+            <Description
+              withIcon={false}
+              className="bg-background/85 absolute top-2 left-1/2 z-10 -translate-x-1/2 rounded-md border px-3 py-1 shadow-sm"
+            >
               {t('originalLoadFailed')}
-            </p>
+            </Description>
           )}
 
           <div className="bg-background/85 absolute right-2 bottom-2 z-10 flex gap-1 rounded-md border p-1 shadow-sm">

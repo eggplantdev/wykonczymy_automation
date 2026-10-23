@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { useLoadOnOpen } from '@/components/kosztorys/editor/hooks/use-load-on-open'
-import { Description } from '@/components/ui/description'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
 import { Input } from '@/components/ui/input'
 import { LanguageLabel } from '@/components/ui/language-label'
-import { Label } from '@/components/ui/label'
 import { useDraft } from '@/hooks/use-draft'
 import { saveSectionTranslationsAction } from '@/lib/actions/section-translations'
 import { TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
@@ -60,19 +60,22 @@ export function SectionTranslationDialog({
     >
       <p className="text-sm font-medium">{sectionName}</p>
       {!draft ? (
-        <Description size="xs">Wczytywanie…</Description>
+        <InlineLoading label="Wczytywanie…" className="text-xs" />
       ) : (
         TRANSLATION_LANGUAGES.map((language) => (
-          <Label key={language} className="flex-col items-stretch gap-1 text-xs font-normal">
-            <LanguageLabel language={language} />
+          <Field key={language}>
+            <FieldLabel htmlFor={`section-translation-${language}`} size="xs">
+              <LanguageLabel language={language} />
+            </FieldLabel>
             <Input
+              id={`section-translation-${language}`}
               value={draft[language]}
               onChange={(e) => {
                 const value = e.target.value
                 setDraft((prev) => prev && { ...prev, [language]: value })
               }}
             />
-          </Label>
+          </Field>
         ))
       )}
     </FormDialogShell>

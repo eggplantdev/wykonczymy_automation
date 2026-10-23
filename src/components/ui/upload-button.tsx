@@ -1,6 +1,6 @@
 'use client'
 
-import { Loader2, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button, type ButtonPropsT } from '@/components/ui/button'
 
 type UploadButtonPropsT = {
@@ -16,11 +16,11 @@ export function UploadButton({ label, isUploading, onClick, size, className }: U
       variant="outline"
       align="start"
       size={size}
-      disabled={isUploading}
+      pending={isUploading}
       onClick={onClick}
       className={className}
     >
-      {isUploading ? <Loader2 className="animate-spin" /> : <Plus />}
+      <Plus />
       {isUploading ? 'Przesyłanie...' : label}
     </Button>
   )

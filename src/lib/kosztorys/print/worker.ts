@@ -99,7 +99,8 @@ export function buildWorkerPrintHtml({
   fillByColorKey,
   locale,
   sectionTranslations,
-}: WorkerPrintArgsT): string {
+  ownWorkOnly,
+}: WorkerPrintArgsT & { ownWorkOnly: boolean }): string {
   const { worker, investmentName } = data
   const grid = createTranslator(locale, 'grid')
   const tree = translateTree(data.tree, locale, sectionTranslations)
@@ -116,10 +117,11 @@ export function buildWorkerPrintHtml({
   }).filter((column) => !dataHidden.has(column.key))
   const totalsOf = (rowsToTotal: typeof rows) =>
     columnTotalsForRows(rowsToTotal, stages, worker.plane, tree.vatRate, worker.executedQtyByItem)
-  const grandTotals = totalsOf(rows)
+  const printedRows = documentRows(rows, stages, worker.settings.hideEmptyRows, ownWorkOnly)
+  const grandTotals = totalsOf(printedRows)
 
   return buildKosztorysPrintHtml({
-    rows: documentRows(rows, stages, worker.settings.hideEmptyRows),
+    rows: printedRows,
     columns,
     documentKind: createTranslator(locale, 'report').t('documentKind', { name: worker.name }),
     title: investmentName,
@@ -129,7 +131,7 @@ export function buildWorkerPrintHtml({
     totalKeys: columns.map((column) => column.key).filter((key) => grandTotals.has(key)),
     money: formatPLN,
     sectionTotalsById: new Map(
-      [...groupBySection(rows)].map(([sectionId, rowsOfSection]) => [
+      [...groupBySection(printedRows)].map(([sectionId, rowsOfSection]) => [
         sectionId,
         totalsOf(rowsOfSection),
       ]),

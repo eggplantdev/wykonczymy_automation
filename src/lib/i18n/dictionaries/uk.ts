@@ -18,6 +18,9 @@ export const uk: typeof pl = {
     saving: 'Збереження…',
     keepOpen: 'Не закривати після збереження',
     formHasErrors: 'Форма містить помилки',
+    loading: 'Завантаження',
+    loadingData: 'Завантаження…',
+    confirm: 'Підтвердити',
   },
   notices: {
     unknownToken: 'Це посилання застаріло або було скасоване. Попросіть у керівника нове.',
@@ -595,7 +598,7 @@ export const uk: typeof pl = {
     addInvoice: 'Додати рахунок',
     isPlan: 'Для аналізу AI',
     planHint:
-      'Позначте, якщо AI має аналізувати ці файли — плани, проєкти, фото для огляду. Непозначених AI не бачить.',
+      'AI аналізує ці файли — плани, проєкти, фото для огляду. Зніміть позначку, якщо AI не має їх бачити.',
     markForAi: 'Позначити для аналізу AI',
     markedForAi: 'Позначено для аналізу AI',
     markedForAiToast: 'Файл позначено для аналізу AI',
@@ -627,5 +630,15 @@ export const uk: typeof pl = {
     notFoundTitle: 'Не знайдено',
     notFoundDescription: 'Не вдалося знайти потрібний ресурс',
     backHome: 'Повернутися на головну',
+  },
+  aiStagePush: {
+    readyTitle: "Об'єкт готовий до аналізу",
+    readyBody: '{{investment}} — можна запустити аналіз ШІ.',
+    newInformationTitle: "Нова інформація щодо об'єкта",
+    newInformationBody: '{{investment}} — ШІ має проаналізувати його заново.',
+    analyzedTitle: 'Чернетка ШІ на перевірку',
+    analyzedBody: '{{investment}} — чернетку кошторису завантажено.',
+    reviewDoneTitle: 'Перевірку завершено',
+    reviewDoneBody: '{{investment}} — можна зібрати причини змін.',
   },
 }

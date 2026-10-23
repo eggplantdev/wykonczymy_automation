@@ -2,8 +2,11 @@
 
 import { useState } from 'react'
 import { Check, ChevronLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
+import { EmptyState } from '@/components/ui/empty-state'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { useSearchFilter } from '@/hooks/use-search-filter'
@@ -93,16 +96,16 @@ export function AddSectionsFromPresetDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-3xl sm:p-0">
+      <DialogContent className="sm:max-w-dialog-md gap-0 overflow-hidden p-0 sm:p-0">
         <DialogHeader
           className="px-4 pt-4"
           title="Dodaj sekcję z szablonu"
           description="Wybierz sekcje z zapisanych szablonów. Zostaną dodane z pracami i cenami, bez przedmiaru."
         />
         {sections === null ? (
-          <p className="text-muted-foreground px-4 py-6 text-sm">Ładowanie szablonów…</p>
+          <InlineLoading label="Ładowanie szablonów…" className="px-4 py-6" />
         ) : !activeGroup ? (
-          <p className="text-muted-foreground px-4 py-6 text-sm">Brak zapisanych szablonów.</p>
+          <EmptyState size="inline" title="Brak zapisanych szablonów." className="px-4 py-6" />
         ) : (
           <div className="max-h-dialog-scroll mt-3 flex min-h-0 border-t">
             <div
@@ -121,23 +124,20 @@ export function AddSectionsFromPresetDialog({
               </div>
               <div className="min-h-0 flex-1 overflow-y-auto">
                 {filteredGroups.length === 0 ? (
-                  <p className="text-muted-foreground px-3 py-4 text-sm">
-                    Nie znaleziono szablonu.
-                  </p>
+                  <EmptyState size="inline" title="Nie znaleziono szablonu." className="py-4" />
                 ) : (
                   filteredGroups.map((group) => (
-                    <button
+                    <Button
                       key={group.templateId}
-                      type="button"
+                      variant="ghost"
+                      size="listRow"
+                      align="start"
                       onClick={() => {
                         setActivePresetId(group.templateId)
                         setPane('sections')
                       }}
                       aria-current={group.templateId === activeGroup.templateId}
-                      className={cn(
-                        'hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm',
-                        group.templateId === activeGroup.templateId && 'bg-accent',
-                      )}
+                      className={cn(group.templateId === activeGroup.templateId && 'bg-accent')}
                     >
                       <span className="flex-1 truncate">{group.templateName}</span>
                       {group.selectedCount > 0 && (
@@ -148,7 +148,7 @@ export function AddSectionsFromPresetDialog({
                       <span className="text-muted-foreground text-xs">
                         {group.metas.length} {sectionNoun(group.metas.length)}
                       </span>
-                    </button>
+                    </Button>
                   ))
                 )}
               </div>
@@ -159,44 +159,48 @@ export function AddSectionsFromPresetDialog({
                 pane === 'sections' ? 'flex' : 'hidden',
               )}
             >
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="listRow"
+                align="start"
                 onClick={() => setPane('presets')}
-                className="hover:bg-accent flex items-center gap-1 border-b px-3 py-2 text-left text-sm sm:hidden"
+                className="gap-1 border-b sm:hidden"
               >
                 <ChevronLeft />
                 <span className="truncate">{activeGroup.templateName}</span>
-              </button>
+              </Button>
               <p className="hidden truncate border-b px-3 py-2 text-sm font-medium sm:block">
                 {activeGroup.templateName}
               </p>
               <div className="min-h-0 flex-1 overflow-y-auto py-2">
-                <button
-                  type="button"
+                <Button
+                  variant="ghost"
+                  size="listRow"
+                  align="start"
                   onClick={() => toggleGroup(activeGroup.metas.map((meta) => meta.sectionId))}
                   aria-pressed={allActiveSelected}
-                  className="hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left"
                 >
                   <Check className={cn(allActiveSelected ? 'opacity-100' : 'opacity-0')} />
                   <span className="text-muted-foreground flex-1 text-xs">
                     {allActiveSelected ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
                   </span>
-                </button>
+                </Button>
                 {activeGroup.metas.map((meta) => {
                   const key = meta.sectionId
                   const isSelected = selected.has(key)
                   return (
-                    <button
+                    <Button
                       key={key}
-                      type="button"
+                      variant="ghost"
+                      size="listRow"
+                      align="start"
                       onClick={() => toggle(key)}
                       aria-pressed={isSelected}
-                      className="hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
                     >
                       <Check className={cn(isSelected ? 'opacity-100' : 'opacity-0')} />
                       <span className="flex-1 truncate">{meta.sectionName}</span>
                       <span className="text-muted-foreground text-xs">{meta.itemCount} poz.</span>
-                    </button>
+                    </Button>
                   )
                 })}
               </div>

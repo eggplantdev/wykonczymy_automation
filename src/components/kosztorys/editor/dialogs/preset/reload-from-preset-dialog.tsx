@@ -2,12 +2,16 @@
 
 import { useState, useTransition } from 'react'
 import { Check } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { DialogActions } from '@/components/ui/dialog-actions'
+import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
+import { FormDialogShell } from '@/components/ui/form-dialog-shell'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
+import { BORDERED_LIST_CLASS } from '@/components/ui/panel'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { useSearchFilter } from '@/hooks/use-search-filter'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { cn } from '@/lib/utils/cn'
 import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { toastMessage } from '@/lib/utils/toast'
@@ -20,6 +24,7 @@ import {
 import { itemNoun, sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { usePresetSections } from './use-preset-sections'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
+import { Description } from '@/components/ui/description'
 
 const countItems = (group: PresetGroupT) =>
   group.metas.reduce((total, meta) => total + meta.itemCount, 0)
@@ -96,70 +101,68 @@ export function ReloadFromPresetDialog() {
   const currentItems = tree.sections.reduce((total, section) => total + section.items.length, 0)
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader title={copy.title} description={copy.description} />
-
-        {sections === null ? (
-          <p className="text-muted-foreground text-sm">Ładowanie szablonów…</p>
-        ) : groups.length === 0 ? (
-          <p className="text-muted-foreground text-sm">{copy.empty}</p>
-        ) : (
-          <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-2">
-            <SearchFilterInput
-              value={searchTerm}
-              onChange={setSearchTerm}
-              placeholder="Szukaj szablonu…"
-              className="w-full"
-            />
-            <div className="min-h-0 flex-1 overflow-y-auto rounded-md border">
-              {filteredGroups.length === 0 ? (
-                <p className="text-muted-foreground px-3 py-4 text-sm">Nie znaleziono szablonu.</p>
-              ) : (
-                filteredGroups.map((group) => {
-                  const isSelected = group.templateId === selectedPresetId
-                  return (
-                    <button
-                      key={group.templateId}
-                      type="button"
-                      onClick={() => setSelectedPresetId(group.templateId)}
-                      aria-pressed={isSelected}
-                      className={cn(
-                        'hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm',
-                        isSelected && 'bg-accent',
-                      )}
-                    >
-                      <Check className={cn(isSelected ? 'opacity-100' : 'opacity-0')} />
-                      <span className="flex-1 truncate">{group.templateName}</span>
-                      <span className="text-muted-foreground text-xs">
-                        {summary(group.metas.length, countItems(group))}
-                      </span>
-                    </button>
-                  )
-                })
-              )}
-            </div>
+    <FormDialogShell
+      open={open}
+      onOpenChange={handleOpenChange}
+      contentClassName="sm:max-w-dialog"
+      title={copy.title}
+      description={copy.description}
+      confirmLabel={copy.confirm}
+      pending={pending}
+      pendingLabel="Wczytuję…"
+      onConfirm={handleConfirm}
+      confirmDisabled={!selected || pending}
+    >
+      {sections === null ? (
+        <InlineLoading label="Ładowanie szablonów…" />
+      ) : groups.length === 0 ? (
+        <EmptyState size="inline" title={copy.empty} />
+      ) : (
+        <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-2">
+          <SearchFilterInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Szukaj szablonu…"
+            className="w-full"
+          />
+          <div className={cn(BORDERED_LIST_CLASS, 'min-h-0 flex-1 overflow-y-auto')}>
+            {filteredGroups.length === 0 ? (
+              <EmptyState size="inline" title="Nie znaleziono szablonu." className="py-4" />
+            ) : (
+              filteredGroups.map((group) => {
+                const isSelected = group.templateId === selectedPresetId
+                return (
+                  <Button
+                    key={group.templateId}
+                    variant="ghost"
+                    size="listRow"
+                    align="start"
+                    onClick={() => setSelectedPresetId(group.templateId)}
+                    aria-pressed={isSelected}
+                    className={cn(isSelected && 'bg-accent')}
+                  >
+                    <Check className={cn(isSelected ? 'opacity-100' : 'opacity-0')} />
+                    <span className="flex-1 truncate">{group.templateName}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {summary(group.metas.length, countItems(group))}
+                    </span>
+                  </Button>
+                )
+              })
+            )}
           </div>
-        )}
-
-        <div className="space-y-1 text-sm">
-          <p className="text-muted-foreground">
-            {copy.outgoing}: {summary(currentSections, currentItems)}
-          </p>
-          <p className="text-muted-foreground">
-            {copy.incoming}: {selected ? summary(selected.metas.length, countItems(selected)) : '—'}
-          </p>
         </div>
+      )}
 
-        <DialogActions
-          confirmLabel={copy.confirm}
-          pending={pending}
-          pendingLabel="Wczytuję…"
-          onConfirm={handleConfirm}
-          onCancel={() => handleOpenChange(false)}
-          confirmDisabled={!selected || pending}
-        />
-      </DialogContent>
-    </Dialog>
+      <div className="space-y-1 text-sm">
+        <Description withIcon={false}>
+          {copy.outgoing}: {summary(currentSections, currentItems)}
+        </Description>
+        <Description withIcon={false}>
+          {copy.incoming}:{' '}
+          {selected ? summary(selected.metas.length, countItems(selected)) : EMPTY_VALUE}
+        </Description>
+      </div>
+    </FormDialogShell>
   )
 }

@@ -3,8 +3,27 @@ import { describe, expect, it } from 'vitest'
 import { referenceDataFor } from '@/__tests__/fixtures/reference-data'
 import { orderFormValues } from '@/components/orders/order-form-values'
 
+const MANAGER_REGISTER = { id: 5, name: 'Kasa główna Jan', type: 'MAIN' as const, active: true }
+
 const referenceData = {
   ...referenceDataFor('MANAGER'),
+  currentUserId: 1,
+  workers: [
+    {
+      id: 1,
+      name: 'Jan Testowy',
+      role: 'MANAGER' as const,
+      email: 'jan@example.com',
+      language: null,
+      canAddExpensesWithoutInvestment: false,
+      defaultCashRegisterId: 5,
+    },
+  ],
+  cashRegisters: [
+    MANAGER_REGISTER,
+    { id: 32, name: 'Kasa Big Bag', type: 'VIRTUAL' as const, active: true },
+    { id: 33, name: 'Kasa kontener', type: 'VIRTUAL' as const, active: true },
+  ],
   expenseCategories: [
     { id: 11, name: 'Robocizna' },
     { id: 12, name: 'materiały budowlane' },
@@ -61,5 +80,30 @@ describe('orderFormValues', () => {
     })
 
     expect(values.lineItems[0].amount).toBe('2399.97')
+  })
+
+  it('books each item from its own register instead of the user default', () => {
+    const order = { quantity: 1, unitPrice: 800, investmentId: 42, referenceData }
+
+    expect(orderFormValues({ ...order, kind: 'bigBag' }).sourceRegister).toBe('32')
+    expect(orderFormValues({ ...order, kind: 'container' }).sourceRegister).toBe('33')
+  })
+
+  it.each([
+    ['missing', [MANAGER_REGISTER]],
+    [
+      'inactive',
+      [MANAGER_REGISTER, { id: 32, name: 'Kasa Big Bag', type: 'VIRTUAL' as const, active: false }],
+    ],
+  ])('falls back to the user default register when the item register is %s', (_, registers) => {
+    const values = orderFormValues({
+      kind: 'bigBag',
+      quantity: 1,
+      unitPrice: 800,
+      investmentId: 42,
+      referenceData: { ...referenceData, cashRegisters: registers },
+    })
+
+    expect(values.sourceRegister).toBe('5')
   })
 })

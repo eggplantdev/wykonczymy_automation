@@ -65,3 +65,5 @@ export const AI_PROGRESS_LABELS: Record<AiProgressStepT, string> = {
   knowledge_extracted: INVESTMENT_AI_STAGE_LABELS.knowledge_extracted.pl,
   new_information: INVESTMENT_AI_STAGE_LABELS.new_information.pl,
 }
+
+export const AI_ACCURACY_DASHBOARD_URL = 'https://claude.ai/artifact/BmWzerRwVFVkL5eEGGYmae'

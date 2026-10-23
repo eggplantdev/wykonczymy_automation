@@ -1,11 +1,8 @@
 'use client'
 
 import { type ReactNode } from 'react'
-import {
-  DropdownMenuCheckboxRow,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenuCheckboxRow, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { DropdownMenuSection } from '@/components/ui/dropdown-menu-section'
 import { ColumnToggleMenu } from '@/components/ui/column-toggle-menu'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
@@ -31,14 +28,18 @@ import {
   type PairAxisConfigT,
 } from '@/lib/kosztorys/axis-checkboxes'
 
+const SECTION_STORAGE_KEY = 'kosztorys-view-menu'
+
 function AxisSection<T extends string>({
   label,
+  storageKey,
   options,
   value,
   config,
   onChange,
 }: {
   label: string
+  storageKey: string
   options: { value: T; label: string; icon?: ReactNode }[]
   value: T
   config: PairAxisConfigT<T>
@@ -46,8 +47,7 @@ function AxisSection<T extends string>({
 }) {
   const checks = derivePairChecks(value, config)
   return (
-    <>
-      <DropdownMenuLabel>{label}</DropdownMenuLabel>
+    <DropdownMenuSection label={label} collapseStorageKey={storageKey}>
       {options.map((option) => {
         const box = option.value === config.a ? 'a' : 'b'
         return (
@@ -60,7 +60,7 @@ function AxisSection<T extends string>({
           />
         )
       })}
-    </>
+    </DropdownMenuSection>
   )
 }
 
@@ -119,9 +119,15 @@ export function KosztorysViewMenu() {
           !visible,
         )
       }
+      collapseStorageKey={`${SECTION_STORAGE_KEY}:columns`}
       hint={isTemplate ? undefined : <InfoTooltip content={KOLUMNY_HINT} className="shrink-0" />}
       footer={
-        <TextSizeMenuSection sizes={GRID_TEXT_SIZES} value={textSize} onChange={setTextSize} />
+        <TextSizeMenuSection
+          sizes={GRID_TEXT_SIZES}
+          value={textSize}
+          onChange={setTextSize}
+          collapseStorageKey={`${SECTION_STORAGE_KEY}:text-size`}
+        />
       }
       order={
         offer
@@ -138,14 +144,13 @@ export function KosztorysViewMenu() {
         isTemplate ? undefined : (
           <>
             {offerAvailable && (
-              <>
-                <DropdownMenuLabel>Widok</DropdownMenuLabel>
+              <DropdownMenuSection label="Widok" collapseStorageKey={`${SECTION_STORAGE_KEY}:view`}>
                 <DropdownMenuCheckboxRow
                   checked={offer}
                   onCheckedChange={setOffer}
                   label="Oferta"
                 />
-              </>
+              </DropdownMenuSection>
             )}
             {!offer && (
               <>
@@ -154,6 +159,7 @@ export function KosztorysViewMenu() {
                   <>
                     <AxisSection
                       label="Kwoty"
+                      storageKey={`${SECTION_STORAGE_KEY}:money`}
                       options={MONEY_AXES}
                       value={moneyAxis}
                       config={MONEY_PAIR_CONFIG}
@@ -162,6 +168,7 @@ export function KosztorysViewMenu() {
                     <DropdownMenuSeparator />
                     <AxisSection
                       label="Stawki wykonawców"
+                      storageKey={`${SECTION_STORAGE_KEY}:crew`}
                       options={CREWS}
                       value={crewAxis}
                       config={CREW_PAIR_CONFIG}
@@ -172,6 +179,7 @@ export function KosztorysViewMenu() {
                 )}
                 <AxisSection
                   label="Warstwy"
+                  storageKey={`${SECTION_STORAGE_KEY}:layers`}
                   options={LAYERS}
                   value={layer}
                   config={LAYER_PAIR_CONFIG}
@@ -180,7 +188,10 @@ export function KosztorysViewMenu() {
                 {pickableStages.length > 0 && (
                   <>
                     <DropdownMenuSeparator />
-                    <KosztorysViewStagesSection stages={pickableStages} />
+                    <KosztorysViewStagesSection
+                      stages={pickableStages}
+                      storageKey={`${SECTION_STORAGE_KEY}:stages`}
+                    />
                   </>
                 )}
               </>

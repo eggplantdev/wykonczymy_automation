@@ -1,11 +1,8 @@
 'use client'
 
-import { Plus } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
-import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { AddSheetDialog } from '@/components/dialogs/add-sheet-dialog'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useReferenceData } from '@/hooks/use-reference-data'
 import { getKosztorysColumns } from '@/components/tables/sheets'
@@ -33,22 +30,9 @@ export function KosztorysDataTable({ data }: PropsT) {
       columns={columns}
       storageKey="sheets-kosztorys"
       initialSorting={INITIAL_SORTING}
-      toolbar={({ table, columnVisibility: cv, ...order }) => (
-        <DataTableToolbar
-          columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-          search={{ value: searchTerm, onChange: setSearchTerm }}
-          actions={
-            <AddSheetDialog
-              trigger={
-                <Button variant="outline" size="sm">
-                  <Plus />
-                  Nowy kosztorys
-                </Button>
-              }
-            />
-          }
-        />
-      )}
+      columnToggle
+      search={{ value: searchTerm, onChange: setSearchTerm }}
+      actions={<AddSheetDialog trigger={<AddButton>Nowy kosztorys</AddButton>} />}
     />
   )
 }

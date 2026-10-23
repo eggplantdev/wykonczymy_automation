@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { Ban } from 'lucide-react'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { DialogActions } from '@/components/ui/dialog-actions'
+import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { ReasonField } from '@/components/ui/reason-field'
 import { cancelTransferAction } from '@/lib/actions/transfers'
 import {
@@ -74,39 +73,34 @@ export function CancelTransferButton({
         onClick={() => setOpen(true)}
       />
 
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent showCloseButton={false} className="sm:h-fit sm:max-w-md">
-          <DialogHeader
-            title="Anulowanie transakcji"
-            description={`Czy na pewno chcesz anulować transakcję #${transactionId}? Operacja jest nieodwracalna.`}
-          />
-
-          <ReasonField
-            id="cancel-reason"
-            value={reason}
-            onChange={setReason}
-            min={REASON_MIN_LENGTH}
-            max={REASON_MAX_LENGTH}
-            label="Powód anulowania (wymagany)"
-            placeholder={`Min. ${REASON_MIN_LENGTH} znaków`}
-            counterText={({ length, missing }) =>
-              missing === 0 ? `${length}/${REASON_MAX_LENGTH} znaków` : `Brakuje ${missing} znaków`
-            }
-            disabled={isPending}
-          />
-
-          <DialogActions
-            cancelLabel="Nie"
-            confirmLabel="Tak, anuluj"
-            confirmVariant="destructive"
-            pending={isPending}
-            pendingLabel="Anulowanie..."
-            confirmDisabled={!isReasonValid}
-            onConfirm={handleConfirm}
-            onCancel={() => handleOpenChange(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      <FormDialogShell
+        open={open}
+        onOpenChange={handleOpenChange}
+        showCloseButton={false}
+        title="Anulowanie transakcji"
+        description={`Czy na pewno chcesz anulować transakcję #${transactionId}? Operacja jest nieodwracalna.`}
+        cancelLabel="Nie"
+        confirmLabel="Tak, anuluj"
+        confirmVariant="destructive"
+        pending={isPending}
+        pendingLabel="Anulowanie..."
+        confirmDisabled={!isReasonValid}
+        onConfirm={handleConfirm}
+      >
+        <ReasonField
+          id="cancel-reason"
+          value={reason}
+          onChange={setReason}
+          min={REASON_MIN_LENGTH}
+          max={REASON_MAX_LENGTH}
+          label="Powód anulowania (wymagany)"
+          placeholder={`Min. ${REASON_MIN_LENGTH} znaków`}
+          counterText={({ length, missing }) =>
+            missing === 0 ? `${length}/${REASON_MAX_LENGTH} znaków` : `Brakuje ${missing} znaków`
+          }
+          disabled={isPending}
+        />
+      </FormDialogShell>
     </>
   )
 }

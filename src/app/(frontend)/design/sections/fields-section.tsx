@@ -2,18 +2,32 @@
 
 import { useState, type ComponentProps } from 'react'
 import { pl } from 'date-fns/locale'
+import { Calendar1, CalendarDays } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { DecimalInput } from '@/components/ui/decimal-input'
 import { DecimalField } from '@/components/ui/decimal-field'
 import { Label } from '@/components/ui/label'
-import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from '@/components/ui/field'
 import { Checkbox, type CheckboxVariantT } from '@/components/ui/checkbox'
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 import {
   Select,
+  SelectButtonTrigger,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -30,6 +44,7 @@ import { Button } from '@/components/ui/button'
 import type { LanguageT } from '@/lib/i18n/languages'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
+import { OpenPreview } from '../open-preview'
 
 type FieldOrientationT = NonNullable<ComponentProps<typeof Field>['orientation']>
 type SelectTriggerSizeT = NonNullable<ComponentProps<typeof SelectTrigger>['size']>
@@ -83,6 +98,41 @@ const SEARCH_ITEMS = [
 
 const COMBOBOX_OPTIONS = ['m²', 'mb', 'szt.', 'kpl.']
 
+const FIELD_ERRORS = [{ message: 'To pole jest wymagane' }, { message: 'Minimum 3 znaki' }]
+
+const GROUPED_OPTIONS = [
+  { label: 'Netto', options: OPTIONS.slice(0, 1) },
+  { label: 'Pozostałe', options: OPTIONS.slice(1) },
+]
+
+type SampleGroupedSelectPropsT = {
+  value: string
+  onValueChange: (value: string) => void
+}
+
+function SampleGroupedSelect({ value, onValueChange }: SampleGroupedSelectPropsT) {
+  return (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectButtonTrigger>
+        <SelectValue />
+      </SelectButtonTrigger>
+      <SelectContent>
+        {GROUPED_OPTIONS.map((group, index) => (
+          <SelectGroup key={group.label}>
+            {index > 0 && <SelectSeparator />}
+            <SelectLabel>{group.label}</SelectLabel>
+            {group.options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+}
+
 const TOGGLE_OPTIONS = [
   { value: 'day', label: 'Dzień' },
   { value: 'week', label: 'Tydzień' },
@@ -129,6 +179,12 @@ export function FieldsSection() {
           onCommit={setDecimal}
         />
         <DecimalField label="Z zapisem" labelAbove withSave value={decimal} onCommit={setDecimal} />
+        <DecimalField
+          label="Puste → 0 (emptyAs)"
+          emptyAs={0}
+          value={decimal}
+          onCommit={setDecimal}
+        />
       </ShowcaseRow>
       <ShowcaseRow
         title="Field — orientacje"
@@ -147,6 +203,42 @@ export function FieldsSection() {
           <Input id="field-error" aria-invalid />
           <FieldError>To pole jest wymagane</FieldError>
         </Field>
+        <Field data-invalid>
+          <Label htmlFor="field-errors">FieldError errors=[…]</Label>
+          <Input id="field-errors" aria-invalid />
+          <FieldError errors={FIELD_ERRORS} />
+        </Field>
+        <FieldGroup>
+          <Field orientation="horizontal">
+            <Checkbox
+              id="field-content"
+              checked={isChecked}
+              onCheckedChange={(checked) => setIsChecked(checked === true)}
+            />
+            <FieldContent>
+              <FieldLabel htmlFor="field-content">FieldGroup + FieldContent</FieldLabel>
+              <FieldDescription>Etykieta i opis obok kontrolki</FieldDescription>
+            </FieldContent>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="field-group">Drugie pole w grupie</FieldLabel>
+            <Input id="field-group" placeholder="Wartość" />
+          </Field>
+        </FieldGroup>
+        <Field gap="md">
+          <Label size="xs" tone="muted" htmlFor="field-gap">
+            Label xs muted, Field gap=md
+          </Label>
+          <Input id="field-gap" placeholder="Wartość" />
+        </Field>
+        <FieldSet>
+          <FieldLegend variant="label" tone="muted">
+            FieldLegend muted
+          </FieldLegend>
+          <CheckboxRow checked={isChecked} onCheckedChange={setIsChecked} variant="plain">
+            Opcja
+          </CheckboxRow>
+        </FieldSet>
       </ShowcaseRow>
       <ShowcaseRow title="Checkbox — wariant × stan" source="ui/checkbox.tsx, ui/checkbox-row.tsx">
         {CHECKBOX_VARIANTS.map((variant) => (
@@ -169,6 +261,9 @@ export function FieldsSection() {
         </CheckboxRow>
         <CheckboxRow checked={isChecked} onCheckedChange={setIsChecked} variant="ai">
           CheckboxRow ai
+        </CheckboxRow>
+        <CheckboxRow checked={isChecked} onCheckedChange={setIsChecked} variant="plain">
+          CheckboxRow plain
         </CheckboxRow>
       </ShowcaseRow>
       <ShowcaseRow
@@ -197,6 +292,27 @@ export function FieldsSection() {
           <SelectContent />
         </Select>
       </ShowcaseRow>
+      <ShowcaseRow
+        title="Select — grupy, SelectButtonTrigger"
+        source="ui/select.tsx SelectGroup, SelectLabel, SelectSeparator, SelectButtonTrigger"
+      >
+        <SampleGroupedSelect value={selectValue} onValueChange={setSelectValue} />
+        <Select value={selectValue} onValueChange={setSelectValue}>
+          <SelectButtonTrigger size="xs">
+            <SelectValue />
+          </SelectButtonTrigger>
+          <SelectContent>
+            {OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <OpenPreview backdrop={false}>
+          <SampleGroupedSelect value={selectValue} onValueChange={setSelectValue} />
+        </OpenPreview>
+      </ShowcaseRow>
       <ShowcaseRow title="SimpleSelect — warianty" source="ui/simple-select.tsx">
         {SIMPLE_SELECT_VARIANTS.map((variant) => (
           <div key={variant} className="flex flex-col gap-1">
@@ -219,6 +335,9 @@ export function FieldsSection() {
             invalid
           />
         </div>
+        <OpenPreview backdrop={false}>
+          <SimpleSelect value={selectValue} onValueChange={setSelectValue} options={OPTIONS} />
+        </OpenPreview>
       </ShowcaseRow>
       <ShowcaseRow
         title="Wyszukiwanie i wybór"
@@ -238,12 +357,64 @@ export function FieldsSection() {
           placeholder="Błąd"
           isInvalid
         />
+        <SearchSelect
+          value={searchValue}
+          onChange={setSearchValue}
+          items={SEARCH_ITEMS}
+          placeholder="size=sm"
+          size="sm"
+        />
+        <SearchSelect
+          value={searchValue}
+          onChange={setSearchValue}
+          items={SEARCH_ITEMS}
+          placeholder="size=xs"
+          size="xs"
+        />
         <Combobox
           value={comboboxValue}
           onChange={setComboboxValue}
           options={COMBOBOX_OPTIONS}
           allowCustom
         />
+        <Combobox
+          variant="field"
+          value={comboboxValue}
+          onChange={setComboboxValue}
+          options={COMBOBOX_OPTIONS}
+          allowCustom
+        />
+        <Combobox
+          variant="field"
+          invalid
+          value=""
+          placeholder="Błąd"
+          onChange={setComboboxValue}
+          options={COMBOBOX_OPTIONS}
+        />
+        <OpenPreview backdrop={false} className="sm:col-span-3">
+          <SearchSelect
+            value={searchValue}
+            onChange={setSearchValue}
+            items={SEARCH_ITEMS}
+            placeholder="Wybierz inwestycję"
+          />
+          <SearchSelect
+            value=""
+            onChange={setSearchValue}
+            items={[]}
+            placeholder="Brak wyników"
+            searchPlaceholder="Szukaj inwestycji…"
+            emptyMessage="Nie znaleziono inwestycji"
+          />
+          <Combobox
+            variant="field"
+            value={comboboxValue}
+            onChange={setComboboxValue}
+            options={COMBOBOX_OPTIONS}
+            allowCustom
+          />
+        </OpenPreview>
       </ShowcaseRow>
       <ShowcaseRow
         title="Selecty złożone"
@@ -264,10 +435,21 @@ export function FieldsSection() {
           lockedReason="Powód blokady"
         />
         <LanguageSelect value={language} onValueChange={setLanguage} />
+        <OpenPreview backdrop={false}>
+          <InlineModeSelect
+            label="Widok"
+            value={selectValue}
+            onValueChange={setSelectValue}
+            options={OPTIONS}
+            description="Przykładowy opis"
+          />
+          <LanguageSelect value={language} onValueChange={setLanguage} />
+        </OpenPreview>
       </ShowcaseRow>
       <ShowcaseRow title="FileInput" source="ui/file-input.tsx" className="grid sm:grid-cols-2">
         <FileInput label="Załącznik" />
         <FileInput label="Disabled" disabled />
+        <FileInput label="Z plikiem (initialFileName)" initialFileName="faktura-2026-10.pdf" />
       </ShowcaseRow>
       <ShowcaseRow
         title="ReasonField (autoFocus)"
@@ -331,6 +513,23 @@ export function FieldsSection() {
           onChange={setPeriod}
           disabled
           aria-label="disabled"
+        />
+        <ToggleGroup
+          variant="muted"
+          options={[...TOGGLE_OPTIONS]}
+          value={period}
+          onChange={setPeriod}
+          aria-label="muted"
+        />
+        <ToggleGroup
+          variant="muted"
+          options={[
+            { value: 'week', label: 'Tydzień', icon: <CalendarDays className="size-4" /> },
+            { value: 'month', label: 'Miesiąc', icon: <Calendar1 className="size-4" /> },
+          ]}
+          value={period}
+          onChange={setPeriod}
+          aria-label="icon"
         />
       </ShowcaseRow>
     </ShowcaseSection>

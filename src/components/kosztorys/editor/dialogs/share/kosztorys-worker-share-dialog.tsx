@@ -21,7 +21,7 @@ export function KosztorysWorkerShareDialog() {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-dialog-sm">
         <DialogHeader
           title={`Link do zgłoszeń — ${target?.name ?? ''}`}
           description="Przez ten link pracownik widzi swój kosztorys z rozliczeniem i zgłasza wykonane prace — bez logowania. Ceny klienta i stawki innych rozliczeń nigdy się w nim nie pojawiają. Zgłoszenie czeka na Twoją weryfikację i dopiero po przyjęciu trafia do etapu."

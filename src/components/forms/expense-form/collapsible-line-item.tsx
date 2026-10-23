@@ -2,12 +2,7 @@
 
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import {
-  Collapsible,
-  CollapsibleChevron,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+import * as Collapsible from '@/components/ui/collapsible'
 import { DECISION_TONE, type DecisionStatusT } from '@/components/ui/decision-progress-badge'
 import { cn } from '@/lib/utils/cn'
 
@@ -38,11 +33,11 @@ export function CollapsibleLineItem({
   const isDecided = status !== 'pending'
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible.Root open={isOpen} onOpenChange={setIsOpen}>
       <div className={cn('flex items-center gap-2', isDecided && 'opacity-60')}>
         {leading}
-        <CollapsibleTrigger className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 py-1 text-left">
-          <CollapsibleChevron open={isOpen} className="text-muted-foreground size-4" />
+        <Collapsible.Trigger className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 py-1 text-left">
+          <Collapsible.Chevron open={isOpen} className="text-muted-foreground size-4" />
           <span
             className={cn(
               'min-w-0 truncate text-sm font-medium',
@@ -54,14 +49,14 @@ export function CollapsibleLineItem({
           <Badge tone={DECISION_TONE[status]} className="shrink-0">
             {STATUS_LABEL[status]}
           </Badge>
-        </CollapsibleTrigger>
+        </Collapsible.Trigger>
         {action}
       </div>
-      <CollapsibleContent>
+      <Collapsible.Content>
         <fieldset disabled={isDecided} className="min-w-0 pt-2">
           {children}
         </fieldset>
-      </CollapsibleContent>
-    </Collapsible>
+      </Collapsible.Content>
+    </Collapsible.Root>
   )
 }

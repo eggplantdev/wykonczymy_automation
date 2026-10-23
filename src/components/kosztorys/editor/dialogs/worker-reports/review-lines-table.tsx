@@ -6,6 +6,7 @@ import { PlusIcon } from 'lucide-react'
 import { Checkbox, checkedState } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Description } from '@/components/ui/description'
 import { AlertIcon } from '@/components/ui/alert-icon'
 import { HintTooltip } from '@/components/ui/tooltip'
 import { SearchSelect, type SearchSelectItemT } from '@/components/ui/search-select'
@@ -32,6 +33,7 @@ import { formatFormRef } from '@/lib/kosztorys/worker-report/check-digit'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import type { ReportLineT } from '@/lib/kosztorys/worker-report/types'
 import { cn } from '@/lib/utils/cn'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 export type ReviewRowT = Omit<ReportLineT, 'sectionName'> & {
   sectionName: string
@@ -139,31 +141,35 @@ function AcceptedQtyCell({ row }: { row: ReviewRowT }) {
         disabled={!draft.isTicked}
         aria-invalid={draft.isTicked && parseReportQty(draft.qty).kind !== 'value'}
         onChange={(event) => onChange(row.id, { qty: event.target.value })}
-        className="mx-auto h-8 w-20 tabular-nums"
+        className="h-8 w-20 tabular-nums"
       />
       {note && (
-        <span className="text-muted-foreground block text-xs whitespace-nowrap">{note}</span>
+        <Description size="xs" withIcon={false} className="whitespace-nowrap">
+          {note}
+        </Description>
       )}
     </>
   )
 }
-
-const WARNING_NOTE = 'block text-xs text-amber-600 dark:text-amber-400'
 
 function ScanFlags({ row }: { row: ReviewRowT }) {
   const { drafts } = useReviewTable()
   return (
     <>
       {row.isUncertain && (
-        <span className={WARNING_NOTE}>Niepewny odczyt — sprawdź na zdjęciu</span>
+        <Description tone="warning" size="xs" withIcon={false}>
+          Niepewny odczyt — sprawdź na zdjęciu
+        </Description>
       )}
       {row.isDuplicateItem && (
-        <span className={WARNING_NOTE}>Ta pozycja jest w zgłoszeniu więcej niż raz</span>
+        <Description tone="warning" size="xs" withIcon={false}>
+          Ta pozycja jest w zgłoszeniu więcej niż raz
+        </Description>
       )}
       {row.isUnitMissing && drafts[row.id].matchedItemIds.length === 0 && (
-        <span className="text-destructive block text-xs">
+        <Description tone="error" size="xs">
           Brak j.m. — wybierz pracę z katalogu albo dodaj nową
-        </span>
+        </Description>
       )}
     </>
   )
@@ -185,11 +191,11 @@ function RozpiskaDescriptionCell({ row }: { row: ReviewRowT }) {
       <span className="block leading-snug">{row.description}</span>
       <ScanFlags row={row} />
       {row.isUnassigned && (
-        <span className="text-destructive block text-xs">
+        <Description tone="error" size="xs">
           {row.scannedRef === undefined
             ? 'Pozycja usunięta z rozpiski — do przypisania ręcznie'
             : `Nr ${row.scannedRef} nie pasuje do rozpiski — do przypisania ręcznie`}
-        </span>
+        </Description>
       )}
       {row.isUnassigned && !row.isAccepted && (
         <div className="mt-1 flex flex-col items-start gap-1">
@@ -199,12 +205,12 @@ function RozpiskaDescriptionCell({ row }: { row: ReviewRowT }) {
             items={itemOptions}
             placeholder="Wybierz pozycję z rozpiski…"
             searchPlaceholder="Opis pracy…"
-            className="h-8 max-w-80"
+            size="sm"
+            className="max-w-80"
           />
           <Button
             variant="link"
-            size="xs"
-            className="h-auto p-0"
+            size="inlineXs"
             onClick={() => onChange(row.id, { isExtra: true, itemId: undefined, isTicked: false })}
           >
             Przenieś do prac spoza rozpiski
@@ -256,7 +262,7 @@ function MeasuredCell({ row }: { row: ReviewRowT }) {
   return (
     <HintTooltip
       content="Przekroczono aktualizację przedmiaru"
-      className="flex-col items-center text-amber-600 dark:text-amber-400"
+      className="text-warning flex-col items-center"
     >
       {figure}
       <span className="inline-flex items-center gap-1 text-xs">
@@ -276,7 +282,7 @@ function SwapNote({ row }: { row: ReviewRowT }) {
         {source} „{reviewedDescription(row)}”
       </span>
       {!row.isAccepted && (
-        <Button variant="link" size="xs" className="h-auto p-0" onClick={() => onUndoSwap(row)}>
+        <Button variant="link" size="inlineXs" onClick={() => onUndoSwap(row)}>
           Cofnij podmianę
         </Button>
       )}
@@ -303,7 +309,8 @@ function MatchedDescription({ row }: { row: ReviewRowT }) {
           onValueChange={(value) => onChange(row.id, { itemId: Number(value) })}
           options={choices}
           placeholder="Która pozycja?"
-          className={cn('mt-1 h-8 max-w-80', draft.itemId === undefined && 'border-destructive')}
+          invalid={draft.itemId === undefined}
+          className="mt-1 h-8 max-w-80"
         />
       )}
     </>
@@ -322,8 +329,7 @@ function TranslationNote({ row }: { row: ReviewRowT }) {
       {onRetranslate && !row.isAccepted && (
         <Button
           variant="link"
-          size="xs"
-          className="h-auto p-0"
+          size="inlineXs"
           disabled={isTranslating}
           onClick={() => startTranslating(() => onRetranslate(row.id))}
         >
@@ -391,29 +397,25 @@ const tickColumn = col.display({
   id: 'tick',
   enableHiding: false,
   header: () => <TickHeader />,
-  meta: { align: 'center' },
   cell: ({ row }) => <TickCell row={row.original} />,
 })
 const rejectColumn = col.display({
   id: 'reject',
   enableHiding: false,
   header: 'Akcje',
-  meta: { align: 'center' },
   cell: ({ row }) => <RejectCell row={row.original} />,
 })
 const refColumn = col.accessor((row) => row.ref ?? 0, {
   id: 'ref',
   header: 'Nr',
-  meta: { align: 'center' },
   cell: ({ row }) =>
     row.original.ref !== undefined && (
-      <span className="whitespace-nowrap tabular-nums">{formatFormRef(row.original.ref)}</span>
+      <span className="whitespace-nowrap">{formatFormRef(row.original.ref)}</span>
     ),
 })
 const sectionColumn = col.accessor((row) => row.sectionOrder, {
   id: 'section',
   header: 'Sekcja',
-  meta: { align: 'center' },
   cell: ({ row }) => <SectionPill name={row.original.sectionName} />,
 })
 const reviewDescriptionColumn = col.accessor('description', {
@@ -435,28 +437,27 @@ const workerDescriptionColumn = col.accessor('workerDescription', {
 })
 const reportedColumn = col.accessor('reportedQty', {
   header: 'Zgłoszono',
-  meta: { align: 'center', vertical: true },
+  meta: { vertical: true },
   cell: ({ row }) => (
-    <span className="whitespace-nowrap tabular-nums">
+    <span className="whitespace-nowrap">
       {formatQtyWithUnit(row.original.reportedQty, row.original.unit)}
     </span>
   ),
 })
 const extraReportedColumn = {
   ...reportedColumn,
-  meta: { align: 'center' },
+  meta: {},
 } satisfies typeof reportedColumn
 const acceptedColumn = col.display({
   id: 'accepted',
   header: 'Przyjmuję',
-  meta: { align: 'center', vertical: true },
+  meta: { vertical: true },
   cell: ({ row }) => <AcceptedQtyCell row={row.original} />,
 })
 const stageColumn = col.accessor((row) => row.figures?.stageQty ?? 0, {
   id: 'stage',
   header: () => <StageHeader />,
   meta: {
-    align: 'center',
     label: 'Etap',
     description: 'wartości etapu, do którego przyjmujesz zgłoszenie',
     vertical: true,
@@ -467,27 +468,24 @@ const OFFERED_PLANNED_ID = 'plannedQty'
 const offeredPlannedColumn = col.accessor((row) => row.figures?.plannedQty ?? 0, {
   id: OFFERED_PLANNED_ID,
   header: COLUMN_LABELS.plannedQty,
-  meta: { align: 'center', vertical: true },
+  meta: { vertical: true },
   cell: ({ row }) => row.original.figures && formatQty(row.original.figures.plannedQty),
 })
 const plannedColumn = col.accessor((row) => row.figures?.currentPlannedQty ?? 0, {
   id: 'planned',
   header: COLUMN_LABELS.currentPlannedQty,
-  meta: { align: 'center', vertical: true },
+  meta: { vertical: true },
   cell: ({ row }) =>
     row.original.figures &&
-    (row.original.figures.currentPlannedQty > 0 ? (
-      formatQty(row.original.figures.currentPlannedQty)
-    ) : (
-      <span className="text-muted-foreground">—</span>
-    )),
+    (row.original.figures.currentPlannedQty > 0
+      ? formatQty(row.original.figures.currentPlannedQty)
+      : EMPTY_VALUE),
 })
 const STAGE_QTY_SUM_LABEL = 'Pomiar z natury'
 const stageQtySumColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {
   id: 'stageQtySum',
   header: STAGE_QTY_SUM_LABEL,
   meta: {
-    align: 'center',
     vertical: true,
     description: 'ile jest aktualnie zgłoszone',
   },
@@ -497,7 +495,6 @@ const stageQtySumAfterColumn = col.display({
   id: 'stageQtySumAfter',
   header: STAGE_QTY_SUM_LABEL,
   meta: {
-    align: 'center',
     vertical: true,
     label: `${STAGE_QTY_SUM_LABEL} po przyjęciu`,
     description: 'po przyjęciu zgłoszenia',
@@ -508,7 +505,7 @@ const MEASURED_LABEL = `Pomiar z natury / ${COLUMN_LABELS.currentPlannedQty}`
 const measuredColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {
   id: 'measured',
   header: MEASURED_LABEL,
-  meta: { align: 'center', vertical: true },
+  meta: { vertical: true },
   cell: ({ row }) => <MeasuredCell row={row.original} />,
 })
 const EXTRA_TEXT_WIDTH = 'min-w-80 w-1/3'

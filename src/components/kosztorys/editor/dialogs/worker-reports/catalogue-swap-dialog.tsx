@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { Button } from '@/components/ui/button'
+import { Description } from '@/components/ui/description'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Label } from '@/components/ui/label'
 import { SimpleSelect, type SelectOptionT } from '@/components/ui/simple-select'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
@@ -14,7 +16,6 @@ import { catalogueSwap } from '@/components/kosztorys/editor/dialogs/worker-repo
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { unitLabel } from '@/lib/kosztorys/format'
-import { cn } from '@/lib/utils/cn'
 
 type PropsT = {
   catalogue: WorkCatalogueItemT[]
@@ -70,9 +71,9 @@ export function CatalogueSwapDialog({
     <Dialog open onOpenChange={(open) => !open && !isPending && onClose()}>
       <DialogContent className="sm:max-w-dialog-xl gap-0 overflow-hidden p-0 sm:p-0">
         <DialogHeader className="px-4 pt-4" title="Dodaj pracę do rozpiski" />
-        <p className="text-muted-foreground px-4 pt-1 text-sm">
+        <Description withIcon={false} className="px-4 pt-1">
           Zgłoszono: „{reported.description}” ({unitLabel(reported.unit)})
-        </p>
+        </Description>
         <div className="px-4 pt-3">
           <Label className="gap-2 text-sm font-normal">
             Do sekcji
@@ -81,7 +82,8 @@ export function CatalogueSwapDialog({
               onValueChange={setSectionId}
               options={sectionOptions}
               placeholder="Wybierz sekcję"
-              className={cn('w-56', isSectionMissing && 'border-destructive')}
+              invalid={isSectionMissing}
+              className="w-56"
             />
           </Label>
         </div>
@@ -101,7 +103,7 @@ export function CatalogueSwapDialog({
           />
         </div>
         {catalogue.length === 0 ? (
-          <p className="text-muted-foreground px-4 py-6 text-sm">Katalog prac jest pusty.</p>
+          <EmptyState size="inline" title="Katalog prac jest pusty." className="px-4 py-6" />
         ) : (
           <div className="min-h-0 px-4 pb-3">
             <CataloguePickerTable
@@ -113,20 +115,19 @@ export function CatalogueSwapDialog({
         )}
         <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-4">
           <Button
-            className="shrink-0"
             disabled={isSectionMissing || isPending}
             onClick={() => onNewItem(Number(sectionId), searchTerm.trim())}
           >
             Dodaj nową pracę…
           </Button>
-          <p className="text-muted-foreground min-w-0 flex-1 text-right text-sm">
+          <Description withIcon={false} className="min-w-0 flex-1 justify-end text-right">
             {isSectionMissing
               ? 'Wybierz sekcję, do której trafi praca.'
               : selected &&
                 (isInSection
                   ? 'Jest już w tej sekcji — ilość doda się do tej pozycji.'
                   : 'Trafi od razu do rozpiski jako nowa pozycja w cenie z katalogu.')}
-          </p>
+          </Description>
           <DialogActions
             className="p-0"
             confirmLabel="Dodaj"

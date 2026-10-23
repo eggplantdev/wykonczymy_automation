@@ -10,9 +10,10 @@ import {
   type SectionBandActionsT,
 } from '@/components/kosztorys/editor/grid/menus/kosztorys-section-actions-menu'
 import { useTranslation } from '@/hooks/use-translation'
-import { formatNet } from '@/lib/kosztorys/format'
+import { formatPLN } from '@/lib/utils/format-currency'
 import { cn } from '@/lib/utils/cn'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { ACTIONS_COLUMN_ID, CHROME_COLUMN_IDS } from '@/lib/kosztorys/grid-column-ids'
 
 // `net` is the section's executed value after rabat, in the active price view
 type SectionHeaderFigureT = { itemCount: number; net: number }
@@ -29,11 +30,6 @@ export type SectionHeaderContextT = {
 }
 
 export type SectionHeaderSlotT = 'actions' | 'label' | 'blank'
-
-const ACTIONS_COLUMN_ID = 'actions'
-
-// Literals, not an import — the column assembly imports this file.
-const CHROME_COLUMN_IDS: ReadonlySet<string> = new Set([ACTIONS_COLUMN_ID, 'layerGap'])
 
 export function sectionBandLabelColumnId(
   columnIds: readonly (string | undefined)[],
@@ -134,7 +130,7 @@ export function SectionHeaderCell({
         )}
         {!context.isBare && net !== 0 && (
           <span className="grid-cell-text shrink-0 whitespace-nowrap">
-            <span className="font-medium tabular-nums">{formatNet(net)} zł</span>
+            <span className="font-medium tabular-nums">{formatPLN(net)}</span>
             <span className="text-muted-foreground font-normal"> {t('netSuffix')}</span>
           </span>
         )}
@@ -157,6 +153,7 @@ export function SectionHeaderCell({
   return (
     <div
       aria-hidden
+      // eslint-disable-next-line local/no-hand-rolled-ui -- a Radix tooltip per virtualized row is too heavy
       title={title}
       onClick={foldable ? toggle : undefined}
       className={cn('size-full', foldable && 'cursor-pointer')}

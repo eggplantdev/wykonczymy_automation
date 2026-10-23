@@ -45,6 +45,7 @@ export const MEASURE_DIVERGED_CONDITION_ID = 'measure-diverged'
 
 export const NO_PLANNED_OR_AI_QTY_CONDITION_ID = 'no-planned-or-ai-qty'
 export const HAS_PLANNED_OR_AI_QTY_CONDITION_ID = 'has-planned-or-ai-qty'
+export const HAS_MEASURED_QTY_CONDITION_ID = 'has-measured-qty'
 
 export const CATALOGUE_DIVERGENCE_CONDITION_ID = 'catalogue-price-divergence'
 export const CATALOGUE_MISSING_CONDITION_ID = 'catalogue-missing'
@@ -197,7 +198,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     matches: (row, ctx) => !(qtyDone(row, ctx) > 0),
   },
   {
-    id: 'has-measured-qty',
+    id: HAS_MEASURED_QTY_CONDITION_ID,
     label: 'z wykonaną pracą',
     sectionLabel: 'Sekcje z wykonaną pracą',
     kind: 'filter',

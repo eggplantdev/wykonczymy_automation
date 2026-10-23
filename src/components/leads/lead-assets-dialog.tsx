@@ -5,6 +5,8 @@ import { Paperclip } from 'lucide-react'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { MediaStrip } from '@/components/media/media-strip'
 import { SearchSelect } from '@/components/ui/search-select'
 import { ActiveFilterLabel } from '@/components/filters/active-filter-label'
@@ -18,10 +20,12 @@ import {
   LEAD_ASSET_REMOVAL_LABELS,
   LEAD_ASSET_STRIP_SIZES,
 } from './lead-asset-labels'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 import { toastMessage } from '@/lib/utils/toast'
 import { activeOrSelected } from '@/lib/utils/is-active-ref'
 import type { LeadRowT } from '@/lib/leads/types'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
+import { Description } from '@/components/ui/description'
 
 export const PICK_LABEL = 'Dodaj to zdjęcie do inwestycji'
 
@@ -75,7 +79,7 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
     }
   }, [open, target, ownInvestmentId, ownAssetIds])
 
-  if (visibleFiles.length === 0) return '—'
+  if (visibleFiles.length === 0) return EMPTY_VALUE
 
   const carried = attachedIds ? visibleFiles.filter((file) => attachedIds.has(file.id)) : []
   const waiting = attachedIds
@@ -125,25 +129,26 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
           {visibleFiles.length}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-dialog">
         <DialogHeader
           title="Załączniki"
           description="Wybierz pliki i inwestycję, do której będą dodane."
         />
 
-        <div className="space-y-2">
+        <Field gap="md">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Inwestycja docelowa</p>
+            <FieldLabel htmlFor="lead-assets-target">Inwestycja docelowa</FieldLabel>
             <ActiveFilterLabel activeOnly={activeOnly} onToggle={setActiveOnly} />
           </div>
           {options.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
+            <Description withIcon={false}>
               {investments.length === 0
                 ? 'Brak inwestycji do wyboru.'
                 : 'Brak aktywnych inwestycji'}
-            </p>
+            </Description>
           ) : (
             <SearchSelect
+              id="lead-assets-target"
               value={targetId}
               onChange={setTargetId}
               disabled={isBusy}
@@ -156,12 +161,12 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
               }))}
             />
           )}
-        </div>
+        </Field>
 
         {waiting.length > 0 && (
           <section className="space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-medium">
+              <h3 className={SUBSECTION_TITLE_CLASS}>
                 {carried.length > 0
                   ? `Jeszcze nie w inwestycji (${waiting.length})`
                   : `Wybierz pliki (${waiting.length})`}
@@ -185,6 +190,7 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
             <Button
               size="sm"
               onClick={() => void attach()}
+              pending={pending}
               disabled={isBusy || target === null || chosenIds.length === 0}
             >
               {pending ? 'Dodawanie…' : `Dodaj do inwestycji (${chosenIds.length})`}
@@ -194,7 +200,7 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
 
         {carried.length > 0 && (
           <section className="mt-4 space-y-2">
-            <h3 className="text-muted-foreground text-sm font-medium">
+            <h3 className={`${SUBSECTION_TITLE_CLASS} text-muted-foreground`}>
               Już w inwestycji ({carried.length})
             </h3>
             {/* No delete here: „usuń" on it would detach the file from the ZGŁOSZENIE instead */}

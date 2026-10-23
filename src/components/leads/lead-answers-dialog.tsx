@@ -3,6 +3,7 @@
 import { Dialog, DialogTrigger, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { MediaStrip } from '@/components/media/media-strip'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
 import type { LeadAnswerT } from '@/lib/leads/types'
 import type { MediaFileT } from '@/types/media'
@@ -38,7 +39,7 @@ export function LeadAnswersDialog({ name, formName, answers, assets }: LeadAnswe
 
         {assets.length > 0 && (
           <section className="mt-4 space-y-2">
-            <h3 className="text-muted-foreground text-sm font-medium">Załączniki</h3>
+            <h3 className={`${SUBSECTION_TITLE_CLASS} text-muted-foreground`}>Załączniki</h3>
             <MediaStrip
               files={assets}
               labels={ASSET_PREVIEW_LABELS}

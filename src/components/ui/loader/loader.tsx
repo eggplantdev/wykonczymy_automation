@@ -1,5 +1,7 @@
+'use client'
+
 import { ReactNode } from 'react'
-import { FixedClientLoader } from './fixed-client-loader'
+import { createPortal } from 'react-dom'
 import { ContentLoading } from './page-loading'
 import { cn } from '@/lib/utils/cn'
 
@@ -27,7 +29,7 @@ export const Loader = ({ loading, loaderComponent, className, portal }: PropsT) 
     </div>
   )
 
-  if (portal) return <FixedClientLoader>{comp}</FixedClientLoader>
+  if (portal) return createPortal(comp, document.body)
 
   return comp
 }

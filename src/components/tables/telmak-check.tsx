@@ -1,16 +1,17 @@
 'use client'
 
 import { createColumnHelper } from '@tanstack/react-table'
-import { Loader2, Paperclip } from 'lucide-react'
+import { Paperclip } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MediaPreviewButton } from '@/components/media/media-preview-button'
 import { useInvoiceUpload } from '@/hooks/use-invoice-upload'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
-import { formatPLDate } from '@/lib/utils/format-date'
+import { dateCell } from '@/components/tables/columns/date-cell'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { cn } from '@/lib/utils/cn'
 import type { TelmakStatusT } from '@/lib/telmak/compare-telmak'
 import type { TelmakCheckRowT } from '@/lib/telmak/check-row'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const STATUS_LABELS: Record<TelmakStatusT, string> = {
   unreadable: 'Nieznany format',
@@ -50,29 +51,23 @@ export function getTelmakCheckColumns(onAttached: () => void) {
       header: 'Dokument',
       cell: (info) => <span className="whitespace-nowrap">{info.getValue()}</span>,
     }),
-    col.accessor('issueDate', {
-      header: 'Data wyst.',
-      cell: (info) => (info.getValue() ? formatPLDate(info.getValue()!) : '—'),
-    }),
+    col.accessor('issueDate', { header: 'Data wyst.', cell: dateCell }),
     col.accessor('docAmount', {
       header: 'Faktura',
-      meta: { align: 'right' },
       cell: (info) => formatPLNOrDash(info.getValue()),
     }),
     col.accessor('appAmount', {
       header: 'Aplikacja',
-      meta: { align: 'right' },
       cell: (info) => formatPLNOrDash(info.getValue()),
     }),
     col.accessor('investmentName', {
       header: 'Inwestycja',
-      cell: (info) => <span className="whitespace-nowrap">{info.getValue() ?? '—'}</span>,
+      cell: (info) => <span className="whitespace-nowrap">{info.getValue() || EMPTY_VALUE}</span>,
     }),
     col.accessor('notes', { header: 'Uwagi', meta: { minWidth: 'min-w-64' } }),
     col.display({
       id: 'preview',
       header: 'Podgląd',
-      meta: { align: 'center' },
       cell: ({ row }) =>
         row.original.local && (
           <MediaPreviewButton
@@ -86,12 +81,11 @@ export function getTelmakCheckColumns(onAttached: () => void) {
     col.display({
       id: 'actions',
       header: 'Akcje',
-      meta: { align: 'right' },
       cell: ({ row }) => {
         const { local, needsFile } = row.original
         if (!local) return null
         return (
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center gap-2">
             {needsFile.map((r) => (
               <AttachButton
                 key={r.id}
@@ -119,12 +113,12 @@ function AttachButton({ transactionId, file, onAttached }: AttachButtonPropsT) {
     <Button
       size="sm"
       variant="outline"
-      disabled={isUploading}
+      pending={isUploading}
       onClick={async () => {
         if (await uploadFiles([file])) onAttached()
       }}
     >
-      {isUploading ? <Loader2 className="animate-spin" /> : <Paperclip />}
+      <Paperclip />
       Dołącz do #{transactionId}
     </Button>
   )

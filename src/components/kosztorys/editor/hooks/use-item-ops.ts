@@ -43,6 +43,8 @@ type ArgsT = {
   pruneByIds: UndoRedoApiT['pruneByIds']
   dropHeight: (...keys: string[]) => void
   unfoldSection: (sectionId: number) => void
+  holdNewRow: (rowId: number) => void
+  refreshView: () => void
 }
 
 export function useItemOps({
@@ -59,6 +61,8 @@ export function useItemOps({
   pruneByIds,
   dropHeight,
   unfoldSection,
+  holdNewRow,
+  refreshView,
 }: ArgsT) {
   const { setRows, rowsRef, prevById } = editorRows
   const { sectionMeta, sectionsRef, rowsFromSections } = sectionCrud
@@ -77,6 +81,7 @@ export function useItemOps({
   }
 
   function placeNewItem(item: KosztorysItemT, placement: NewItemPlacementT) {
+    holdNewRow(item.id)
     const meta = sectionMeta(item.sectionId)
     const [row] = rowsFromSections([
       {
@@ -133,6 +138,8 @@ export function useItemOps({
 
   function handlePersistKosztorysOrder() {
     if (!sort) return
+    // The renumber follows a fresh sort; a latched view would keep showing an order that wasn't saved.
+    refreshView()
     const { before, after } = planKosztorysRenumber(
       rowsRef.current,
       sortValueGetter(sort.field, view, stages),

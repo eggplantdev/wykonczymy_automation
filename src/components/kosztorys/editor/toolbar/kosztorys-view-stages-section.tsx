@@ -1,10 +1,7 @@
 'use client'
 
-import {
-  DropdownMenuCheckboxRow,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenuCheckboxRow, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { DropdownMenuSection } from '@/components/ui/dropdown-menu-section'
 import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
 import { StageCompletedMark } from '@/components/kosztorys/editor/stage-completed-mark'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
@@ -12,7 +9,13 @@ import { useTranslation } from '@/hooks/use-translation'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
-export function KosztorysViewStagesSection({ stages }: { stages: KosztorysStageT[] }) {
+export function KosztorysViewStagesSection({
+  stages,
+  storageKey,
+}: {
+  stages: KosztorysStageT[]
+  storageKey: string
+}) {
   const gridDictionary = useTranslation('grid')
   const { isStageOff, toggleStage, setStagesHidden } = useKosztorysEditorContext()
 
@@ -28,8 +31,7 @@ export function KosztorysViewStagesSection({ stages }: { stages: KosztorysStageT
   ] as const
 
   return (
-    <>
-      <DropdownMenuLabel>Etapy</DropdownMenuLabel>
+    <DropdownMenuSection label="Etapy" collapseStorageKey={storageKey}>
       {statusRows.map((row) => {
         if (row.ids.length === 0) return null
         const allShown = row.ids.every((id) => !isStageOff(id))
@@ -57,6 +59,6 @@ export function KosztorysViewStagesSection({ stages }: { stages: KosztorysStageT
           }
         />
       ))}
-    </>
+    </DropdownMenuSection>
   )
 }

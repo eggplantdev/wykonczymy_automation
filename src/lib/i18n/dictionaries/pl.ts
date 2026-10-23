@@ -25,6 +25,9 @@ export const pl = {
     saving: 'Zapisywanie…',
     keepOpen: 'Nie zamykaj po zapisaniu',
     formHasErrors: 'Formularz zawiera błędy',
+    loading: 'Ładowanie',
+    loadingData: 'Wczytywanie…',
+    confirm: 'Potwierdź',
   },
   notices: {
     unknownToken: 'Ten link wygasł albo został cofnięty. Poproś kierownika o nowy.',
@@ -603,7 +606,7 @@ export const pl = {
     addInvoice: 'Dodaj fakturę',
     isPlan: 'Do analizy AI',
     planHint:
-      'Zaznacz, jeśli AI ma analizować te pliki — rzuty, projekty, zdjęcia poglądowe. Nieoznaczonych AI nie widzi.',
+      'AI analizuje te pliki — rzuty, projekty, zdjęcia poglądowe. Odznacz, jeśli ma ich nie widzieć.',
     markForAi: 'Oznacz do analizy AI',
     markedForAi: 'Oznaczony do analizy AI',
     markedForAiToast: 'Plik oznaczony do analizy AI',
@@ -635,5 +638,15 @@ export const pl = {
     notFoundTitle: 'Nie znaleziono',
     notFoundDescription: 'Nie udało się znaleźć żądanego zasobu',
     backHome: 'Wróć na stronę główną',
+  },
+  aiStagePush: {
+    readyTitle: 'Inwestycja gotowa do analizy',
+    readyBody: '{{investment}} — można uruchomić analizę AI.',
+    newInformationTitle: 'Nowe informacje w inwestycji',
+    newInformationBody: '{{investment}} — AI powinno ją przeanalizować ponownie.',
+    analyzedTitle: 'Szkic AI do recenzji',
+    analyzedBody: '{{investment}} — szkic kosztorysu jest wgrany.',
+    reviewDoneTitle: 'Recenzja zakończona',
+    reviewDoneBody: '{{investment}} — można zebrać powody zmian.',
   },
 }

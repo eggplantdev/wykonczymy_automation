@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
-import { FileArchive, Loader2 } from 'lucide-react'
+import { FileArchive } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/tables/data-table/data-table'
+import { ColumnTotalRow } from '@/components/tables/data-table/column-total-row'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
 import { MediaPreviewButton } from '@/components/media/media-preview-button'
@@ -23,6 +24,7 @@ import {
 } from '@/lib/kosztorys/expense-datasets'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { MaterialTransactionRowT } from '@/types/transfers'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 type PropsT = {
   investmentId: number
@@ -39,35 +41,20 @@ const DATASET_LABELS: Record<ExpenseDatasetT, string> = {
 
 const CLIENT_LIST_LABEL = 'Materiały'
 
-const TABLE_HEIGHT = 400
-// Rendered rows are measured, but the container's collapsed
-// height below is computed from this number — keep it in step with whatever the tallest cell renders.
-const ROW_HEIGHT = 44
-// a height computed from body rows alone clips the header and the „Razem" footer — budget their
-// rendered height too.
-const HEADER_HEIGHT = 41
-const FOOTER_HEIGHT = 41
-
-// Every column carries an explicit size: the virtualized table lays out fixed, so an unsized column
-// would fall back to TanStack's uniform 150 and hand „Data" as much room as „Opis".
 const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
   {
     accessorKey: 'date',
     header: 'Data',
-    size: 96,
-    cell: ({ getValue }) => (
-      <span className="tabular-nums">{formatPLDate(getValue<string>())}</span>
-    ),
+    cell: ({ getValue }) => formatPLDate(getValue<string>()),
   },
-  { accessorKey: 'label', header: 'Kategoria', size: 160 },
+  { accessorKey: 'label', header: 'Kategoria' },
   {
     accessorKey: 'description',
     header: 'Opis',
-    size: 260,
     enableSorting: false,
     cell: ({ getValue }) => {
       const description = getValue<string | null>()
-      if (!description) return <span className="text-muted-foreground">—</span>
+      if (!description) return EMPTY_VALUE
       return (
         <SimpleTooltip content={description}>
           <span className="text-muted-foreground block max-w-64 cursor-help truncate">
@@ -80,16 +67,16 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
   {
     accessorKey: 'invoiceNote',
     header: 'Notatka',
-    size: 160,
     enableSorting: false,
     cell: ({ getValue }) => {
       const note = getValue<string | null>()
       const firstLine = firstNoteLine(note)
-      if (!firstLine || !note) return <span className="text-muted-foreground">—</span>
+      if (!firstLine || !note) return EMPTY_VALUE
       // DataTable's row-link handler skips clicks landing on a button,
       // so reading the note doesn't navigate away.
       return (
         <SimpleTooltip content={note}>
+          {/* eslint-disable-next-line local/no-hand-rolled-ui -- keeps the table's configurable text size */}
           <button
             type="button"
             className="text-muted-foreground focus-visible:ring-ring/50 block max-w-32 cursor-help truncate text-left focus-visible:ring-3"
@@ -103,12 +90,7 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
   {
     accessorKey: 'invoices',
     header: 'Faktura',
-    size: 88,
     enableSorting: false,
-    meta: { align: 'center' },
-    // The empty branch still reserves the control's box: the container's height is
-    // derived from the ROW_HEIGHT estimate while the rows inside it are measured, so an invoice-less
-    // row collapsing to the text line height makes the two disagree and adds an inner scrollbar.
     cell: ({ row }) =>
       row.original.invoices.length > 0 ? (
         <MediaPreviewButton
@@ -118,7 +100,7 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
           className="size-7"
         />
       ) : (
-        <span className="mx-auto block size-7" />
+        <span className="block size-7" />
       ),
   },
 ]
@@ -129,9 +111,7 @@ const moneyColumn = (
 ): ColumnDef<MaterialTransactionRowT> => ({
   accessorKey,
   header,
-  size: 120,
-  meta: { align: 'right' },
-  cell: ({ getValue }) => <span className="tabular-nums">{formatNet(getValue<number>())}</span>,
+  cell: ({ getValue }) => formatNet(getValue<number>()),
 })
 
 const NET_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
@@ -200,10 +180,10 @@ export function MaterialsTransactionsTable({
             variant="outline"
             size="sm"
             onClick={handleDownload}
-            disabled={isPending}
+            pending={isPending}
             className="ml-auto"
           >
-            {isPending ? <Loader2 className="animate-spin" /> : <FileArchive />}
+            <FileArchive />
             Pobierz faktury
           </Button>
         )}
@@ -212,24 +192,17 @@ export function MaterialsTransactionsTable({
         key={listing.key}
         data={visibleRows}
         columns={isNetDataset ? NET_COLUMNS : GROSS_COLUMNS}
-        enableVirtualization
-        virtualRowHeight={ROW_HEIGHT}
-        virtualContainerHeight={Math.min(
-          visibleRows.length * ROW_HEIGHT + HEADER_HEIGHT + FOOTER_HEIGHT,
-          TABLE_HEIGHT,
-        )}
+        containerClassName="max-h-100"
         initialSorting={[{ id: 'date', desc: true }]}
         getRowHref={preview ? undefined : (row) => expenseRowHref(investmentId, row)}
         footer={(visibleColumnIds) => (
-          <tr>
-            <td className="font-bold" colSpan={visibleColumnIds.length - (isNetDataset ? 2 : 1)}>
-              Razem
-            </td>
-            <td className="text-right font-bold tabular-nums">
-              {formatNet(listing.sum(visibleRows))}
-            </td>
-            {isNetDataset && <td />}
-          </tr>
+          <ColumnTotalRow
+            visibleColumnIds={visibleColumnIds}
+            columnId={isNetDataset ? 'billed' : 'amount'}
+            label="Razem"
+          >
+            {formatNet(listing.sum(visibleRows))}
+          </ColumnTotalRow>
         )}
         className="w-full"
       />

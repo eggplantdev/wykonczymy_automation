@@ -13,9 +13,11 @@ import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDateTime } from '@/lib/utils/format-date'
+import { formatDecision } from '@/lib/utils/format-decision'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
 import { expenseDraftSort } from '@/lib/worker-expenses/sortable-columns'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<ExpenseDraftRowT>()
 
@@ -33,7 +35,7 @@ type OptionsT = {
 // A history row stands for one paragon, so it carries at most one transakcja.
 function TransferCell({ draft, isLinked }: { draft: ExpenseDraftRowT; isLinked: boolean }) {
   const [transfer] = draft.transfers
-  if (!transfer) return '—'
+  if (!transfer) return EMPTY_VALUE
   const href =
     isLinked && transfer.investmentId !== null
       ? investmentTransfersHref(transfer.investmentId, {
@@ -43,9 +45,7 @@ function TransferCell({ draft, isLinked }: { draft: ExpenseDraftRowT; isLinked: 
       : undefined
   return (
     <OptionalLink href={href}>
-      <span
-        className={cn('tabular-nums', transfer.cancelled && 'text-muted-foreground line-through')}
-      >
+      <span className={cn(transfer.cancelled && 'text-muted-foreground line-through')}>
         {formatPLN(transfer.amount)}
       </span>
     </OptionalLink>
@@ -138,7 +138,6 @@ export function useExpenseDraftColumns({
     col.display({
       id: 'media',
       header: t('attachments'),
-      meta: { align: 'center' },
       cell: ({ row: { original: draft } }) => (
         <MediaPreviewButton labels={INVOICE_PREVIEW_LABELS} files={draft.media} variant="compact" />
       ),
@@ -147,7 +146,7 @@ export function useExpenseDraftColumns({
       header: t('note'),
       enableSorting: false,
       meta: { minWidth: 'min-w-64' },
-      cell: (info) => <span className="break-words">{info.getValue() ?? '—'}</span>,
+      cell: (info) => <span className="break-words">{info.getValue() || EMPTY_VALUE}</span>,
     }),
     ...(isPendingQueue
       ? [
@@ -156,7 +155,7 @@ export function useExpenseDraftColumns({
             header: t('receipts'),
             meta: { minWidth: 'min-w-48' },
             cell: ({ row: { original: draft } }) =>
-              draft.progress ? <DecisionProgressBadge {...draft.progress} /> : '—',
+              draft.progress ? <DecisionProgressBadge {...draft.progress} /> : EMPTY_VALUE,
           }),
         ]
       : [
@@ -172,6 +171,7 @@ export function useExpenseDraftColumns({
                   <DraftStatusBadge status={draft.status} />
                 )}
                 {isManagerView && draft.duplicateOf && (
+                  // eslint-disable-next-line local/no-hand-rolled-ui -- inline status text inside a table cell, not a form error line
                   <span className="text-destructive text-xs whitespace-nowrap">
                     {duplicateOfLabel(draft.duplicateOf)}
                   </span>
@@ -185,15 +185,13 @@ export function useExpenseDraftColumns({
             meta: { minWidth: 'min-w-56' },
             cell: ({ row: { original: draft } }) =>
               draft.decidedAt
-                ? [formatPLDateTime(draft.decidedAt, locale), draft.decidedByName]
-                    .filter(Boolean)
-                    .join(' · ')
-                : '—',
+                ? formatDecision(draft.decidedAt, draft.decidedByName, locale)
+                : EMPTY_VALUE,
           }),
           col.accessor('transfers', {
             header: t('transfers'),
             enableSorting: false,
-            meta: { align: 'right', minWidth: 'min-w-28' },
+            meta: { minWidth: 'min-w-28' },
             cell: ({ row: { original: draft } }) => (
               <TransferCell draft={draft} isLinked={canOpenTransfers} />
             ),

@@ -5,7 +5,7 @@ import {
   toStoredClientViewSettings,
   type ClientViewSettingsT,
 } from '@/lib/kosztorys/client-view/settings'
-import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
+import { CLIENT_GROSS_TWINS, PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 import { toHiddenColumnMap } from '@/lib/kosztorys/columns/document-column-visibility'
 
 const visibleColumns = (settings: ClientViewSettingsT) => {
@@ -107,6 +107,18 @@ describe('stored client view settings', () => {
       expect.arrayContaining(['price', 'note', 'plannedDonePercent', 'plannedDiscountAmount']),
     )
     expect(settings.hiddenColumns).not.toContain('net')
+  })
+
+  // Every investment saved before brutto joined the document holds a map with no gross key.
+  it.each([
+    ['no stored settings', {}],
+    [
+      'a map written before brutto columns existed',
+      { hiddenColumns: { price: false, net: false } },
+    ],
+  ])('keeps every brutto column hidden for %s', (_label, source) => {
+    const hidden = sanitizeClientViewSettings(source).hiddenColumns
+    for (const key of Object.values(CLIENT_GROSS_TWINS)) expect(hidden).toContain(key)
   })
 
   it('stores one choice per offered column and reads back to the same settings', () => {

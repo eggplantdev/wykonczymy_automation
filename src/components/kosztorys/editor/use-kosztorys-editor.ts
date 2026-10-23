@@ -24,8 +24,8 @@ import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 import { useColumnWidths } from '@/components/kosztorys/editor/hooks/use-column-widths'
 import { useColumnColors } from '@/components/kosztorys/editor/hooks/use-column-colors'
 import { useRowHeights } from '@/components/kosztorys/editor/hooks/use-row-heights'
-import { useConditionRowLatch } from '@/components/kosztorys/editor/hooks/use-condition-row-latch'
-import { engagedLatchingIds, engagedStageProblemIds } from '@/lib/kosztorys/problem-conditions'
+import { useViewLatch } from '@/components/kosztorys/editor/hooks/use-view-latch'
+import { engagedStageProblemIds } from '@/lib/kosztorys/problem-conditions'
 import { useKosztorysSettings } from '@/components/kosztorys/editor/hooks/use-kosztorys-settings'
 import { useKosztorysStageOps } from '@/components/kosztorys/editor/hooks/use-kosztorys-stage-ops'
 import { useKosztorysViewState } from '@/components/kosztorys/editor/hooks/use-kosztorys-view-state'
@@ -48,7 +48,7 @@ import { marginForecastByPlane as forecastByPlane } from '@/lib/kosztorys/margin
 import { divergentPriceRowIds } from '@/lib/kosztorys/price-divergence'
 import { qtyDoneByRow } from '@/lib/kosztorys/row-conditions/ctx'
 import type { RowConditionCtxT } from '@/lib/kosztorys/row-conditions/types'
-import { buildViewRows } from '@/lib/kosztorys/row-view'
+import { buildViewRows, latchViewRows } from '@/lib/kosztorys/row-view'
 import {
   applyRowConditions,
   clientConditionIds,
@@ -259,6 +259,15 @@ export function useKosztorysEditor({
     handleApplyPercentDiscount,
   } = useKosztorysSettings({ investmentId, tree, rowsRef, patchRows, pushReversible })
 
+  const { latch, refresh: refreshView } = useViewLatch({
+    engagedConditionIds,
+    search,
+    sort,
+    view,
+  })
+  // The latch only takes rows once they render, and a new praca never would under the usual filters.
+  const holdNewRow = (rowId: number) => latch?.ids.add(rowId)
+
   const sectionCrud = useSectionCrud({
     investmentId,
     tree,
@@ -276,6 +285,7 @@ export function useKosztorysEditor({
     pushReversible,
     dropHeight,
     unfoldSection,
+    holdNewRow,
   })
   const {
     sections,
@@ -308,6 +318,8 @@ export function useKosztorysEditor({
     pruneByIds,
     dropHeight,
     unfoldSection,
+    holdNewRow,
+    refreshView,
   })
   const { handleApplyCatalogueToItems, handleAcceptCatalogueName } = useCatalogueOps({
     investmentId,
@@ -457,6 +469,7 @@ export function useKosztorysEditor({
     workers,
     executedValueByStage: subcontractorDue.byStage,
     scaledDownStageIds: subcontractorDue.scaledDownStageIds,
+    latchedStageIds: latch?.stageIds,
     sort,
     onSetSort: editorOnly(setSortField),
     isHidden,
@@ -505,6 +518,7 @@ export function useKosztorysEditor({
     dictionary: gridDictionary,
   }
   const grid = buildV2Grid(columnOpts)
+  if (latch) for (const stageId of grid.shownStageIds) latch.stageIds.add(stageId)
   const { columnToggleItems, columnBaseRanks } = grid
   const columns = seams ? seams.transformColumns(grid.columns) : grid.columns
   // A sort must not outlive its column: a money-axis or view toggle can drop the sorted column and its
@@ -537,14 +551,6 @@ export function useKosztorysEditor({
     [preview, rows, conditionCtx],
   )
 
-  const latchedConditions = useMemo(
-    () => engagedLatchingIds(engagedConditionIds),
-    [engagedConditionIds],
-  )
-  const { latch, refresh: refreshProblemRows } = useConditionRowLatch(
-    latchedConditions,
-    latchedConditions.size > 0,
-  )
   const viewRows = useMemo(() => {
     const next = buildViewRows({
       rows,
@@ -553,9 +559,9 @@ export function useKosztorysEditor({
       sort,
       view,
       ...conditionCtx,
-      latchedRowIds: latch?.ids,
+      latch,
     })
-    if (latch) for (const row of next) latch.ids.add(row.id)
+    if (latch) latchViewRows(latch, next)
     return next
   }, [rows, search, engagedConditionIds, sort, view, conditionCtx, latch])
   const ordinalByRowId = useMemo(() => baseOrdinals(documentRows), [documentRows])
@@ -722,7 +728,7 @@ export function useKosztorysEditor({
     toggleCondition,
     setConditions,
     toggleConditionExclusive,
-    refreshProblemRows,
+    refreshView,
     resetFilters,
     conditionCounts,
     foldableSectionIds,

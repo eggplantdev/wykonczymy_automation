@@ -2,8 +2,13 @@
 
 import { useState, type ReactNode } from 'react'
 
-import { DropdownMenu, DropdownMenuContent } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import { HeaderMenuTrigger } from '@/components/ui/datasheet-grid/header-menu-trigger'
+import { useHeaderMenuExtension } from '@/components/ui/datasheet-grid/header-menu-extension'
 import {
   Tooltip,
   TooltipContent,
@@ -16,24 +21,34 @@ type PropsT = {
   label: ReactNode
   icon: ReactNode
   triggerClassName?: string
-  triggerTitle?: string
   tip?: string
   children: ReactNode
 }
 
-export function HeaderMenu({ label, icon, triggerClassName, triggerTitle, tip, children }: PropsT) {
+export function HeaderMenu({ label, icon, triggerClassName, tip, children }: PropsT) {
   // Opening the menu also clears the stale hover flag: Radix never fires the tooltip's
   // close (it's already forced shut), so without this it would pop back the moment the menu closes.
   const [menuOpen, setMenuOpen] = useState(false)
   const [tipHovered, setTipHovered] = useState(false)
+  const { columnId, extension } = useHeaderMenuExtension()
+  const [targetIds, setTargetIds] = useState<string[]>([])
+  const extended = columnId != null && extension != null
 
   const onMenuOpenChange = (open: boolean) => {
     setMenuOpen(open)
     if (open) setTipHovered(false)
+    if (open && extended) setTargetIds(extension.targetIds(columnId))
   }
 
+  // Without stopping Shift+pointerdown before Radix cancels it, the grid never gets the mousedown
+  // that extends its column selection.
   const trigger = (
-    <HeaderMenuTrigger title={tip ? undefined : triggerTitle} className={triggerClassName}>
+    <HeaderMenuTrigger
+      className={triggerClassName}
+      onPointerDownCapture={(e) => {
+        if (extended && e.shiftKey) e.stopPropagation()
+      }}
+    >
       {label}
       {icon}
     </HeaderMenuTrigger>
@@ -59,6 +74,12 @@ export function HeaderMenu({ label, icon, triggerClassName, triggerTitle, tip, c
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         {children}
+        {menuOpen && extended && targetIds.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            {extension.items(targetIds)}
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

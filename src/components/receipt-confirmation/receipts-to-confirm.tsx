@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
-import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/transfers/cards/card-list-classes'
+import { CARD_LIST_CLASS, CARD_SHELL_CLASS } from '@/components/ui/panel'
 import { cn } from '@/lib/utils/cn'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { PayoutStatusBadge } from '@/components/receipt-confirmation/payout-status-badge'
@@ -18,6 +18,7 @@ import { settleAction } from '@/lib/utils/settle-action'
 import { syncAppBadge } from '@/lib/push/push-client'
 import { toastMessage } from '@/lib/utils/toast'
 import { useTranslation } from '@/hooks/use-translation'
+import { Description } from '@/components/ui/description'
 
 type OpenDialogT = { kind: 'accept' | 'reject'; receipt: ReceiptToConfirmT }
 
@@ -78,14 +79,14 @@ export function ReceiptsToConfirm({ receipts }: { receipts: ReceiptToConfirmT[] 
             </p>
           )}
           {receipt.status === 'rejected' && receipt.rejectionReason && (
-            <p className="text-muted-foreground text-sm whitespace-pre-line">
+            <Description withIcon={false} className="whitespace-pre-line">
               {t('receiptRejectionReason', { reason: receipt.rejectionReason })}
-            </p>
+            </Description>
           )}
           <div className="mt-1 grid auto-cols-fr grid-flow-col gap-2">
             <Button
               variant="greenOutline"
-              className="h-11"
+              size="touch"
               disabled={pendingId === receipt.id}
               onClick={() => setOpenDialog({ kind: 'accept', receipt })}
             >
@@ -94,8 +95,8 @@ export function ReceiptsToConfirm({ receipts }: { receipts: ReceiptToConfirmT[] 
             </Button>
             {receipt.status === 'pending' && (
               <Button
-                variant="redOutline"
-                className="h-11"
+                variant="destructiveOutline"
+                size="touch"
                 disabled={pendingId === receipt.id}
                 onClick={() => setOpenDialog({ kind: 'reject', receipt })}
               >

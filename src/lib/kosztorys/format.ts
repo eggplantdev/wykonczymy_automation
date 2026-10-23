@@ -2,6 +2,7 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import type { PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 export const formatNet = (n: number) =>
   roundToCents(n).toLocaleString('pl-PL', {
@@ -34,7 +35,7 @@ export const formatRate = (
 // Only an exact 100% prints as „100%": the cell is red past the agreed scope, so a red „100%" reads
 // as a false alarm, and a grey one reads as done when a sliver is still owed.
 export const formatPercent = (fraction: number | null) => {
-  if (fraction == null) return '—'
+  if (fraction == null) return EMPTY_VALUE
   const percent = fraction * 100
   const roundsToHundred = Number(percent.toFixed(1)) === 100
   const shown =

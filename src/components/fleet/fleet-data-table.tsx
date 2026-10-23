@@ -2,8 +2,6 @@
 
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { ColumnTotalRow } from '@/components/tables/data-table/column-total-row'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
-import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { COSTS_COLUMN_ID, getFleetColumns } from '@/components/tables/fleet'
 import { AddVehicleDialog } from '@/components/dialogs/add-vehicle-dialog'
 import { AddInspectionDialog } from '@/components/dialogs/add-inspection-dialog'
@@ -36,18 +34,14 @@ export function FleetDataTable({ data }: { data: FleetRowT[] }) {
           {formatPLNOrDash(sumKnown(filteredData.map((row) => row.totalCosts)))}
         </ColumnTotalRow>
       )}
-      toolbar={({ table, columnVisibility: cv, ...order }) => (
-        <DataTableToolbar
-          search={{ value: searchTerm, onChange: setSearchTerm }}
-          columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-          actions={
-            <>
-              <AddInspectionDialog vehicles={data} />
-              <AddVehicleDialog />
-            </>
-          }
-        />
-      )}
+      search={{ value: searchTerm, onChange: setSearchTerm }}
+      columnToggle
+      actions={
+        <>
+          <AddInspectionDialog vehicles={data} />
+          <AddVehicleDialog />
+        </>
+      }
     />
   )
 }

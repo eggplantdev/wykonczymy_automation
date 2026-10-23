@@ -6,10 +6,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { DropdownMenuSection } from '@/components/ui/dropdown-menu-section'
 import { Button } from '@/components/ui/button'
 import { ColumnOrderDialog, type ColumnToggleItemT } from '@/components/ui/column-order-dialog'
 import {
@@ -39,6 +39,7 @@ type PropsT = {
   sections?: ReactNode
   footer?: ReactNode
   hint?: ReactNode
+  collapseStorageKey?: string
   hiddenCount?: number
   align?: 'start' | 'end'
   className?: string
@@ -55,6 +56,7 @@ export function ColumnToggleMenu({
   sections,
   footer,
   hint,
+  collapseStorageKey,
   hiddenCount,
   align = 'end',
   className,
@@ -81,11 +83,11 @@ export function ColumnToggleMenu({
           {sections}
           {sections && items.length > 0 && <DropdownMenuSeparator />}
           {items.length > 0 && (
-            <>
-              <DropdownMenuLabel className="flex items-center justify-between gap-2">
-                {t('visibleColumns')}
-                {hint}
-              </DropdownMenuLabel>
+            <DropdownMenuSection
+              label={t('visibleColumns')}
+              hint={hint}
+              collapseStorageKey={collapseStorageKey}
+            >
               {order && (
                 <DropdownMenuItem onSelect={() => setOrderOpen(true)}>
                   <ArrowUpDown />
@@ -123,7 +125,7 @@ export function ColumnToggleMenu({
                   </CommandList>
                 </Command>
               </div>
-            </>
+            </DropdownMenuSection>
           )}
           {footer && (sections || items.length > 0) && <DropdownMenuSeparator />}
           {footer}

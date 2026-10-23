@@ -1,8 +1,8 @@
 'use client'
 
-import { Plus, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { Input } from '@/components/ui/input'
+import { RemoveButton } from '@/components/ui/remove-button'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { blankExtra, extraState } from '@/components/kosztorys/worker-report/extra-state'
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
@@ -58,22 +58,18 @@ export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove, showsMiss
                 placeholder={t('qtyPlaceholder')}
                 className="h-9 min-w-0 flex-1 text-right tabular-nums sm:w-24 sm:flex-none"
               />
-              <Button
+              <RemoveButton
                 variant="ghost"
-                size="icon"
                 aria-label={t('removeWork')}
                 onClick={() => onRemove(extra.key)}
-              >
-                <X />
-              </Button>
+              />
             </div>
           )
         })}
       </div>
-      <Button variant="outline" size="sm" className="mt-3" onClick={() => onSave(blankExtra())}>
-        <Plus />
+      <AddButton className="mt-3" onClick={() => onSave(blankExtra())}>
         {t('addMore')}
-      </Button>
+      </AddButton>
     </div>
   )
 }

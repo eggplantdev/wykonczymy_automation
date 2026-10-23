@@ -12,7 +12,7 @@ import { DEFAULT_LANGUAGE, type LanguageT } from '@/lib/i18n/languages'
 import { logError } from '@/lib/utils/log-error'
 
 /** Doubles as the push-service `topic`, which allows at most 32 URL-safe characters. */
-type PushTagT = 'test' | 'payout-pending'
+type PushTagT = 'test' | 'payout-pending' | `ai-stage-${number}`
 
 export type PushMessageT = {
   title: string

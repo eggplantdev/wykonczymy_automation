@@ -9,6 +9,7 @@ import { FIELD_LABELS, type ColumnFieldT } from '@/lib/kosztorys/sheet-import/co
 import type { CandidateColumnT } from '@/lib/kosztorys/sheet-import/resolve-columns'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
+import { Description } from '@/components/ui/description'
 
 type PropsT = {
   investmentId: number
@@ -53,18 +54,17 @@ export function SheetColumnPicker({ investmentId, missing, pointed, candidates, 
           </div>
         ))}
       {pointed.map((field) => (
-        <p key={field} className="text-muted-foreground text-xs">
+        <Description key={field} withIcon={false} size="xs">
           Kolumnę „{FIELD_LABELS[field]}" wskazałeś ręcznie.{' '}
           <Button
             variant="link"
-            size="sm"
-            className="h-auto p-0 text-xs"
+            size="inlineXs"
             disabled={pending}
             onClick={() => run(() => clearSheetColumnMappingAction(investmentId, field))}
           >
             Usuń wskazanie
           </Button>
-        </p>
+        </Description>
       ))}
     </>
   )

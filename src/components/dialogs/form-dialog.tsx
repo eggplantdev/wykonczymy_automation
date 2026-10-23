@@ -1,13 +1,13 @@
 'use client'
 
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { Dialog, DialogBody, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 
 type FormDialogPropsT = {
   formId: string
   trigger: React.ReactNode
   title: string
-  description?: string
+  description?: React.ReactNode
   showKeepOpen?: boolean
   className?: string
   onClose?: () => void
@@ -58,7 +58,7 @@ export function FormDialog({
         <DialogContent className={className}>
           <div className="h-auto">
             <DialogHeader title={title} description={description} />
-            <div className="mt-6 pr-1">{children(handleSuccess, keepOpen)}</div>
+            <DialogBody className="mt-6 pr-1">{children(handleSuccess, keepOpen)}</DialogBody>
           </div>
         </DialogContent>
       </Dialog>

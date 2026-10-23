@@ -1,9 +1,8 @@
 'use client'
 
-import { Plus } from 'lucide-react'
 import { AiTranslateCheckbox } from '@/components/forms/form-components/ai-translate-checkbox'
 import { useAiTranslate } from '@/components/forms/hooks/use-ai-translate'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { FormDialog } from '@/components/dialogs/form-dialog'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
 import { createCatalogueItemAction } from '@/lib/actions/work-catalogue'
@@ -18,12 +17,7 @@ export function AddCatalogueItemDialog({
   return (
     <FormDialog
       formId="add-catalogue-item"
-      trigger={
-        <Button variant="outline" size="sm">
-          <Plus />
-          Nowa praca
-        </Button>
-      }
+      trigger={<AddButton>Nowa praca</AddButton>}
       title="Nowa praca w katalogu"
     >
       {(onSubmitSuccess, keepOpen) => (

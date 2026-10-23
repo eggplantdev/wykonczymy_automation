@@ -3,6 +3,7 @@
 import { createContext, use } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
+import { Description } from '@/components/ui/description'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -20,10 +21,10 @@ import {
   type SettleRowT,
 } from '@/lib/kosztorys/worker-payout-pairs'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import { cn } from '@/lib/utils/cn'
-import { formatPLN } from '@/lib/utils/format-currency'
+import { formatPLN, formatPLNOrDash } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { amountOf, isValidAmount, type RowValueT } from './row-value'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 type SettleTableContextT = {
   values: RowValueT[]
@@ -45,10 +46,10 @@ function useSettleTable() {
   return context
 }
 
-const EMPTY_VALUE: RowValueT = { ticked: false, amount: '' }
+const EMPTY_ROW_VALUE: RowValueT = { ticked: false, amount: '' }
 
 function useRowValue(index: number) {
-  return useSettleTable().values[index] ?? EMPTY_VALUE
+  return useSettleTable().values[index] ?? EMPTY_ROW_VALUE
 }
 
 const BLOCKED_TAG: Record<Exclude<BlockedStateT, 'locked'>, string> = {
@@ -114,9 +115,9 @@ function AmountCell({ row, index }: { row: SettleRowT; index: number }) {
         onChange={(e) => onAmount(index, e.target.value)}
       />
       {ahead > 0 && (
-        <p className="text-destructive mt-1 text-xs">
+        <Description tone="error" size="xs" className="mt-1">
           {formatPLN(ahead)} ponad wykonaną pracę — zapisze się jako zaliczka
-        </p>
+        </Description>
       )}
     </>
   )
@@ -139,31 +140,18 @@ function AfterPayoutCell({ row, index }: { row: SettleRowT; index: number }) {
       </Button>
     )
   }
-  if (!value.ticked || !isValidAmount(value))
-    return <span className="text-muted-foreground">—</span>
+  if (!value.ticked || !isValidAmount(value)) return EMPTY_VALUE
 
   return <RemainderAmount value={roundToCents(row.remaining - amountOf(value))} />
 }
 
 function RemainderAmount({ value }: { value: number }) {
-  return (
-    <span
-      className={cn(
-        'whitespace-nowrap',
-        value === 0 && 'text-chart-green',
-        value < 0 && 'text-destructive',
-      )}
-    >
-      {formatPLN(value)}
-    </span>
-  )
+  return <BalanceCell value={value} settled />
 }
 
 const col = createColumnHelper<SettleRowT>()
 const AMOUNT_COLUMN_ID = 'amount'
 const BONUS_COLUMN_ID = 'bonus'
-
-const money = (value: number) => <span className="whitespace-nowrap">{formatPLN(value)}</span>
 
 const COLUMNS = [
   col.display({
@@ -177,26 +165,20 @@ const COLUMNS = [
   }),
   col.accessor('due', {
     header: 'Wykonane',
-    meta: { align: 'right' },
-    cell: (info) => money(info.getValue()),
+    cell: (info) => formatPLNOrDash(info.getValue()),
   }),
   col.accessor('bonus', {
     id: BONUS_COLUMN_ID,
     header: 'Premia',
-    meta: { align: 'right' },
-    cell: (info) => money(info.getValue()),
+    cell: (info) => formatPLNOrDash(info.getValue()),
   }),
   col.accessor('paid', {
     header: 'Wypłacone',
-    meta: { align: 'right' },
-    cell: (info) => money(info.getValue()),
+    cell: (info) => formatPLNOrDash(info.getValue()),
   }),
   col.accessor('remaining', {
     header: 'Pozostało',
-    meta: { align: 'right' },
-    cell: (info) => (
-      <BalanceCell value={info.getValue()} className="font-normal whitespace-nowrap" />
-    ),
+    cell: (info) => <BalanceCell value={info.getValue()} />,
   }),
   col.display({
     id: AMOUNT_COLUMN_ID,
@@ -207,7 +189,6 @@ const COLUMNS = [
   col.display({
     id: 'after',
     header: 'Pozostało do rozliczenia',
-    meta: { align: 'right' },
     cell: ({ row }) => <AfterPayoutCell row={row.original} index={row.index} />,
   }),
 ]

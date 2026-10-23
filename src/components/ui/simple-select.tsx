@@ -34,7 +34,7 @@ const VARIANT: Record<
   soft: { size: 'xs', className: 'w-fit gap-1 rounded text-xs' },
   pill: { size: 'xs', className: 'w-fit gap-1 rounded-full text-xs' },
   toolbar: { size: 'sm', className: '', buttonTrigger: true },
-  toolbarSm: { size: 'sm', className: 'h-7 px-2 text-xs', buttonTrigger: true },
+  toolbarSm: { size: 'xs', className: '', buttonTrigger: true },
 }
 
 type PropsT = {
@@ -75,6 +75,7 @@ export function SimpleSelect({
       {preset.buttonTrigger ? (
         <SelectButtonTrigger
           id={id}
+          size={preset.size === 'xs' ? 'xs' : 'sm'}
           aria-invalid={invalid}
           className={cn(preset.className, className)}
         >

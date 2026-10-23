@@ -32,6 +32,16 @@ export class MissingLaborTabError extends Error {
   }
 }
 
+export function pickImportTabs(titles: readonly string[]): {
+  laborTabTitle: string | undefined
+  rateTitles: string[]
+} {
+  return {
+    laborTabTitle: titles.find((title) => fold(title) === LABOR_TAB),
+    rateTitles: titles.filter((title) => fold(title).startsWith(RATE_TAB_PREFIX)),
+  }
+}
+
 // Takes the client rather than building one so this module stays free of the `server-only` env
 // layer — that guard makes anything importing it unusable from a `tsx` script
 export async function readImportGrids(
@@ -50,10 +60,9 @@ export async function readImportGrids(
   const properties = (meta.data.sheets ?? []).map((sheet) => sheet.properties)
   const titles = properties.map((props) => props?.title ?? '')
 
-  const laborTabTitle = titles.find((title) => fold(title) === LABOR_TAB)
+  const { laborTabTitle, rateTitles } = pickImportTabs(titles)
   if (!laborTabTitle) throw new MissingLaborTabError(spreadsheetId)
 
-  const rateTitles = titles.filter((title) => fold(title).startsWith(RATE_TAB_PREFIX))
   const wanted = [laborTabTitle, ...rateTitles]
 
   const range = (title: string) => `'${title}'!A:${LAST_COLUMN}`

@@ -3,6 +3,7 @@ import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
+import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view/settings'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 import { gridColumnIds, STAGES_7_9 } from '@/__tests__/helpers/grid-columns'
@@ -42,17 +43,20 @@ describe('preview columns', () => {
     const visible = previewIds()
     const at = visible.indexOf('plannedQty')
 
-    expect(visible.slice(at, at + 6)).toEqual([
+    expect(visible.slice(at, at + 9)).toEqual([
       'plannedQty',
       'currentPlannedQty',
       'unit',
       'price',
+      'priceGross',
       'plannedNet',
+      'plannedGross',
       'currentPlannedNet',
+      'currentPlannedGross',
     ])
   })
 
-  it('carries no brutto column', () => {
+  it('keeps brutto off the document until the owner ticks it', () => {
     const grossIds = [
       'plannedGross',
       'currentPlannedGross',
@@ -62,10 +66,17 @@ describe('preview columns', () => {
       'gross',
       'remainingGross',
     ]
-    const visible = previewIds()
+    const defaultHidden = sanitizeClientViewSettings({}).hiddenColumns
+    const byDefault = previewIds({ documentHiddenColumns: new Set(defaultHidden) })
+    const ticked = previewIds({
+      documentHiddenColumns: new Set(defaultHidden.filter((id) => !grossIds.includes(id))),
+    })
 
-    for (const id of grossIds) expect(visible).not.toContain(id)
-    expect(visible.filter((id) => id.startsWith('stageValueGross'))).toEqual([])
+    for (const id of grossIds) {
+      expect(byDefault).not.toContain(id)
+      expect(ticked).toContain(id)
+    }
+    expect(byDefault.filter((id) => id.startsWith('stageValueGross'))).toEqual([])
   })
 
   it('follows the stored document order', () => {
@@ -137,8 +148,10 @@ describe('preview columns', () => {
 
     expect(visible).not.toContain('stage_9')
     expect(visible).not.toContain('stageValueNet_9')
+    expect(visible).not.toContain('stageValueGross_9')
     expect(visible).toContain('stage_7')
     expect(visible).toContain('stageValueNet_7')
+    expect(visible).toContain('stageValueGross_7')
     expect(visible).toContain('net')
   })
 

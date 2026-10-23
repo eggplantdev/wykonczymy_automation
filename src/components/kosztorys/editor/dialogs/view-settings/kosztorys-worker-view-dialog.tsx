@@ -5,8 +5,13 @@ import { useDraft } from '@/hooks/use-draft'
 import { Button } from '@/components/ui/button'
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { Description } from '@/components/ui/description'
+import { FieldLegend, FieldSet } from '@/components/ui/field'
+import { InlineLoading } from '@/components/ui/loader/inline-loading'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
-import { ViewSettingsFields } from '@/components/kosztorys/editor/dialogs/view-settings/view-settings-fields'
+import {
+  GROUP_LEGEND_CLASS,
+  ViewSettingsFields,
+} from '@/components/kosztorys/editor/dialogs/view-settings/view-settings-fields'
 import { saveWorkerViewSettingsAction } from '@/lib/actions/kosztorys-worker-view'
 import { DocumentColumnOrderButton } from '@/components/kosztorys/editor/dialogs/view-settings/document-column-order-button'
 import {
@@ -44,7 +49,7 @@ export function KosztorysWorkerViewDialog() {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-dialog-sm">
         <DialogHeader
           title="Ustawienia widoku pracownika"
           description="Zaznacz, które kolumny i pozycje widzą pracownicy. Jedno ustawienie dla wszystkich pracowników i inwestycji. Ceny klienta nie pojawiają się w tym widoku nigdy."
@@ -72,8 +77,10 @@ export function KosztorysWorkerViewDialog() {
               onChange={setDraft}
               disabled={pending}
             />
-            <div className="flex flex-col gap-0.5 border-t pt-3">
-              <p className="text-muted-foreground px-2 text-xs font-medium">Przedmiar</p>
+            <FieldSet className="gap-0.5 border-t pt-3">
+              <FieldLegend variant="label" tone="muted" className={GROUP_LEGEND_CLASS}>
+                Przedmiar
+              </FieldLegend>
               <CheckboxRow
                 checked={draft.hidePlannedOnceExecuted}
                 disabled={pending}
@@ -83,10 +90,10 @@ export function KosztorysWorkerViewDialog() {
               >
                 Ukryj aktualizację przedmiaru i jej wartość, gdy w etapach są już wpisy
               </CheckboxRow>
-            </div>
+            </FieldSet>
           </div>
         ) : (
-          <p className="text-muted-foreground text-sm">Wczytywanie…</p>
+          <InlineLoading label="Wczytywanie…" />
         )}
         <DialogFooter>
           <Button size="sm" disabled={!draft || pending} onClick={save}>

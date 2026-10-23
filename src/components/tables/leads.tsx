@@ -14,6 +14,8 @@ import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { leadDisplayName } from '@/lib/leads/lead-display-name'
 import { LEAD_SOURCE_LABELS } from '@/lib/leads/lead-source-labels'
 import type { LeadRowT, LeadSourceT } from '@/lib/leads/types'
+import { actionsColumn } from '@/components/tables/columns/actions-column'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const SOURCE_TONES: Record<LeadSourceT, BadgeToneT> = {
   facebook_lead_ads: 'sky',
@@ -58,7 +60,7 @@ export function getLeadColumns({
     col.accessor('name', {
       id: 'name',
       header: 'Imię i nazwisko',
-      cell: (info) => info.getValue() || '—',
+      cell: (info) => info.getValue() || EMPTY_VALUE,
     }),
     col.accessor('source', {
       id: 'source',
@@ -81,7 +83,7 @@ export function getLeadColumns({
     col.accessor('formName', {
       id: 'formName',
       header: 'Formularz',
-      cell: (info) => info.getValue() || '—',
+      cell: (info) => info.getValue() || EMPTY_VALUE,
     }),
     col.accessor('submittedAt', {
       id: 'submittedAt',
@@ -89,7 +91,7 @@ export function getLeadColumns({
       enableSorting: true,
       cell: (info) => {
         const value = info.getValue()
-        return value ? formatPLDateTime(value) : '—'
+        return value ? formatPLDateTime(value) : EMPTY_VALUE
       },
     }),
     col.accessor('contactStatus', {
@@ -135,20 +137,13 @@ export function getLeadColumns({
       meta: { minWidth: 'min-w-56' },
       cell: (info) => <PromoteLeadDialog lead={info.row.original} />,
     }),
-    col.display({
-      id: 'actions',
-      header: 'Akcje',
-      meta: { align: 'right' },
-      cell: (info) => (
-        <div className="flex items-center justify-end gap-1">
-          <TrashRowButton
-            label="Usuń zgłoszenie"
-            description={`Przenieść „${leadDisplayName(info.row.original)}" do kosza? Po ${ENTITY_TRASH_RETENTION_DAYS} dniach zostanie usunięte na zawsze. Inwestycja utworzona z tego zgłoszenia i jej pliki zostają nietknięte.`}
-            trash={() => trashLeadsAction([info.row.original.id])}
-            trashed="Zgłoszenie przeniesione do kosza."
-          />
-        </div>
-      ),
-    }),
+    actionsColumn<LeadRowT>((lead) => (
+      <TrashRowButton
+        label="Usuń zgłoszenie"
+        description={`Przenieść „${leadDisplayName(lead)}" do kosza? Po ${ENTITY_TRASH_RETENTION_DAYS} dniach zostanie usunięte na zawsze. Inwestycja utworzona z tego zgłoszenia i jej pliki zostają nietknięte.`}
+        trash={() => trashLeadsAction([lead.id])}
+        trashed="Zgłoszenie przeniesione do kosza."
+      />
+    )),
   ]
 }

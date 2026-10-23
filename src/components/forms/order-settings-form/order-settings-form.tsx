@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { FieldGroup } from '@/components/ui/field'
 import { RemoveButton } from '@/components/ui/remove-button'
 import { SELECT_NONE, SimpleSelect } from '@/components/ui/simple-select'
@@ -151,14 +151,13 @@ export function OrderSettingsForm({ formId, settings, onSubmitSuccess }: PropsT)
                   />
                 </div>
               ))}
-              <Button
+              <AddButton
                 type="button"
-                variant="outline"
-                size="sm"
+                icon={null}
                 onClick={() => suppliersField.pushValue(makeSupplierRow())}
               >
                 Dodaj dostawcę
-              </Button>
+              </AddButton>
             </div>
           )}
         </form.Field>

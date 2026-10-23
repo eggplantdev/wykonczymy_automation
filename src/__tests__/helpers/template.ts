@@ -20,12 +20,14 @@ export async function deleteTestTemplate(payload: Payload, id: number): Promise<
   await db.execute(sql`DELETE FROM templates WHERE id = ${id}`)
 }
 
+type CatalogueEntryOverridesT = { unit?: string; clientPrice?: number; wToolsRate?: number | null }
+
 // The suffix keeps the entry's match key unique against the dump.
-export async function createTestCatalogueEntry(
+export async function createTestCatalogueEntryWithText(
   payload: Payload,
   description: string,
-  overrides: { unit?: string; clientPrice?: number; wToolsRate?: number | null } = {},
-): Promise<number> {
+  overrides: CatalogueEntryOverridesT = {},
+): Promise<{ id: number; description: string }> {
   const unit = overrides.unit ?? 'm2'
   const unique = `${description} ${crypto.randomUUID().slice(0, 8)}`
   const entry = await payload.create({
@@ -40,7 +42,15 @@ export async function createTestCatalogueEntry(
     overrideAccess: true,
     context: { skipRevalidation: true },
   })
-  return Number(entry.id)
+  return { id: Number(entry.id), description: unique }
+}
+
+export async function createTestCatalogueEntry(
+  payload: Payload,
+  description: string,
+  overrides: CatalogueEntryOverridesT = {},
+): Promise<number> {
+  return (await createTestCatalogueEntryWithText(payload, description, overrides)).id
 }
 
 export async function deleteTestCatalogueEntries(payload: Payload, ids: number[]): Promise<void> {

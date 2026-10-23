@@ -1,5 +1,5 @@
 import { Fragment, type ReactNode } from 'react'
-import { SummaryLabelCell, SummaryValueCell } from '@/components/ui/summary-grid'
+import { SummaryCell } from '@/components/ui/summary-grid'
 import type { LabelHintT } from '@/components/ui/label-hint-icon'
 import { formatNet } from '@/lib/kosztorys/format'
 import { axisShows, type MoneyAxisT } from '@/lib/kosztorys/money-axis'
@@ -36,18 +36,18 @@ export function SummaryRow({ label, line, axis, ...opts }: SummaryRowPropsT) {
 
   return (
     <Fragment>
-      <SummaryLabelCell weight={weight} hints={hints}>
+      <SummaryCell weight={weight} hints={hints}>
         {label}
-      </SummaryLabelCell>
+      </SummaryCell>
       {showNet && (
-        <SummaryValueCell weight={weight} tone={toneFor('net')} note={note}>
+        <SummaryCell weight={weight} tone={toneFor('net')} note={note}>
           {formatNet(line.net)}
-        </SummaryValueCell>
+        </SummaryCell>
       )}
       {showGross && (
-        <SummaryValueCell weight={weight} tone={toneFor('gross')} note={showNet ? undefined : note}>
+        <SummaryCell weight={weight} tone={toneFor('gross')} note={showNet ? undefined : note}>
           {formatNet(line.gross)}
-        </SummaryValueCell>
+        </SummaryCell>
       )}
     </Fragment>
   )

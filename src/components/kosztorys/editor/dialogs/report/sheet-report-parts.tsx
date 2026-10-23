@@ -1,20 +1,23 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
-import {
-  Collapsible,
-  CollapsibleChevron,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+import { isValidElement, useState, type ReactNode } from 'react'
+import * as Collapsible from '@/components/ui/collapsible'
 import { cn } from '@/lib/utils/cn'
+
+type ReportHeaderT = { content: ReactNode; className?: string }
+
+function isHeaderObject(header: ReactNode | ReportHeaderT): header is ReportHeaderT {
+  return (
+    typeof header === 'object' && header !== null && !isValidElement(header) && 'content' in header
+  )
+}
 
 export function ReportTable({
   headers,
   className,
   children,
 }: {
-  headers?: ReactNode[]
+  headers?: (ReactNode | ReportHeaderT)[]
   className?: string
   children: ReactNode
 }) {
@@ -27,9 +30,13 @@ export function ReportTable({
               {headers.map((header, index) => (
                 <th
                   key={index}
-                  className={`py-1 font-normal ${index === 0 ? 'text-left' : 'pl-3 text-right'}`}
+                  className={cn(
+                    'py-1 text-left font-normal',
+                    index > 0 && 'pl-3',
+                    isHeaderObject(header) && header.className,
+                  )}
                 >
-                  {header}
+                  {isHeaderObject(header) ? header.content : header}
                 </th>
               ))}
             </tr>
@@ -59,10 +66,7 @@ export function ReportRow({
     <tr className="border-border/60 border-t align-middle">
       <td className={cn('py-1', labelClassName)}>{label}</td>
       {cells.map((cell, index) => (
-        <td
-          key={index}
-          className={cn('text-foreground py-1 pl-3 text-right tabular-nums', cell.className)}
-        >
+        <td key={index} className={cn('text-foreground py-1 pl-3 tabular-nums', cell.className)}>
           {cell.content}
         </td>
       ))}
@@ -101,7 +105,7 @@ export function ComparisonRow({
     { content: app },
     {
       content: delta ?? 'zgadza się',
-      className: delta === null ? 'text-muted-foreground' : 'text-amber-600',
+      className: delta === null ? 'text-muted-foreground' : 'text-warning',
     },
     ...(action !== undefined ? [{ content: action, className: 'whitespace-nowrap' }] : []),
   ]
@@ -127,7 +131,7 @@ export function ItemList({
           }
           labelClassName={hasNote ? 'w-1/2' : undefined}
           cells={[
-            ...(hasNote ? [{ content: item.note, className: 'text-left text-amber-600' }] : []),
+            ...(hasNote ? [{ content: item.note, className: 'text-warning' }] : []),
             ...(hasAction ? [{ content: item.action, className: 'whitespace-nowrap' }] : []),
           ]}
         />
@@ -138,7 +142,7 @@ export function ItemList({
 
 export function ReportFold({
   summary,
-  tone = 'text-amber-600',
+  tone = 'text-warning',
   children,
 }: {
   summary: ReactNode
@@ -147,12 +151,12 @@ export function ReportFold({
 }) {
   const [open, setOpen] = useState(false)
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="space-y-0.5">
-      <CollapsibleTrigger className="flex w-full cursor-pointer items-start gap-1 text-left">
-        <CollapsibleChevron open={open} className={cn('mt-1 size-3.5', tone)} />
+    <Collapsible.Root open={open} onOpenChange={setOpen} className="space-y-0.5">
+      <Collapsible.Trigger className="flex w-full cursor-pointer items-start gap-1 text-left">
+        <Collapsible.Chevron open={open} className={cn('mt-1 size-3.5', tone)} />
         <span className={tone}>{summary}</span>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-0.5 pl-4.5">{children}</CollapsibleContent>
-    </Collapsible>
+      </Collapsible.Trigger>
+      <Collapsible.Content className="space-y-0.5 pl-4.5">{children}</Collapsible.Content>
+    </Collapsible.Root>
   )
 }

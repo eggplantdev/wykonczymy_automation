@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox, checkedState } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
+import { Panel } from '@/components/ui/panel'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { undoRedoIntent } from '@/components/kosztorys/editor/hooks/use-undo-keyboard'
 import { useEditorActions } from '@/components/kosztorys/editor/actions/editor-actions-context'
@@ -205,7 +206,7 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent
-        className="sm:max-w-7xl"
+        className="sm:max-w-dialog-xl"
         onInteractOutside={(event) => event.preventDefault()}
         onKeyDown={handleKeyDown}
       >
@@ -238,9 +239,9 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
 
         {/* Grow only on the phone sheet (h-dvh): inside the desktop dialog's h-fit column Safari 18
             resolves a 0% flex-basis to zero and the list collapses to its border. */}
-        <div
+        <Panel
           inert={pending}
-          className="reorder-list min-h-0 overflow-y-auto rounded-md border select-none max-sm:flex-1 sm:max-h-[60vh]"
+          className="reorder-list min-h-0 overflow-y-auto select-none max-sm:flex-1 sm:max-h-[60vh]"
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           onDragEnd={handleDragEnd}
@@ -276,9 +277,12 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
                     disabled={section.itemIds.length === 0}
                     onCheckedChange={() => toggleSectionSelection(section.itemIds, !allSelected)}
                   />
-                  <button
-                    type="button"
-                    className="flex min-w-0 flex-1 items-center gap-1 text-left"
+                  <Button
+                    variant="ghost"
+                    size="inline"
+                    align="start"
+                    aria-expanded={!isCollapsed}
+                    className="min-w-0 flex-1 gap-1 text-left hover:bg-transparent"
                     onClick={() =>
                       setCollapsed((current) => toggleInSet(current, section.sectionId))
                     }
@@ -289,12 +293,11 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
                       <ChevronDown className="size-4 shrink-0" />
                     )}
                     <span className="truncate">{meta?.sectionName}</span>
-                  </button>
+                  </Button>
                   {selected.size > 0 && (
                     <Button
-                      size="sm"
+                      size="2xs"
                       variant="outline"
-                      className="h-6 px-2 text-xs"
                       onClick={() =>
                         moveSelectedTo({ sectionId: section.sectionId, beforeItemId: undefined })
                       }
@@ -349,7 +352,7 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
             )
           })}
           {drop?.kind === 'section' && drop.beforeSectionId === undefined && dropLine}
-        </div>
+        </Panel>
 
         <DialogActions
           confirmLabel="Zapisz kolejność"

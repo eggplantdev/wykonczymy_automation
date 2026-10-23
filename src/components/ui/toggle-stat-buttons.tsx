@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { cn } from '@/lib/utils/cn'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
-import { Button } from '@/components/ui/button'
+import { StatButton } from '@/components/ui/stat-button'
 import { ControlGrid } from '@/components/ui/control-grid'
 import { Description } from '@/components/ui/description'
 import { SignedMoneyDisplay, signedMoneyColor } from '@/components/ui/signed-money-display'
@@ -80,33 +80,20 @@ export function ToggleStatButtons({
             <ControlGrid className="mt-2 max-sm:grid-cols-1">
               {row.map((entry) => {
                 const isHidden = hidden.has(entry.label)
-                const button = (
-                  <Button
-                    variant="outline"
+                return (
+                  <StatButton
                     key={entry.label}
+                    label={`${entry.label}:`}
+                    value={entry.value}
+                    tooltip={entry.tooltip}
                     onClick={() => toggle(entry.label)}
                     align="start"
-                    className={cn('border-2', entry.borderClassName, isHidden && 'opacity-40')}
-                  >
-                    <span className="text-muted-foreground">{entry.label}:</span>
-                    <span
-                      className={cn('font-medium', colorValues && signedMoneyColor(entry.amount))}
-                    >
-                      {entry.value}
-                    </span>
-                  </Button>
-                )
-                return entry.tooltip ? (
-                  <span key={entry.label} className="inline-flex items-center">
-                    {button}
-                    <InfoTooltip
-                      content={entry.tooltip}
-                      label={`Co to jest: ${entry.label}`}
-                      className="ml-1"
-                    />
-                  </span>
-                ) : (
-                  button
+                    className={cn(entry.borderClassName, isHidden && 'opacity-40')}
+                    valueClassName={cn(
+                      'font-medium',
+                      colorValues && signedMoneyColor(entry.amount),
+                    )}
+                  />
                 )
               })}
             </ControlGrid>

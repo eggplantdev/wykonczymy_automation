@@ -24,12 +24,12 @@ export function MediaUploadDialog({
   allowPlanMarker = false,
 }: MediaUploadDialogPropsT) {
   const { t } = useTranslation('media')
-  const [asPlan, setAsPlan] = useState(false)
+  const [asPlan, setAsPlan] = useState(true)
 
-  // The dialog stays mounted when Radix unmounts its content, so a tick left behind by a cancelled
-  // pick would silently stamp the NEXT upload as a rzut.
+  // The dialog stays mounted when Radix unmounts its content, so an untick left behind by a
+  // cancelled pick would silently hide the NEXT upload from the AI.
   function handleOpenChange(next: boolean) {
-    if (!next) setAsPlan(false)
+    if (!next) setAsPlan(true)
     onOpenChange(next)
   }
 
@@ -43,7 +43,7 @@ export function MediaUploadDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
+      <DialogContent className="sm:max-w-dialog-sm" aria-describedby={undefined}>
         <DialogHeader title={title ?? t('addInvoice')} />
         {allowPlanMarker && (
           <div>

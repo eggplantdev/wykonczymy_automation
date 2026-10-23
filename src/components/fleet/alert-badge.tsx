@@ -1,5 +1,6 @@
-import { AlertTriangle } from 'lucide-react'
+import { AlertIcon } from '@/components/ui/alert-icon'
 import { Badge } from '@/components/ui/badge'
+import { SimpleTooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils/cn'
 
 export function AlertBadge({
@@ -12,9 +13,11 @@ export function AlertBadge({
   children: React.ReactNode
 }) {
   return (
-    <Badge tone="destructive" className={cn('gap-1', className)} title={title}>
-      <AlertTriangle className="size-3" />
-      {children}
-    </Badge>
+    <SimpleTooltip content={title}>
+      <Badge tone="destructive" className={cn('gap-1', className)}>
+        <AlertIcon className="size-3" />
+        {children}
+      </Badge>
+    </SimpleTooltip>
   )
 }

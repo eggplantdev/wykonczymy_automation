@@ -24,16 +24,13 @@ export function NavLinkItem({
   return (
     <Button
       {...props}
-      variant="ghost"
+      variant={active ? 'active' : 'ghost'}
       size="sm"
       align={collapsed ? 'center' : 'start'}
       className={cn(
         'relative',
         'max-sm:min-h-10 max-sm:gap-3 max-sm:px-4 max-sm:text-base',
         collapsed ? 'px-0' : 'h-auto min-h-8 py-1.5 whitespace-normal',
-        // Not `bg-accent` — ghost's own hover paints that, so the active row would look like whatever
-        // the cursor is over.
-        active && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary font-semibold',
       )}
       asChild
     >

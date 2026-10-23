@@ -1,5 +1,6 @@
 'use server'
 
+import { after } from 'next/server'
 import { z } from 'zod'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { extractSheetId, verifySheetAccess } from '@/lib/google/sheet-access'
@@ -15,6 +16,7 @@ import { INVESTMENT_STATUSES, type InvestmentStatusT } from '@/lib/constants/inv
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction, protectedAction } from './run-action'
 import { logError } from '@/lib/utils/log-error'
+import { notifyAiStageChange } from '@/lib/push/notify-ai-stage'
 
 export async function setupSheetAction(investmentId: number) {
   return investmentAction('setupSheetAction', { investmentId }, async ({ payload }) => {
@@ -169,7 +171,24 @@ export async function setInvestmentAiStageAction(id: number, aiStage: Investment
       const parsed = validateAction(aiStageSchema, aiStage)
       if (!parsed.success) return parsed
 
+      const before = await payload.findByID({
+        collection: 'investments',
+        id,
+        depth: 0,
+        select: { aiStage: true, name: true },
+      })
       await payload.update({ collection: 'investments', id, data: { aiStage: parsed.data }, user })
+
+      if ((before.aiStage ?? null) !== parsed.data) {
+        after(() =>
+          notifyAiStageChange(payload, {
+            investmentId: id,
+            investmentName: before.name,
+            stage: parsed.data,
+            actorId: user.id,
+          }),
+        )
+      }
 
       return { success: true }
     },

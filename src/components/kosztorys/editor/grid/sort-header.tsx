@@ -31,8 +31,7 @@ export function SortHeader({
       label={<HeaderLabel className={cn(active && 'font-semibold')}>{label}</HeaderLabel>}
       icon={<SortIcon active={active} />}
       triggerClassName={cn(active && 'text-primary')}
-      triggerTitle="Sortuj kolumnę"
-      tip={tip}
+      tip={tip ?? 'Sortuj kolumnę'}
     >
       <SortMenuItems active={active} onSort={onSort} onPersistOrder={onPersistOrder} />
       {onSetColor && (

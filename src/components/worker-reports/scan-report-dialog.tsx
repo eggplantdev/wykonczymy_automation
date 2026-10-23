@@ -4,9 +4,16 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { RotateCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { Description } from '@/components/ui/description'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+} from '@/components/ui/dialog'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { FileInput } from '@/components/ui/file-input'
-import { Label } from '@/components/ui/label'
 import { SearchSelect } from '@/components/ui/search-select'
 import { useFilePickIngest } from '@/hooks/use-file-pick-ingest'
 import { useLatestRequest } from '@/hooks/use-latest-request'
@@ -149,11 +156,11 @@ export function ScanReportDialog({ open, onOpenChange, investmentId, workers, on
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
+      <DialogContent className="sm:max-w-dialog" aria-describedby={undefined}>
         <DialogHeader title={SCAN_REPORT_LABEL} />
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="scan-worker">Pracownik</Label>
+        <DialogBody>
+          <Field gap="md">
+            <FieldLabel htmlFor="scan-worker">Pracownik</FieldLabel>
             <SearchSelect
               id="scan-worker"
               value={workerId}
@@ -162,10 +169,10 @@ export function ScanReportDialog({ open, onOpenChange, investmentId, workers, on
               placeholder="Wybierz pracownika"
               disabled={isSending}
             />
-          </div>
+          </Field>
           {picksInvestment && (
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="scan-investment">Inwestycja</Label>
+            <Field gap="md">
+              <FieldLabel htmlFor="scan-investment">Inwestycja</FieldLabel>
               <SearchSelect
                 id="scan-investment"
                 value={pickedInvestmentId}
@@ -177,7 +184,7 @@ export function ScanReportDialog({ open, onOpenChange, investmentId, workers, on
                 placeholder="Wybierz inwestycję"
                 disabled={workerId === '' || isSending}
               />
-            </div>
+            </Field>
           )}
           <FileInput
             key={inputKey}
@@ -189,9 +196,9 @@ export function ScanReportDialog({ open, onOpenChange, investmentId, workers, on
             disabled={fileInputProps.disabled || isSending}
           />
           {isTooMany && (
-            <p className="text-destructive text-sm">
+            <Description tone="error">
               Maksymalnie {MAX_SCAN_PHOTOS} zdjęć na jedno zgłoszenie.
-            </p>
+            </Description>
           )}
           {urls.length > 0 && (
             <ul className="grid grid-cols-4 gap-2">
@@ -225,10 +232,12 @@ export function ScanReportDialog({ open, onOpenChange, investmentId, workers, on
               ))}
             </ul>
           )}
+        </DialogBody>
+        <DialogFooter>
           <Button onClick={handleSend} disabled={!canSend}>
             {isSending ? 'Odczytywanie kartki…' : 'Wczytaj'}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

@@ -16,7 +16,7 @@ export const INVESTMENT_HEADER_TIPS: Record<string, string> = {
   laborCostsFromKosztorys:
     'Suma wartości prac wykonanych w kosztorysie, w cenie dla inwestora, przed rabatem.\nKosztorys jest jedynym źródłem — bez niego 0 zł, a nie odczyt z transferów.',
   totalInvestmentExpense:
-    'Materiały, którymi obciążany jest inwestor: paragon brutto podzielony przez (1 plus stawka netto materiałów).\nBez zapisanej stawki — sam paragon, bez przeliczania.',
+    'Materiały, którymi obciążany jest inwestor: paragon brutto podzielony przez (1 plus stawka netto materiałów).\nBez zapisanej stawki — sam paragon, bez przeliczania; wydatek netto plus VAT inwestycji.',
   totalSettled:
     'Suma wydatków oznaczonych „rozliczone".\nFirma je kupiła, ale są już w cenie robocizny — obniżają marżę i nie wchodzą do bilansu.',
   totalPayouts: 'Suma transferów typu „Wypłata" — gotówka faktycznie wypłacona ekipom.',

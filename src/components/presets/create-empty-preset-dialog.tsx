@@ -2,8 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { AddButton } from '@/components/ui/add-button'
 import { Input } from '@/components/ui/input'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { createEmptyPresetAction } from '@/lib/actions/kosztorys-presets'
@@ -32,10 +31,7 @@ export function CreateEmptyPresetDialog() {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-        <Plus />
-        Nowy szablon
-      </Button>
+      <AddButton onClick={() => setOpen(true)}>Nowy szablon</AddButton>
 
       <FormDialogShell
         open={open}

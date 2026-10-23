@@ -25,6 +25,7 @@ import { KosztorysWorkersMenu } from '@/components/kosztorys/editor/toolbar/menu
 import { SaveVersionDialog } from '@/components/kosztorys/editor/dialogs/save-version-dialog'
 import { ClearKosztorysDialog } from '@/components/kosztorys/editor/dialogs/clear-kosztorys-dialog'
 import { ReorderMenuItem } from '@/components/kosztorys/editor/actions/reorder-action'
+import { ColumnWidthMenuItems } from '@/components/kosztorys/editor/actions/column-width-action'
 import { SavePresetDialog } from '@/components/kosztorys/editor/dialogs/preset/save-preset-dialog'
 import { ReloadFromPresetDialog } from '@/components/kosztorys/editor/dialogs/preset/reload-from-preset-dialog'
 import { SheetCompareDialog } from '@/components/kosztorys/editor/dialogs/sheet/sheet-compare-dialog'
@@ -33,6 +34,7 @@ import { KosztorysClientViewDialog } from '@/components/kosztorys/editor/dialogs
 import { KosztorysShareDialog } from '@/components/kosztorys/editor/dialogs/share/kosztorys-share-dialog'
 import { KosztorysWorkerShareDialog } from '@/components/kosztorys/editor/dialogs/share/kosztorys-worker-share-dialog'
 import { KosztorysWorkerViewDialog } from '@/components/kosztorys/editor/dialogs/view-settings/kosztorys-worker-view-dialog'
+import { KosztorysWorkerPrintDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-worker-print-dialog'
 import {
   AcceptanceProtocolDialog,
   type AcceptanceProtocolSourceT,
@@ -103,6 +105,7 @@ export function KosztorysActionsMenu({
               />
             }
           />
+          <ColumnWidthMenuItems />
           {!readOnly && (
             <>
               <DropdownMenuSeparator />
@@ -148,6 +151,7 @@ export function KosztorysActionsMenu({
       <KosztorysShareDialog />
       <KosztorysWorkerShareDialog />
       <KosztorysWorkerViewDialog />
+      <KosztorysWorkerPrintDialog />
       {protocolSource && <AcceptanceProtocolDialog source={protocolSource} />}
     </>
   )

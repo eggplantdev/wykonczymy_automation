@@ -2,8 +2,11 @@
 
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { Description } from '@/components/ui/description'
+import { FieldLegend, FieldSet } from '@/components/ui/field'
 import { type ColumnGroupT } from '@/lib/kosztorys/columns/column-config'
 import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/columns/document-column-order'
+
+export const GROUP_LEGEND_CLASS = 'mb-0.5 px-2 data-[variant=label]:text-xs'
 
 export type ViewSettingsValueT = { hiddenColumns: string[]; hideEmptyRows: boolean }
 
@@ -37,8 +40,10 @@ export function ViewSettingsFields<T extends ViewSettingsValueT>({
   return (
     <>
       {groups.map((group) => (
-        <div key={group.label} className="flex flex-col gap-0.5">
-          <p className="text-muted-foreground px-2 text-xs font-medium">{group.label}</p>
+        <FieldSet key={group.label} className="gap-0.5">
+          <FieldLegend variant="label" tone="muted" className={GROUP_LEGEND_CLASS}>
+            {group.label}
+          </FieldLegend>
           {group.keys.map((key) => (
             <CheckboxRow
               key={key}
@@ -49,10 +54,12 @@ export function ViewSettingsFields<T extends ViewSettingsValueT>({
               {labelFor(key) ?? key}
             </CheckboxRow>
           ))}
-        </div>
+        </FieldSet>
       ))}
-      <div className="flex flex-col gap-0.5 border-t pt-3">
-        <p className="text-muted-foreground px-2 text-xs font-medium">Pozycje</p>
+      <FieldSet className="gap-0.5 border-t pt-3">
+        <FieldLegend variant="label" tone="muted" className={GROUP_LEGEND_CLASS}>
+          Pozycje
+        </FieldLegend>
         <CheckboxRow
           checked={value.hideEmptyRows}
           disabled={disabled}
@@ -64,7 +71,7 @@ export function ViewSettingsFields<T extends ViewSettingsValueT>({
         <Description size="xs">
           Takie pozycje nie wnoszą nic do żadnej kwoty, więc ukrycie ich nie zmienia podsumowania.
         </Description>
-      </div>
+      </FieldSet>
     </>
   )
 }

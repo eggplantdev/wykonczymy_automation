@@ -3,7 +3,7 @@
 import { Info } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useTranslation } from '@/hooks/use-translation'
-import { buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { useRowActionLabels } from '@/components/ui/row-actions/row-action-labels'
 
 type NotePopoverPropsT = {
@@ -17,16 +17,16 @@ export function NotePopover({ note }: NotePopoverPropsT) {
 
   return (
     <Popover>
-      <PopoverTrigger
-        aria-label={t('showNote')}
-        className={
-          isLabelled
-            ? buttonVariants({ variant: 'outline', size: 'xs' })
-            : 'text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-9 cursor-pointer items-center justify-center rounded-md transition-colors outline-none'
-        }
-      >
-        <Info />
-        {isLabelled && t('noteShort')}
+      <PopoverTrigger asChild>
+        <Button
+          variant={isLabelled ? 'outline' : 'ghost'}
+          size={isLabelled ? 'xs' : 'icon'}
+          className={isLabelled ? undefined : 'text-muted-foreground'}
+          aria-label={t('showNote')}
+        >
+          <Info />
+          {isLabelled && t('noteShort')}
+        </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="max-h-80 w-80 overflow-y-auto">
         <p className="text-sm wrap-break-word whitespace-pre-line">{note}</p>

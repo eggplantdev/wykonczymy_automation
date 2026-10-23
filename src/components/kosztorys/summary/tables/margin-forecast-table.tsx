@@ -4,7 +4,7 @@ import { faceValue } from '@/lib/kosztorys/summary-economics'
 import { SummaryHeaderCell, SummaryTable } from '@/components/ui/summary-grid'
 import { SummaryRow } from '@/components/kosztorys/summary/grid/summary-row'
 import { MARGIN_TABLE_COLS } from '@/components/kosztorys/summary/tables/margin-table-cols'
-import { Checkbox } from '@/components/ui/checkbox'
+import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { Description } from '@/components/ui/description'
 import { PLANE_LABELS, RATE_LABELS } from '@/lib/kosztorys/labels'
 import type { MarginForecastT } from '@/lib/kosztorys/margin-forecast'
@@ -30,7 +30,7 @@ export function MarginForecastTable({ forecast, plane, onPlaneChange }: PropsT) 
         {DESCRIPTION}
       </Description>
       <SummaryTable cols={MARGIN_TABLE_COLS} className="w-fit">
-        <SummaryHeaderCell variant="label">Prognoza</SummaryHeaderCell>
+        <SummaryHeaderCell>Prognoza</SummaryHeaderCell>
         <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
         <SummaryRow label="Wartość przedmiaru" line={faceValue(forecast.clientNet)} axis="net" />
@@ -49,13 +49,14 @@ export function MarginForecastTable({ forecast, plane, onPlaneChange }: PropsT) 
           danger={forecast.margin < 0}
         />
       </SummaryTable>
-      <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
-        <Checkbox
-          checked={plane === 'own_tools'}
-          onCheckedChange={(state) => onPlaneChange(state === true ? 'own_tools' : 'w_tools')}
-        />
+      <CheckboxRow
+        variant="plain"
+        className="w-fit"
+        checked={plane === 'own_tools'}
+        onCheckedChange={(checked) => onPlaneChange(checked ? 'own_tools' : 'w_tools')}
+      >
         {PLANE_LABELS.own_tools}
-      </label>
+      </CheckboxRow>
     </>
   )
 }

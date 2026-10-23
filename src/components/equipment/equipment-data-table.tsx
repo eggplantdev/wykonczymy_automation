@@ -2,8 +2,6 @@
 
 import { CircleDot, MapPin } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
-import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import { AddEquipmentDialog } from '@/components/dialogs/add-equipment-dialog'
@@ -70,38 +68,34 @@ export function EquipmentDataTable({ data, today, warehouses }: EquipmentDataTab
       initialSorting={INITIAL_SORTING}
       getRowHref={(row) => `/sprzet/${row.id}`}
       getRowClassName={(row) => (isLiveStatus(row.status) ? '' : 'opacity-60')}
-      toolbar={({ table, columnVisibility: cv, ...order }) => (
-        <DataTableToolbar
-          columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-          search={{
-            value: searchTerm,
-            onChange: setSearchTerm,
-            placeholder: 'Szukaj sprzętu...',
-          }}
-          filters={
-            <>
-              <FilterMultiSelect
-                label="Gdzie jest"
-                options={placeOptions}
-                values={places}
-                onValuesChange={setPlaces}
-                icon={MapPin}
-                searchable
-                triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-              />
-              <FilterMultiSelect
-                label="Status"
-                options={STATUS_OPTIONS}
-                values={statuses}
-                onValuesChange={setStatuses}
-                icon={CircleDot}
-                triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-              />
-            </>
-          }
-          actions={<AddEquipmentDialog warehouses={warehouses} />}
-        />
-      )}
+      columnToggle
+      search={{
+        value: searchTerm,
+        onChange: setSearchTerm,
+        placeholder: 'Szukaj sprzętu...',
+      }}
+      filters={
+        <>
+          <FilterMultiSelect
+            label="Gdzie jest"
+            options={placeOptions}
+            values={places}
+            onValuesChange={setPlaces}
+            icon={MapPin}
+            searchable
+            triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+          />
+          <FilterMultiSelect
+            label="Status"
+            options={STATUS_OPTIONS}
+            values={statuses}
+            onValuesChange={setStatuses}
+            icon={CircleDot}
+            triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+          />
+        </>
+      }
+      actions={<AddEquipmentDialog warehouses={warehouses} />}
     />
   )
 }

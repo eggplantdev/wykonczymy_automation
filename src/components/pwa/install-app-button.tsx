@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Download, Ellipsis, Loader2, Share, SquarePlus } from 'lucide-react'
+import { Download, Ellipsis, Share, SquarePlus } from 'lucide-react'
 import { useClientSnapshot } from '@/components/pwa/use-client-snapshot'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
 import { useTranslation } from '@/hooks/use-translation'
 import { readPlatform, resolveInstallState } from '@/lib/pwa/install-state'
 import { useInstallPromptStore } from '@/stores/install-prompt-store'
+import { Description } from '@/components/ui/description'
 
 // Chrome fires `beforeinstallprompt` only once its engagement checks pass, which can take a while
 // on a cold page — past this the button gives way to the browser-menu path.
@@ -36,7 +37,9 @@ export function InstallAppButton() {
 
   if (state === 'manual') {
     return (
-      <p className="text-muted-foreground self-center text-sm sm:hidden">{t('installManual')}</p>
+      <Description withIcon={false} className="self-center sm:hidden">
+        {t('installManual')}
+      </Description>
     )
   }
 
@@ -49,7 +52,7 @@ export function InstallAppButton() {
             {t('installApp')}
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
+        <DialogContent className="sm:max-w-dialog-sm" aria-describedby={undefined}>
           <DialogHeader title={t('installIosTitle')} />
           <ol className="flex flex-col gap-4">
             {[
@@ -74,10 +77,10 @@ export function InstallAppButton() {
       size="sm"
       variant="outline"
       className="w-fit sm:hidden"
-      disabled={state === 'waiting'}
+      pending={state === 'waiting'}
       onClick={showInstallPrompt}
     >
-      {state === 'waiting' ? <Loader2 className="animate-spin" /> : <Download />}
+      <Download />
       {t('installApp')}
     </Button>
   )

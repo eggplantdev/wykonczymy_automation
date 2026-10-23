@@ -29,6 +29,7 @@ import type {
   NearDuplicateT,
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 const col = createColumnHelper<WorkCatalogueItemT>()
 
@@ -36,7 +37,7 @@ const rateCell = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
   const rate = catalogueRateFor(entry, plane)
   const source = catalogueSourceOf(rate)
   return source === 'amount' ? (
-    <span className="tabular-nums">{formatRate(rate.rate, source, rate.coeff)}</span>
+    formatRate(rate.rate, source, rate.coeff)
   ) : (
     <span className="text-muted-foreground">{formatRate(null, source, rate.coeff)}</span>
   )
@@ -50,9 +51,9 @@ const shareOf = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
 
 const share = (value: number | null, overCeiling: boolean) =>
   value === null ? (
-    <span className="text-muted-foreground">—</span>
+    EMPTY_VALUE
   ) : (
-    <span className={cn('tabular-nums', overCeiling && FLAGGED_TONE)}>{formatPercent(value)}</span>
+    <span className={cn(overCeiling && FLAGGED_TONE)}>{formatPercent(value)}</span>
   )
 
 const twoLines = (first: string, second: string) => () => (
@@ -66,16 +67,13 @@ const twoLines = (first: string, second: string) => () => (
 const shareTooltip = (plane: ToolPlaneT) =>
   `Udział stawki w cenie j.m. Powyżej ${clientShareCeilingLabel(plane)} na czerwono.`
 
-// it survives every sort and filter. `row.index` would slide under the row and name nothing.
+// `row.index` would slide under the row and name nothing.
 const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
   col.display({
     id: 'lp',
     header: 'Lp.',
-    meta: { align: 'right' },
     cell: (info) => (
-      <span className="text-muted-foreground tabular-nums">
-        {ordinals.get(info.row.original.id)}
-      </span>
+      <span className="text-muted-foreground">{ordinals.get(info.row.original.id)}</span>
     ),
   })
 
@@ -156,7 +154,7 @@ const clientPriceColumn = col.accessor('clientPrice', {
   id: 'clientPrice',
   header: 'Cena j.m.',
   size: 120,
-  cell: (info) => <span className="tabular-nums">{formatPLN(info.getValue())}</span>,
+  cell: (info) => formatPLN(info.getValue()),
 })
 
 const wToolsRateColumn = col.accessor((row) => catalogueRateAmount(row, 'w_tools'), {
@@ -233,8 +231,8 @@ const countColumn = (id: string, header: string, tooltip: string, count: (id: nu
   col.accessor((row) => count(row.id), {
     id,
     header,
-    meta: { align: 'right', tooltip },
-    cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
+    meta: { tooltip },
+    cell: (info) => info.getValue(),
   })
 
 const KOSZTORYS_COUNT_TOOLTIP =
@@ -283,7 +281,6 @@ export function getWorkCatalogueColumns({
     col.display({
       id: 'actions',
       header: 'Akcje',
-      meta: { align: 'right' },
       cell: (info) => (
         <CatalogueRowActions
           item={info.row.original}

@@ -1,5 +1,7 @@
 'use client'
 
+import { Description } from '@/components/ui/description'
+import { ExternalLink } from '@/components/ui/external-link'
 import { SheetAccessBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-access-block'
 import { SheetMissingColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-missing-columns-block'
 import { SheetPointedColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-pointed-columns-block'
@@ -65,9 +67,9 @@ export function SheetCompareDialog() {
             onMappingSaved={read}
           />
         ) : !comparison || !refresh ? (
-          <p className="text-muted-foreground text-sm">
+          <Description withIcon={false}>
             Arkusz Google odczytany, ale porównanie nie wróciło — spróbuj ponownie.
-          </p>
+          </Description>
         ) : (
           <>
             <SheetPointedColumnsBlock
@@ -141,18 +143,18 @@ function MoneyBlock({ comparison }: { comparison: SheetComparisonT }) {
       <ExecutedDiffList diffs={comparison.executedDiffs} link={comparison.sheetLink} />
 
       {unassignedInSheet !== null && (
-        <p className="text-muted-foreground text-xs">
+        <Description withIcon={false} size="xs">
           „{COLUMN_LABELS.divergence}" to praca zmierzona w arkuszu Google, której nie rozpisano
           jeszcze na żaden etap.
-        </p>
+        </Description>
       )}
       {comparison.globalDiscountMismatch && (
-        <p className="text-destructive text-xs">
+        <Description tone="error" size="xs">
           Ta inwestycja ma aktywny rabat globalny, więc kwoty w tym oknie rozjeżdżają się z tymi w
           kosztorysie. Tutaj każda praca liczy się ze swoim własnym rabatem, tak jak w arkuszu
           Google — rabat globalny nie wchodzi. W kosztorysie jest odwrotnie: prace idą bez rabatu, a
           rabat globalny schodzi raz od sumy.
-        </p>
+        </Description>
       )}
     </SheetReportBlock>
   )
@@ -189,24 +191,18 @@ function SheetFooterBlock({ footer }: { footer: readonly FooterComparisonT[] }) 
             key={total.key}
             label={total.label}
             sheet={formatPLN(total.sheetValue)}
-            app={
-              total.appValue === null ? (
-                <span className="text-muted-foreground">nie policzyliśmy</span>
-              ) : (
-                formatPLN(total.appValue)
-              )
-            }
+            app={total.appValue === null ? 'nie policzyliśmy' : formatPLN(total.appValue)}
             delta={total.matches || total.delta === null ? null : formatPLN(total.delta)}
           />
         ))}
       </ComparisonTable>
       {disagreeing.length > 0 && (
-        <p className="text-muted-foreground text-xs">
+        <Description withIcon={false} size="xs">
           Kwot powyżej to nie zmienia — te liczymy z prac arkusza, wiersz po wierszu, a nie z jego
           podsumowania. Ale warto sprawdzić, po której stronie leży błąd: albo formuły sumujące na
           dole arkusza (pominięta sekcja, kwota wpisana ręcznie w kolumnie wartości etapu), albo
           nasz odczyt cen i rabatów — a wtedy kwoty powyżej też będą złe.
-        </p>
+        </Description>
       )}
     </SheetReportBlock>
   )
@@ -245,10 +241,10 @@ function ItemsBlock({ comparison }: { comparison: SheetComparisonT }) {
             items={onlyInSheet}
           />
           <SideOnlyList label="Tylko w aplikacji — nie ma ich w arkuszu Google" items={onlyInApp} />
-          <p className="text-muted-foreground text-xs">
+          <Description withIcon={false} size="xs">
             Prace kojarzymy po nazwie sekcji i opisie, bo arkusz Google nie ma identyfikatorów.
             Poprawiona literówka w opisie wystarczy, żeby ta sama praca trafiła na obie listy.
-          </p>
+          </Description>
         </>
       )}
     </SheetReportBlock>
@@ -286,10 +282,10 @@ function ReadingBlock({ comparison }: { comparison: SheetComparisonT }) {
             link={sheetLink}
           />
           {health.measuredCopiedFromPlanned > 0 && (
-            <p className="text-xs text-amber-600">
+            <Description tone="warning" size="xs" withIcon={false}>
               W {health.measuredCopiedFromPlanned} z {health.totalRows} prac Pomiar z natury
               wskazuje na Przedmiar. U nas pomiar to zawsze suma etapów.
-            </p>
+            </Description>
           )}
         </>
       )}
@@ -304,11 +300,11 @@ function RefreshLine({ refresh }: { refresh: NonNullable<SheetCompareResultT['re
       ? ` Pominięto ${unmatched} ${itemNoun(unmatched)} bez odpowiednika w arkuszu Google.`
       : ''
   return (
-    <p className="text-muted-foreground text-xs">
+    <Description withIcon={false} size="xs">
       {updated === 0 && cleared === 0
         ? `Zapisany Pomiar z natury był już zgodny z arkuszem Google.${skipped}`
         : `Zaciągnięto Pomiar z natury: zaktualizowano ${updated}, wyczyszczono ${cleared}.${skipped}`}
-    </p>
+    </Description>
   )
 }
 
@@ -327,9 +323,9 @@ function SampleList({
   return (
     <ReportFold summary={summary} tone={tone}>
       {samples.map((sample) => (
-        <p key={sample.cell} className="text-muted-foreground text-xs">
+        <Description key={sample.cell} withIcon={false} size="xs">
           <SheetCellLink cell={sample.cell} link={link} /> · {sample.description}
-        </p>
+        </Description>
       ))}
     </ReportFold>
   )
@@ -375,14 +371,11 @@ function ExecutedDiffList({
 function SheetCellLink({ cell, link }: { cell: string; link: SheetComparisonT['sheetLink'] }) {
   if (!link) return <>komórka {cell}</>
   return (
-    <a
+    <ExternalLink
       href={`https://docs.google.com/spreadsheets/d/${link.spreadsheetId}/edit#gid=${link.gid}&range=${cell}`}
-      target="_blank"
-      rel="noreferrer"
-      className="underline underline-offset-2"
     >
       komórka {cell}
-    </a>
+    </ExternalLink>
   )
 }
 

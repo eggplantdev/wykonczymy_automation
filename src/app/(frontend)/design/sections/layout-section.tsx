@@ -4,18 +4,24 @@ import type { ComponentProps } from 'react'
 import { ChevronRight, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PageWrapper } from '@/components/ui/page-wrapper'
-import { SectionHeader } from '@/components/ui/section-header'
+import { Panel, BORDERED_LIST_CLASS } from '@/components/ui/panel'
+import {
+  EYEBROW_CLASS,
+  SectionHeader,
+  SUBSECTION_TITLE_CLASS,
+} from '@/components/ui/section-header'
+import { cn } from '@/lib/utils/cn'
 import { SettingsCard } from '@/components/ui/settings-card'
-import { CollapsibleSection, OPEN_STATES } from '@/components/ui/collapsible-section'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { OPEN_STATES } from '@/hooks/use-section-open'
 import { Separator } from '@/components/ui/separator'
 import { ControlGrid } from '@/components/ui/control-grid'
 import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { InfoList } from '@/components/ui/info-list'
 import { EdgeHandlePill } from '@/components/ui/edge-handle-pill'
@@ -24,9 +30,12 @@ import { AuthSuccessCard } from '@/components/ui/auth-success-card'
 import { Input } from '@/components/ui/input'
 import { ShowcaseRow } from '../showcase-row'
 import { ShowcaseSection } from '../showcase-section'
+import { Description } from '@/components/ui/description'
 
 type CollapsibleSizeT = NonNullable<ComponentProps<typeof CollapsibleSection>['size']>
 type InfoListLayoutT = NonNullable<ComponentProps<typeof InfoList>['layout']>
+type SectionHeaderSizeT = NonNullable<ComponentProps<typeof SectionHeader>['size']>
+type PanelToneT = NonNullable<ComponentProps<typeof Panel>['tone']>
 type EdgeHandleOrientationT = ComponentProps<typeof EdgeHandlePill>['orientation']
 
 const COLLAPSIBLE_SIZES = Object.keys({
@@ -44,6 +53,18 @@ const EDGE_HANDLE_ORIENTATIONS = Object.keys({
   vertical: true,
   horizontal: true,
 } satisfies Record<EdgeHandleOrientationT, true>) as EdgeHandleOrientationT[]
+
+const SECTION_HEADER_SIZES = Object.keys({
+  lg: true,
+  md: true,
+  sm: true,
+} satisfies Record<SectionHeaderSizeT, true>) as SectionHeaderSizeT[]
+
+const PANEL_TONES = Object.keys({
+  plain: true,
+  muted: true,
+  alert: true,
+} satisfies Record<PanelToneT, true>) as PanelToneT[]
 
 const INFO_ITEMS = [
   { label: 'Inwestycja', value: 'Mieszkanie Mokotów' },
@@ -66,6 +87,28 @@ export function LayoutSection() {
           </PageWrapper>
         </div>
       </ShowcaseRow>
+      <ShowcaseRow
+        title="SectionHeader — rozmiar"
+        source="ui/section-header.tsx"
+        className="flex-col items-start"
+      >
+        {SECTION_HEADER_SIZES.map((size) => (
+          <SectionHeader key={size} size={size} title={`size=${size}`} />
+        ))}
+        <p className={SUBSECTION_TITLE_CLASS}>SUBSECTION_TITLE_CLASS</p>
+        <p className={EYEBROW_CLASS}>EYEBROW_CLASS</p>
+      </ShowcaseRow>
+      <ShowcaseRow title="Panel + BORDERED_LIST_CLASS" source="ui/panel.tsx">
+        {PANEL_TONES.map((tone) => (
+          <Panel key={tone} tone={tone} className="p-3 text-sm">
+            tone={tone}
+          </Panel>
+        ))}
+        <ul className={cn(BORDERED_LIST_CLASS, 'w-full max-w-xs text-sm')}>
+          <li className="p-2">Pierwszy</li>
+          <li className="p-2">Drugi</li>
+        </ul>
+      </ShowcaseRow>
       <ShowcaseRow title="SettingsCard" source="ui/settings-card.tsx">
         <div className="w-full max-w-md">
           <SettingsCard
@@ -77,7 +120,9 @@ export function LayoutSection() {
               </Button>
             }
           >
-            <p className="text-muted-foreground pt-2 text-sm">Treść karty.</p>
+            <Description withIcon={false} className="pt-2">
+              Treść karty.
+            </Description>
           </SettingsCard>
         </div>
       </ShowcaseRow>
@@ -95,7 +140,7 @@ export function LayoutSection() {
               defaultOpen={state === 'open'}
               hint="Podpowiedź"
             >
-              <p className="text-muted-foreground text-sm">Zawartość sekcji.</p>
+              <Description withIcon={false}>Zawartość sekcji.</Description>
             </CollapsibleSection>
           )),
         )}
@@ -121,18 +166,18 @@ export function LayoutSection() {
       </ShowcaseRow>
       <ShowcaseRow title="SummaryTable" source="ui/summary-grid.tsx">
         <SummaryTable cols={SUMMARY_COLS} className="w-fit">
-          <SummaryHeaderCell variant="label">Pozycja</SummaryHeaderCell>
+          <SummaryHeaderCell>Pozycja</SummaryHeaderCell>
           <SummaryHeaderCell>Kwota</SummaryHeaderCell>
-          <SummaryLabelCell>Robocizna</SummaryLabelCell>
-          <SummaryValueCell tone="success">8 000,00 zł</SummaryValueCell>
-          <SummaryLabelCell muted>Wyszarzone</SummaryLabelCell>
-          <SummaryValueCell muted>0,00 zł</SummaryValueCell>
-          <SummaryLabelCell hints={[{ variant: 'noStages' }]}>Z podpowiedzią</SummaryLabelCell>
-          <SummaryValueCell tone="error" note={{ text: 'Notatka', tone: 'error' }}>
+          <SummaryCell>Robocizna</SummaryCell>
+          <SummaryCell tone="success">8 000,00 zł</SummaryCell>
+          <SummaryCell muted>Wyszarzone</SummaryCell>
+          <SummaryCell muted>0,00 zł</SummaryCell>
+          <SummaryCell hints={[{ variant: 'noStages' }]}>Z podpowiedzią</SummaryCell>
+          <SummaryCell tone="error" note={{ text: 'Notatka', tone: 'error' }}>
             -120,00 zł
-          </SummaryValueCell>
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">7 880,00 zł</SummaryValueCell>
+          </SummaryCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">7 880,00 zł</SummaryCell>
         </SummaryTable>
       </ShowcaseRow>
       <ShowcaseRow

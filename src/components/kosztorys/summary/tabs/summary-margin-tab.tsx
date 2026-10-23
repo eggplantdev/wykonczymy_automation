@@ -38,14 +38,12 @@ export function SummaryMarginTab({
   return (
     <div className="flex w-full flex-col gap-4">
       {forecastByPlane && (
-        <div className="w-fit">
-          <ToggleGroup
-            options={FIGURE_OPTIONS}
-            value={figure}
-            onChange={setFigure}
-            aria-label="Która marża"
-          />
-        </div>
+        <ToggleGroup
+          options={FIGURE_OPTIONS}
+          value={figure}
+          onChange={setFigure}
+          aria-label="Która marża"
+        />
       )}
 
       {figure === 'forecast' && forecast ? (

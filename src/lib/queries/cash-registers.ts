@@ -4,6 +4,7 @@ import { canViewRegister, isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/aut
 import { requireAuth } from '@/lib/auth/require-auth'
 import type { CashRegisterRefT, WorkerRefT, CashRegisterTypeT } from '@/types/reference-data'
 import type { CashRegisterRowT } from '@/types/table-rows'
+import { EMPTY_VALUE } from '@/lib/utils/empty-value'
 
 export function shapeCashRegisters(
   cashRegisters: CashRegisterRefT[],
@@ -14,7 +15,7 @@ export function shapeCashRegisters(
   return cashRegisters.map((cr) => ({
     id: cr.id,
     name: cr.name,
-    ownerName: cr.ownerId ? (workersMap.get(cr.ownerId)?.name ?? '—') : '—',
+    ownerName: cr.ownerId ? (workersMap.get(cr.ownerId)?.name ?? EMPTY_VALUE) : EMPTY_VALUE,
     ownerId: cr.ownerId,
     ownerRole: cr.ownerId ? workersMap.get(cr.ownerId)?.role : undefined,
     balance: balances[String(cr.id)] ?? 0,

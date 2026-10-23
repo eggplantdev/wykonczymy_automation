@@ -3,11 +3,13 @@
 import type { PointerEvent, ReactNode } from 'react'
 import { useRef } from 'react'
 
+import { HeaderColumnIdContext } from '@/components/ui/datasheet-grid/header-menu-extension'
+
 // We deliberately do NOT change the width live: during the drag we only show a vertical guide
 // and commit the width on release, so a drag
 // costs one re-layout instead of one per pointermove.
 
-const RESIZE_MIN_PX = 40
+export const RESIZE_MIN_PX = 40
 
 type PropsT = {
   colId: string
@@ -61,7 +63,7 @@ export function ResizableHeader({ colId, minWidth, onGuide, onCommit, children }
   // on the REAL cell edge, not on the end of the shrink-wrapped title content.
   return (
     <span className="flex h-full w-full items-center">
-      {children}
+      <HeaderColumnIdContext value={colId}>{children}</HeaderColumnIdContext>
       <span
         role="separator"
         aria-orientation="vertical"

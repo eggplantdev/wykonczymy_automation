@@ -7,13 +7,12 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import { MenuItemBody } from '@/components/ui/menu-item-body'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { workerPreviewSegment } from '@/lib/kosztorys/worker-view/worker-links'
-import type { WorkerShareTargetT } from '@/components/kosztorys/editor/actions/use-worker-actions'
+import type {
+  WorkerShareTargetT,
+  WorkerTargetT,
+} from '@/components/kosztorys/editor/actions/use-worker-actions'
 
-export function WorkerPreviewMenuItem({
-  target,
-}: {
-  target: Pick<WorkerShareTargetT, 'id' | 'name'>
-}) {
+export function WorkerPreviewMenuItem({ target }: { target: WorkerTargetT }) {
   const { investmentId } = useKosztorysEditorContext()
   return (
     <DropdownMenuItem asChild>

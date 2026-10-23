@@ -3,9 +3,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
-import { ColumnToggle } from '@/components/tables/data-table/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination/pagination-footer'
 import { getLeadColumns } from '@/components/tables/leads'
 import { SelectedIdsContext } from '@/components/tables/data-table/select-column'
@@ -79,25 +77,21 @@ export function LeadsDataTable({ data, paginationMeta }: LeadsDataTablePropsT) {
         storageKey="leads"
         sorting={sorting}
         onSortingChange={(next) => updateParam('sort', sortingStateToParam(next))}
-        toolbar={({ table, columnVisibility: cv, ...order }) => (
-          <DataTableToolbar
-            search={{
-              value: searchParams.get('search') ?? '',
-              onChange: (value) => updateParam('search', value),
-              placeholder: 'Szukaj zgłoszenia...',
-              debounceMs: SEARCH_DEBOUNCE_MS,
-            }}
-            filters={
-              <ActiveFilterButton
-                isActive={noFiles.isActive}
-                onChange={noFiles.setActive}
-                activeLabel="Bez plików"
-              />
-            }
-            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-            actions={selectedIds.size > 0 && <TrashLeadsButton leadIds={[...selectedIds]} />}
+        search={{
+          value: searchParams.get('search') ?? '',
+          onChange: (value) => updateParam('search', value),
+          placeholder: 'Szukaj zgłoszenia...',
+          debounceMs: SEARCH_DEBOUNCE_MS,
+        }}
+        filters={
+          <ActiveFilterButton
+            isActive={noFiles.isActive}
+            onChange={noFiles.setActive}
+            activeLabel="Bez plików"
           />
-        )}
+        }
+        columnToggle
+        actions={selectedIds.size > 0 && <TrashLeadsButton leadIds={[...selectedIds]} />}
       />
       <PaginationFooter paginationMeta={paginationMeta} baseUrl={LEADS_BASE_URL} />
     </SelectedIdsContext>

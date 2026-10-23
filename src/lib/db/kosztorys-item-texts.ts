@@ -1,6 +1,7 @@
 // No `server-only` here: the bulk script runs these same helpers under tsx, where that import throws.
 import { sql } from '@payloadcms/db-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
+import { linkItemsToCatalogue } from '@/lib/db/kosztorys-catalogue-apply'
 import { textOrNull } from '@/lib/db/row-coerce'
 import { fillDescriptionTranslations } from '@/lib/db/fill-description-translations'
 import type { RowWriteT } from '@/lib/i18n/ai-translation-fill'
@@ -53,6 +54,7 @@ export async function setItemTexts(
   `)
   if (res.rows.length > 0)
     await db.execute(sql`UPDATE investments SET updated_at = now() WHERE id = ${investmentId}`)
+  await linkItemsToCatalogue(db, investmentId, rows)
   return res.rows.length
 }
 

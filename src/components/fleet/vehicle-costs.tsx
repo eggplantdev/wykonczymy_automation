@@ -1,11 +1,11 @@
 import { Fragment } from 'react'
+import { SUBSECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
-  SummaryLabelCell,
+  SummaryCell,
   SummaryTable,
-  SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { summariseCosts } from '@/lib/fleet/costs'
 import { emptyHistoryLabel } from '@/lib/fleet/history-window'
@@ -13,6 +13,7 @@ import { INSPECTION_TYPE_LABELS, type InspectionTypeT } from '@/lib/fleet/inspec
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { InspectionHistoryEntryT } from '@/lib/fleet/types'
+import { Description } from '@/components/ui/description'
 
 const COLS = `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL}`
 
@@ -32,48 +33,50 @@ export function VehicleCosts({
       'przeglądów',
       summariseCosts(fullHistoryByType).entries.length > 0,
     )
-    return <p className="text-muted-foreground text-xs">{label}</p>
+    return (
+      <Description withIcon={false} size="xs">
+        {label}
+      </Description>
+    )
   }
 
   return (
     <section className="flex flex-col gap-6">
       <div>
-        <h2 className="mb-2 text-sm font-semibold">Podsumowanie</h2>
+        <h2 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>Podsumowanie</h2>
 
         <SummaryTable cols={COLS} className="w-fit">
-          <SummaryHeaderCell variant="label">Rodzaj</SummaryHeaderCell>
+          <SummaryHeaderCell>Rodzaj</SummaryHeaderCell>
           <SummaryHeaderCell>Wpisy</SummaryHeaderCell>
           <SummaryHeaderCell>Koszt</SummaryHeaderCell>
 
           {byType.map((bucket) => (
             <Fragment key={bucket.type}>
-              <SummaryLabelCell>{INSPECTION_TYPE_LABELS[bucket.type].pl}</SummaryLabelCell>
-              <SummaryValueCell>{bucket.count}</SummaryValueCell>
-              <SummaryValueCell>{formatPLNOrDash(bucket.total)}</SummaryValueCell>
+              <SummaryCell>{INSPECTION_TYPE_LABELS[bucket.type].pl}</SummaryCell>
+              <SummaryCell>{bucket.count}</SummaryCell>
+              <SummaryCell>{formatPLNOrDash(bucket.total)}</SummaryCell>
             </Fragment>
           ))}
 
-          <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
-          <SummaryValueCell weight="bold">{entries.length}</SummaryValueCell>
-          <SummaryValueCell weight="bold">{formatPLNOrDash(total)}</SummaryValueCell>
+          <SummaryCell weight="bold">Razem</SummaryCell>
+          <SummaryCell weight="bold">{entries.length}</SummaryCell>
+          <SummaryCell weight="bold">{formatPLNOrDash(total)}</SummaryCell>
         </SummaryTable>
       </div>
 
       <div>
-        <h3 className="mb-2 text-sm font-semibold">Szczegóły</h3>
+        <h2 className={`${SUBSECTION_TITLE_CLASS} mb-2`}>Szczegóły</h2>
 
         <SummaryTable cols={COLS} className="w-fit">
-          <SummaryHeaderCell variant="label">Data</SummaryHeaderCell>
+          <SummaryHeaderCell>Data</SummaryHeaderCell>
           <SummaryHeaderCell>Rodzaj</SummaryHeaderCell>
           <SummaryHeaderCell>Koszt</SummaryHeaderCell>
 
           {entries.map((entry) => (
             <Fragment key={entry.id}>
-              <SummaryLabelCell className="tabular-nums">
-                {formatPLDate(entry.performedAt)}
-              </SummaryLabelCell>
-              <SummaryValueCell>{INSPECTION_TYPE_LABELS[entry.type].pl}</SummaryValueCell>
-              <SummaryValueCell>{formatPLNOrDash(entry.cost)}</SummaryValueCell>
+              <SummaryCell>{formatPLDate(entry.performedAt)}</SummaryCell>
+              <SummaryCell>{INSPECTION_TYPE_LABELS[entry.type].pl}</SummaryCell>
+              <SummaryCell>{formatPLNOrDash(entry.cost)}</SummaryCell>
             </Fragment>
           ))}
         </SummaryTable>

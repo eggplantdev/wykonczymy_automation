@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildViewRows } from '@/lib/kosztorys/row-view'
+import { buildViewRows, latchViewRows, type ViewLatchT } from '@/lib/kosztorys/row-view'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 function row(
@@ -25,6 +25,10 @@ const ROWS = [
   row(3, 20, 'aneks kuchenny', 2),
   row(4, 20, 'malowanie okien', 7),
 ]
+
+function latchOf(ids: number[]): ViewLatchT {
+  return { ids: new Set(ids), rank: new Map(ids.map((id, index) => [id, index])) }
+}
 
 const base = {
   rows: ROWS,
@@ -60,16 +64,16 @@ describe('buildViewRows', () => {
     const view = buildViewRows({
       ...base,
       engagedConditionIds: new Set(['has-planned-qty']),
-      latchedRowIds: new Set([2]),
+      latch: latchOf([2]),
     })
 
     expect(view.map((r) => r.id)).toEqual([1, 2, 3, 4])
   })
 
-  it('does not hold a latched row against the search', () => {
-    const view = buildViewRows({ ...base, search: 'aneks', latchedRowIds: new Set([1]) })
+  it('holds a latched row against the search it stopped matching', () => {
+    const view = buildViewRows({ ...base, search: 'aneks', latch: latchOf([1, 3]) })
 
-    expect(view.map((r) => r.id)).toEqual([3])
+    expect(view.map((r) => r.id)).toEqual([1, 3])
   })
 
   it('sorts what the search left, within sections', () => {
@@ -90,5 +94,64 @@ describe('buildViewRows', () => {
 
     // pl collation: „okien" < „sufitu" < „ścian".
     expect(view.map((r) => r.id)).toEqual([3, 4, 2, 1])
+  })
+})
+
+describe('buildViewRows under a frozen sort', () => {
+  const withQty = (id: number, plannedQty: number) =>
+    ROWS.map((r) => (r.id === id ? { ...r, plannedQty } : r))
+
+  it('keeps the frozen order within sections when the sorted value is edited', () => {
+    const sort = { field: 'plannedQty', dir: 'asc', scope: 'section' } as const
+    const latch = latchOf([2, 1, 3, 4])
+
+    expect(buildViewRows({ ...base, sort, latch }).map((r) => r.id)).toEqual([2, 1, 3, 4])
+    const view = buildViewRows({ ...base, rows: withQty(2, 9), sort, latch })
+
+    expect(view.map((r) => r.id)).toEqual([2, 1, 3, 4])
+  })
+
+  it('keeps the frozen order across sections when the sorted value is edited', () => {
+    const sort = { field: 'plannedQty', dir: 'asc', scope: 'global' } as const
+    const view = buildViewRows({
+      ...base,
+      rows: withQty(3, 50),
+      sort,
+      latch: latchOf([2, 3, 1, 4]),
+    })
+
+    expect(view.map((r) => r.id)).toEqual([2, 3, 1, 4])
+  })
+
+  it('appends a row the latch has not ranked at the end of its section', () => {
+    const view = buildViewRows({
+      ...base,
+      rows: [...ROWS, row(5, 10, 'gruntowanie', 1)],
+      sort: { field: 'plannedQty', dir: 'asc', scope: 'section' },
+      latch: latchOf([2, 1, 3, 4]),
+    })
+
+    expect(view.map((r) => r.id)).toEqual([2, 1, 5, 3, 4])
+  })
+
+  it('replays the order it recorded from the first view once the sorted value is edited', () => {
+    const sort = { field: 'plannedQty', dir: 'asc', scope: 'global' } as const
+    const latch = { ids: new Set<number>(), rank: new Map<number, number>() }
+    latchViewRows(latch, buildViewRows({ ...base, sort }))
+
+    const view = buildViewRows({ ...base, rows: withQty(2, 50), sort, latch })
+
+    expect(view.map((r) => r.id)).toEqual([2, 3, 1, 4])
+  })
+
+  it('appends a row the latch has not ranked at the end of the list under the global scope', () => {
+    const view = buildViewRows({
+      ...base,
+      rows: [...ROWS, row(5, 10, 'gruntowanie', 1)],
+      sort: { field: 'plannedQty', dir: 'asc', scope: 'global' },
+      latch: latchOf([2, 3, 1, 4]),
+    })
+
+    expect(view.map((r) => r.id)).toEqual([2, 3, 1, 4, 5])
   })
 })

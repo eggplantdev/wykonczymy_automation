@@ -24,12 +24,8 @@ export function CandidateRow({
       <span className="min-w-0 flex-1 text-left">{entry.description}</span>
       {showFigures && (
         <>
-          <span className="text-muted-foreground w-16 shrink-0 text-right">
-            {unitLabel(entry.unit)}
-          </span>
-          <span className="w-20 shrink-0 text-right tabular-nums">
-            {formatPLN(entry.clientPrice)}
-          </span>
+          <span className="text-muted-foreground w-16 shrink-0">{unitLabel(entry.unit)}</span>
+          <span className="w-20 shrink-0 tabular-nums">{formatPLN(entry.clientPrice)}</span>
         </>
       )}
     </>
@@ -44,13 +40,8 @@ export function CandidateRow({
     )
 
   return (
-    <Button
-      variant="ghost"
-      size="xs"
-      className="h-auto w-full items-baseline gap-2 px-1 py-1 font-normal whitespace-normal"
-      onClick={onClick}
-    >
-      <ArrowRight className="shrink-0 self-start text-amber-600" />
+    <Button variant="ghost" size="row" className="items-baseline" onClick={onClick}>
+      <ArrowRight className="text-warning shrink-0 self-start" />
       {body}
     </Button>
   )
