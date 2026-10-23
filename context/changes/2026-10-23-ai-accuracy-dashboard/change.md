@@ -6,7 +6,7 @@ created: 2026-10-23
 updated: 2026-10-23
 archived_at: null
 branch: ai-accuracy-dashboard
-worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/ai-accuracy-dashboard
+worktree: null
 ---
 
 ## Notes
