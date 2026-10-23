@@ -97,6 +97,11 @@ produkcji: `/api/test-push` (ADMIN-only, wysyła wyłącznie na urządzenia wywo
 każdy endpoint `https`, więc każde zalogowane konto może sprawić, że serwer wyśle zaszyfrowany POST
 pod dowolny adres. Stałą listę odrzucono, bo mogłaby odmówić prawdziwej usłudze push.
 
+**`tag` powiadomienia to klucz zwijania w dwóch miejscach** — usługa push podmienia czekającą
+wiadomość o tym samym `topic`, a `public/sw.js` podmienia wyświetlone powiadomienie o tym samym
+`tag`. Powiadomienie, które nie ma zastępować innego, potrzebuje taga per obiekt (np.
+`ai-stage-<id>`), nie stałego; limit `topic` to 32 znaki URL-safe.
+
 ## OpenRouter — świadomie bez bramki
 
 Szkodą są **pieniądze, zakapowane limitem wydatków** na koncie, czyli pozycja w budżecie, nie
