@@ -251,6 +251,9 @@ export function ButtonsSection() {
         <ExternalLink href="https://example.com" variant="button">
           ExternalLink button
         </ExternalLink>
+        <ExternalLink href="https://example.com" variant="button" size="sm" buttonVariant="outline">
+          ExternalLink button sm outline
+        </ExternalLink>
       </ShowcaseRow>
     </ShowcaseSection>
   )

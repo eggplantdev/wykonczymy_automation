@@ -327,15 +327,15 @@ The refresh becomes part of the AI workflow, and the workflow links the dashboar
 
 #### Automated
 
-- [x] 0.1 None — a browser check
+- [x] 0.1 None — a browser check — 274969951
 
 ### Phase 1: Scoring script
 
 #### Automated
 
 - [ ] 1.1 `accuracy.test.ts` passes
-- [x] 1.2 The script run writes five CSVs into `wykonczymy-ai-cases/accuracy/`
-- [x] 1.3 Parity with the 10-22 `cases.csv` for unchanged cases
+- [x] 1.2 The script run writes five CSVs into `wykonczymy-ai-cases/accuracy/` — 274969951
+- [x] 1.3 Parity with the 10-22 `cases.csv` for unchanged cases — 274969951
 
 ### Phase 2: Dashboard per case
 

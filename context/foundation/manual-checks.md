@@ -1686,6 +1686,17 @@ głównym, w Safari przełącznika nie ma).
       renderuje się wewnątrz pola formularza (`role="group" data-slot="field"`), strona bez
       overlaya błędu i bez błędu w konsoli (staging 79dd4d5aa; jedyny `400` to preflight vercel.live).
 
+## 2026-10-23 — ai-accuracy-dashboard — „Trafność AI” z listy inwestycji
+
+- [ ] Okno prywatne, bez logowania do claude.ai: link dashboardu „Trafność AI w kosztorysach”
+      pokazuje liczby i wykres, nie ekran logowania.
+- [ ] `/inwestycje` jako menadżer, szerokość desktopowa: „Trafność AI ↗” stoi w pasku obok „Dodaj”,
+      tej samej wysokości, i otwiera dashboard w nowej karcie.
+- [ ] `/design` → przyciski, „Linki w kształcie przycisku”: nowy przykład „ExternalLink button sm
+      outline” wygląda jak „Dodaj” (obrys, mała wysokość).
+- [ ] Dashboard: jeden słupek na każdy sprawdzony przypadek (bez 11 i 12), żadnych nazw rund,
+      kafelki „Wszystkie sprawdzone przypadki” / „Ostatnie 5” / „Najnowszy przypadek” mają liczby.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
