@@ -24,6 +24,7 @@ import {
 } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { CataloguePickerHost } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
 import { ReorderHost } from '@/components/kosztorys/editor/actions/reorder-host'
+import { ColumnWidthHost } from '@/components/kosztorys/editor/actions/column-width-host'
 import { NewItemHost } from '@/components/kosztorys/editor/actions/new-item-host'
 import { useRowSizing } from '@/components/kosztorys/editor/hooks/use-row-sizing'
 import { useUndoKeyboard } from '@/components/kosztorys/editor/hooks/use-undo-keyboard'
@@ -339,6 +340,7 @@ export function KosztorysEditorBody({
       setRowHeight,
       setGuideY,
     })
+  const hasWidthCommand = !preview && !report && !editor.readOnly
   // dsg offers no slot inside its scroller, so the footer is portaled into it.
   const [reportFooterAnchor, setReportFooterAnchor] = useState<HTMLElement | null>(null)
   const reportFooterHost =
@@ -386,190 +388,198 @@ export function KosztorysEditorBody({
         <CataloguePickerHost>
           <NewItemHost>
             <ReorderHost>
-              {/* As wide as the full sheet, so the report's header has room to stay pinned left while
-              the page scrolls sideways — a sticky box never leaves its parent. */}
-              <div
-                className={cn(
-                  'flex w-full flex-col',
-                  pageScroll ? 'min-h-dvh' : 'overflow-hidden',
-                  !pageScroll && (preview ? 'h-dvh' : 'h-below-top-nav'),
-                )}
-                style={reportMinWidth ? { minWidth: reportMinWidth } : undefined}
+              <ColumnWidthHost
+                datasheetRef={datasheetRef}
+                columns={gridColumns}
+                enabled={hasWidthCommand}
               >
-                {report ? (
-                  report.header({
-                    search,
-                    onSearch: setSearch,
-                    showAllRows,
-                    onShowAllRows: setShowAllRows,
-                    hiddenRowCount: clientEmptyRowIds.size,
-                    reportedOnly,
-                    onReportedOnly: setReportedOnly,
-                  })
-                ) : preview ? (
-                  <PreviewHeader
-                    investmentName={investmentName}
-                    workerName={worker?.name}
-                    history={investorHistory}
-                    hasRows={subtotals.length > 0}
-                    emptyRowCount={clientEmptyRowIds.size}
-                    showAllRows={showAllRows}
-                    onShowAllRowsChange={setShowAllRows}
-                  />
-                ) : (
-                  <>
-                    <KosztorysEditorToolbar
-                      workerReports={workerReports}
-                      protocolSource={
-                        investment && !isTemplate
-                          ? {
-                              investment,
-                              materials: {
-                                grossBase: panelData.materialsGrossBase,
-                                netBilled: panelData.materialsNetBilled,
-                              },
-                              depositTransactions,
-                              lossAmount: investmentLoss,
-                            }
-                          : undefined
-                      }
-                    />
-                    {lock && <KosztorysLockedBanner lock={lock} />}
-                    {hasCatalogueEdits && <TemplateCatalogueBanner />}
-                  </>
-                )}
-                {preview && <HistoryBanner version={pastVersion} />}
-                {/* datasheet-grid
-            needs px for virtualization; without it, it renders all 1000 rows. */}
+                {/* As wide as the full sheet, so the report's header has room to stay pinned left while
+              the page scrolls sideways — a sticky box never leaves its parent. */}
                 <div
-                  className={cn('relative flex min-h-0 flex-1', !pageScroll && 'overflow-hidden')}
+                  className={cn(
+                    'flex w-full flex-col',
+                    pageScroll ? 'min-h-dvh' : 'overflow-hidden',
+                    !pageScroll && (preview ? 'h-dvh' : 'h-below-top-nav'),
+                  )}
+                  style={reportMinWidth ? { minWidth: reportMinWidth } : undefined}
                 >
-                  <div
-                    ref={gridRef}
-                    data-grid-text-size={textSize}
-                    className={cn(
-                      'grid min-h-0 min-w-0 flex-1 grid-cols-1',
-                      !pageScroll && 'overflow-hidden',
-                    )}
-                  >
-                    {/* What useWrapColumnWidths reads the font from — there before the first row is. */}
-                    <span
-                      aria-hidden
-                      className="grid-cell-text pointer-events-none invisible absolute"
-                    />
-                    <DynamicDataSheetGrid
-                      ref={datasheetRef}
-                      className={cn(
-                        'kosztorys-grid',
-                        preview && 'kosztorys-grid-preview',
-                        report && 'kosztorys-grid-report',
-                        isReportCompact && 'kosztorys-grid-report-compact',
-                      )}
-                      style={reportMinWidth ? { minWidth: reportMinWidth } : undefined}
-                      value={gridRows}
-                      onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
-                      columns={gridColumns}
-                      gutterColumn={hidesGutter ? false : gutterColumn}
-                      height={gridHeightBesideTotals}
-                      rowHeight={({ rowData }) => rowHeightFor(rowData)}
-                      headerRowHeight={resolveHeaderRowHeight(
-                        preview ? undefined : rowHeights[HEADER_HEIGHT_KEY],
-                      )}
-                      lockRows
-                      rowKey={({ rowData }) => String(rowData.id)}
-                      cellClassName={({ rowData, columnId }) =>
-                        columnId && isClipped(rowData as KosztorysV2RowT, columnId)
-                          ? CLIPPED_CELL_CLASS
-                          : undefined
-                      }
-                      rowClassName={({ rowData }) =>
-                        cn(
-                          sectionColorRail(rowData.sectionColor),
-                          isSectionHeaderRow(rowData.id) && 'kosztorys-section-header',
-                          isSectionFooterRow(rowData.id) && 'kosztorys-section-footer',
-                          showAllRows &&
-                            clientEmptyRowIds.has(rowData.id) &&
-                            'kosztorys-revealed-row',
-                          removedItemIds.has(rowData.id) && 'kosztorys-history-removed',
-                        )
-                      }
-                    />
-                    {report && <span hidden ref={setReportFooterAnchor} />}
-                    {report && reportFooterHost && createPortal(report.footer, reportFooterHost)}
-                  </div>
-                  <div
-                    className="pointer-events-none absolute inset-0 flex"
-                    style={{ height: hasTotalsPanel ? gridHeightBesideTotals : undefined }}
-                  >
-                    <GridEmptyOverlay
-                      isEmpty={isEmpty}
-                      hasVisibleRows={viewRows.length > 0}
-                      preview={preview}
-                      isTemplate={isTemplate}
-                      search={search}
-                      engagedConditionIds={engagedConditionIds}
-                      onImport={!editor.readOnly && hasSheet ? openImport : undefined}
-                      onClearSearch={() => setSearch('')}
-                      onResetFilters={resetFilters}
-                    />
-                  </div>
-                  {hasTotalsPanel && (
-                    <KosztorysTotalsPanel
-                      hasRows={subtotals.length > 0}
-                      availableHeight={gridHeight}
-                      {...panelData}
-                      investmentId={investmentId}
+                  {report ? (
+                    report.header({
+                      search,
+                      onSearch: setSearch,
+                      showAllRows,
+                      onShowAllRows: setShowAllRows,
+                      hiddenRowCount: clientEmptyRowIds.size,
+                      reportedOnly,
+                      onReportedOnly: setReportedOnly,
+                    })
+                  ) : preview ? (
+                    <PreviewHeader
                       investmentName={investmentName}
-                      investment={investment}
-                      trashed={trashed}
-                      assets={assets}
-                      depositTransactions={depositTransactions}
-                      stages={stages}
-                      stageTotals={stageTotals}
-                      workers={workers}
-                      subcontractorDue={subcontractorDue}
-                      marginForecastByPlane={marginForecastByPlane}
-                      totalNet={totalNet}
-                      laborCostsNet={laborCostsNet}
-                      sectionSubtotals={progressSubtotals}
-                      discountAmount={discountNetFromKosztorys}
-                      lossAmount={investmentLoss}
-                      reconciliation={reconciliation}
-                      vatRate={tree.vatRate}
-                      settlementMode={tree.settlementMode}
-                      onSettlementModeChange={
-                        editor.readOnly ? undefined : editor.handleSettlementModeChange
-                      }
-                      materialsNetRate={tree.materialsNetRate}
-                      onMaterialsNetRateChange={
-                        editor.readOnly ? undefined : editor.handleMaterialsNetRateChange
-                      }
-                      isSavingSettings={editor.isSavingSettings}
-                      preview={preview}
+                      workerName={worker?.name}
+                      history={investorHistory}
+                      hasRows={subtotals.length > 0}
+                      emptyRowCount={clientEmptyRowIds.size}
+                      showAllRows={showAllRows}
+                      onShowAllRowsChange={setShowAllRows}
                     />
+                  ) : (
+                    <>
+                      <KosztorysEditorToolbar
+                        workerReports={workerReports}
+                        protocolSource={
+                          investment && !isTemplate
+                            ? {
+                                investment,
+                                materials: {
+                                  grossBase: panelData.materialsGrossBase,
+                                  netBilled: panelData.materialsNetBilled,
+                                },
+                                depositTransactions,
+                                lossAmount: investmentLoss,
+                              }
+                            : undefined
+                        }
+                      />
+                      {lock && <KosztorysLockedBanner lock={lock} />}
+                      {hasCatalogueEdits && <TemplateCatalogueBanner />}
+                    </>
                   )}
-                </div>
-                {/* <main> uses transform-gpu, which would otherwise make this `fixed` element measure `left`
+                  {preview && <HistoryBanner version={pastVersion} />}
+                  {/* datasheet-grid
+            needs px for virtualization; without it, it renders all 1000 rows. */}
+                  <div
+                    className={cn('relative flex min-h-0 flex-1', !pageScroll && 'overflow-hidden')}
+                  >
+                    <div
+                      ref={gridRef}
+                      data-grid-text-size={textSize}
+                      className={cn(
+                        'grid min-h-0 min-w-0 flex-1 grid-cols-1',
+                        !pageScroll && 'overflow-hidden',
+                      )}
+                    >
+                      {/* What useWrapColumnWidths reads the font from — there before the first row is. */}
+                      <span
+                        aria-hidden
+                        className="grid-cell-text pointer-events-none invisible absolute"
+                      />
+                      <DynamicDataSheetGrid
+                        ref={datasheetRef}
+                        className={cn(
+                          'kosztorys-grid',
+                          preview && 'kosztorys-grid-preview',
+                          report && 'kosztorys-grid-report',
+                          isReportCompact && 'kosztorys-grid-report-compact',
+                        )}
+                        style={reportMinWidth ? { minWidth: reportMinWidth } : undefined}
+                        value={gridRows}
+                        onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
+                        columns={gridColumns}
+                        gutterColumn={hidesGutter ? false : gutterColumn}
+                        height={gridHeightBesideTotals}
+                        rowHeight={({ rowData }) => rowHeightFor(rowData)}
+                        headerRowHeight={resolveHeaderRowHeight(
+                          preview ? undefined : rowHeights[HEADER_HEIGHT_KEY],
+                        )}
+                        lockRows
+                        rowKey={({ rowData }) => String(rowData.id)}
+                        cellClassName={({ rowData, columnId }) =>
+                          columnId && isClipped(rowData as KosztorysV2RowT, columnId)
+                            ? CLIPPED_CELL_CLASS
+                            : undefined
+                        }
+                        rowClassName={({ rowData }) =>
+                          cn(
+                            sectionColorRail(rowData.sectionColor),
+                            isSectionHeaderRow(rowData.id) && 'kosztorys-section-header',
+                            isSectionFooterRow(rowData.id) && 'kosztorys-section-footer',
+                            showAllRows &&
+                              clientEmptyRowIds.has(rowData.id) &&
+                              'kosztorys-revealed-row',
+                            removedItemIds.has(rowData.id) && 'kosztorys-history-removed',
+                          )
+                        }
+                      />
+                      {report && <span hidden ref={setReportFooterAnchor} />}
+                      {report && reportFooterHost && createPortal(report.footer, reportFooterHost)}
+                    </div>
+                    <div
+                      className="pointer-events-none absolute inset-0 flex"
+                      style={{ height: hasTotalsPanel ? gridHeightBesideTotals : undefined }}
+                    >
+                      <GridEmptyOverlay
+                        isEmpty={isEmpty}
+                        hasVisibleRows={viewRows.length > 0}
+                        preview={preview}
+                        isTemplate={isTemplate}
+                        search={search}
+                        engagedConditionIds={engagedConditionIds}
+                        onImport={!editor.readOnly && hasSheet ? openImport : undefined}
+                        onClearSearch={() => setSearch('')}
+                        onResetFilters={resetFilters}
+                      />
+                    </div>
+                    {hasTotalsPanel && (
+                      <KosztorysTotalsPanel
+                        hasRows={subtotals.length > 0}
+                        availableHeight={gridHeight}
+                        {...panelData}
+                        investmentId={investmentId}
+                        investmentName={investmentName}
+                        investment={investment}
+                        trashed={trashed}
+                        assets={assets}
+                        depositTransactions={depositTransactions}
+                        stages={stages}
+                        stageTotals={stageTotals}
+                        workers={workers}
+                        subcontractorDue={subcontractorDue}
+                        marginForecastByPlane={marginForecastByPlane}
+                        totalNet={totalNet}
+                        laborCostsNet={laborCostsNet}
+                        sectionSubtotals={progressSubtotals}
+                        discountAmount={discountNetFromKosztorys}
+                        lossAmount={investmentLoss}
+                        reconciliation={reconciliation}
+                        vatRate={tree.vatRate}
+                        settlementMode={tree.settlementMode}
+                        onSettlementModeChange={
+                          editor.readOnly ? undefined : editor.handleSettlementModeChange
+                        }
+                        materialsNetRate={tree.materialsNetRate}
+                        onMaterialsNetRateChange={
+                          editor.readOnly ? undefined : editor.handleMaterialsNetRateChange
+                        }
+                        isSavingSettings={editor.isSavingSettings}
+                        preview={preview}
+                      />
+                    )}
+                  </div>
+                  {/* <main> uses transform-gpu, which would otherwise make this `fixed` element measure `left`
             from <main> (sidebar-offset) instead of the viewport */}
-                {guideX !== null &&
-                  createPortal(
-                    <div
-                      className="bg-primary/70 pointer-events-none fixed inset-y-0 z-50 w-px"
-                      style={{ left: guideX }}
-                    />,
-                    document.body,
+                  {guideX !== null &&
+                    createPortal(
+                      <div
+                        className="bg-primary/70 pointer-events-none fixed inset-y-0 z-50 w-px"
+                        style={{ left: guideX }}
+                      />,
+                      document.body,
+                    )}
+                  {guideY !== null &&
+                    createPortal(
+                      <div
+                        className="bg-primary/70 pointer-events-none fixed inset-x-0 z-50 h-px"
+                        style={{ top: guideY }}
+                      />,
+                      document.body,
+                    )}
+                  {!preview && (
+                    <SheetImportDialog {...importDialogProps} workers={editor.workers} />
                   )}
-                {guideY !== null &&
-                  createPortal(
-                    <div
-                      className="bg-primary/70 pointer-events-none fixed inset-x-0 z-50 h-px"
-                      style={{ top: guideY }}
-                    />,
-                    document.body,
-                  )}
-                {!preview && <SheetImportDialog {...importDialogProps} workers={editor.workers} />}
-                {!preview && <ConfirmDialog {...editor.investorImpactConfirm} />}
-              </div>
+                  {!preview && <ConfirmDialog {...editor.investorImpactConfirm} />}
+                </div>
+              </ColumnWidthHost>
             </ReorderHost>
           </NewItemHost>
         </CataloguePickerHost>

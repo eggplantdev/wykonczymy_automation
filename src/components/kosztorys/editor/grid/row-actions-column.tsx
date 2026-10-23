@@ -6,6 +6,7 @@ import { KosztorysRowActionsMenu } from '@/components/kosztorys/editor/grid/menu
 import { type BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { orderCommandsEnabled } from '@/lib/kosztorys/order-commands'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { ACTIONS_COLUMN_ID } from '@/lib/kosztorys/grid-column-ids'
 
 // `opts` rides `columnData` so this component keeps ONE identity across renders — dsg answers a
 // changed `component` type with a remount.
@@ -30,7 +31,7 @@ function RowActionsCell({ rowData, columnData }: CellProps<KosztorysV2RowT, RowA
 
 export function actionColumn(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT> {
   return {
-    id: 'actions',
+    id: ACTIONS_COLUMN_ID,
     title: <HeaderLabel className="px-1">Akcje</HeaderLabel>,
     basis: 64,
     grow: 0,

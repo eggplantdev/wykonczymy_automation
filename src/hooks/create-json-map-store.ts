@@ -33,6 +33,7 @@ export type JsonMapStoreT<V> = {
   getSnapshot: () => string
   update: (updater: (prev: Record<string, V>) => Record<string, V>) => void
   set: (key: string, value: V) => void
+  setMany: (entries: Record<string, V>) => void
   drop: (...keys: string[]) => void
 }
 
@@ -73,6 +74,7 @@ export function createJsonMapStore<V>(storageKey: string): JsonMapStoreT<V> {
     getSnapshot,
     update,
     set: (key, value) => update((prev) => ({ ...prev, [key]: value })),
+    setMany: (entries) => update((prev) => ({ ...prev, ...entries })),
     drop: (...keys) => update((prev) => dropKeys(prev, keys)),
   }
 }

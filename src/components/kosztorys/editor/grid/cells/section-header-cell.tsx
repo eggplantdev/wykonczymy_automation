@@ -13,6 +13,7 @@ import { useTranslation } from '@/hooks/use-translation'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { cn } from '@/lib/utils/cn'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { ACTIONS_COLUMN_ID, CHROME_COLUMN_IDS } from '@/lib/kosztorys/grid-column-ids'
 
 // `net` is the section's executed value after rabat, in the active price view
 type SectionHeaderFigureT = { itemCount: number; net: number }
@@ -29,11 +30,6 @@ export type SectionHeaderContextT = {
 }
 
 export type SectionHeaderSlotT = 'actions' | 'label' | 'blank'
-
-const ACTIONS_COLUMN_ID = 'actions'
-
-// Literals, not an import — the column assembly imports this file.
-const CHROME_COLUMN_IDS: ReadonlySet<string> = new Set([ACTIONS_COLUMN_ID, 'layerGap'])
 
 export function sectionBandLabelColumnId(
   columnIds: readonly (string | undefined)[],

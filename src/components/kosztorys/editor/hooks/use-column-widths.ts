@@ -10,7 +10,13 @@ const store = createJsonMapStore<number>('kosztorys-v2-col-widths')
 export function useColumnWidths(): {
   widths: Record<string, number>
   setWidth: (id: string, width: number) => void
+  setWidths: (ids: string[], width: number) => void
   dropWidth: (...ids: string[]) => void
 } {
-  return { widths: useJsonMap(store), setWidth: store.set, dropWidth: store.drop }
+  return {
+    widths: useJsonMap(store),
+    setWidth: store.set,
+    setWidths: (ids, width) => store.setMany(Object.fromEntries(ids.map((id) => [id, width]))),
+    dropWidth: store.drop,
+  }
 }
