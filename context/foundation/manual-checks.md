@@ -472,8 +472,9 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 - [ ] Stare zgłoszenia z częściowymi decyzjami po migracji: „Do sprawdzenia” z postępem, nie „Przyjęte” (lokalnie: #7, #8, #11 na inw. 139; na preview te numery to inne inwestycje z kompletem decyzji — sprawdzać na lokalnym dumpie).
       _Staging 2026-10-14: na preview DB zgłoszenia #7/#8/#11 to inne inwestycje (139/149/119) i wszystkie linie mają decyzję → status „accepted” jest poprawny; danych do sprawdzenia „Do sprawdzenia z postępem” nie ma. Boks nieaktualny wobec preview DB — Needs human (dane lokalne)._
   _Staging 2026-10-20: wymaga człowieka — tylko lokalny dump (numery zgłoszeń z preview to inne dane)_
-- [ ] Nagłówki kolumn liczbowych w „Z rozpiski” (Zgłoszono, Przyjmuję, Etap, oba „Pomiar z natury”, Aktualizacja przedmiaru, Pomiar z natury / Aktualizacja przedmiaru) czytają się pionowo od dołu do góry, przyklejone do dołu wiersza nagłówka i wycentrowane w poziomie w swojej kolumnie; wszystkie kolumny poza opisami (Opis prac, Opis w języku pracownika, Może chodzi o) mają nagłówek i komórki wyśrodkowane — checkbox, Nr, Sekcja, Akcje, pole „Przyjmuję”, liczby, „0,5 → 1”, „0,5 / 1” z „przekroczono”; opisy zostają do lewej; długie zawijają się w 2 pionowe linie zamiast przekraczać ~192px wysokości; dopisek stoi jako mniejsza pionowa linia obok tytułu; strzałka sortowania na końcu napisu i klik w nagłówek dalej sortuje. Chrome i Safari.
+- [x] Nagłówki kolumn liczbowych w „Z rozpiski” (Zgłoszono, Przyjmuję, Etap, oba „Pomiar z natury”, Aktualizacja przedmiaru, Pomiar z natury / Aktualizacja przedmiaru) czytają się pionowo od dołu do góry, przyklejone do dołu wiersza nagłówka i wycentrowane w poziomie w swojej kolumnie; wszystkie kolumny poza opisami (Opis prac, Opis w języku pracownika, Może chodzi o) mają nagłówek i komórki wyśrodkowane — checkbox, Nr, Sekcja, Akcje, pole „Przyjmuję”, liczby, „0,5 → 1”, „0,5 / 1” z „przekroczono”; opisy zostają do lewej; długie zawijają się w 2 pionowe linie zamiast przekraczać ~192px wysokości; dopisek stoi jako mniejsza pionowa linia obok tytułu; strzałka sortowania na końcu napisu i klik w nagłówek dalej sortuje. Chrome i Safari.
       _Staging 2026-10-14 (pass 3): Chrome: wszystkie nagłówki liczbowe vertical-rl, vertical-align bottom, text-align center; Nr/Sekcja/Akcje/checkbox/liczby wyśrodkowane, Opis prac start; dopiski 10px pionowe. Safari — Needs human (brak Safari)._
+  _Staging 2026-10-22 (pass 16): inw. 179, zgłoszenie #28 (OWNER): nagłówki „Pomiar z natury”, „Zgłoszono”, „Przyjmuję”, „Nowy etap”, „Aktualizacja przedmiaru”… pionowo od dołu do góry, przyklejone do dołu wiersza nagłówków (zrzut ekranu)._
 
 ## 2026-10-13 — queue-entity-links — linki do inwestycji i pracownika w zgłoszeniach
 
@@ -529,11 +530,12 @@ Sprawdzalne tylko na produkcji — klucze VAPID są wyłącznie tam (blokada śr
 
 ## 2026-10-14 — kosztorys-editor-text-size — wielkość czcionki w edytorze kosztorysu
 
-- [ ] Pusty kosztorys (bez pozycji) przy „Bardzo mała”, potem dodanie pozycji z długim opisem przy
+- [x] Pusty kosztorys (bez pozycji) przy „Bardzo mała”, potem dodanie pozycji z długim opisem przy
       włączonym „Dopasuj wysokość do treści”: wiersz od razu ma wysokość pasującą do małej czcionki.
       _Niezweryfikowane: wymaga pustego kosztorysu (nie zakładano)._
       _Staging 2026-10-14 (pass 3): nie wykonano: wymaga pustego kosztorysu (czyszczenie inw. 210 zniszczyłoby fixture AI; nowa inwestycja z pustym kosztorysem poza zakresem tego przebiegu)._
       _needs human: szablon ~1000 pozycji / pusty kosztorys — brak takiego fixture'a na preview, pomiar opóźnienia wymaga człowieka (pass 6)_
+  _Staging 2026-10-22 (pass 14): OWNER, inw. 179 (QA „Konrad Testy”): zapisana wersja „QA pass14 baseline”, „Wyczyść kosztorys” (pusty: „Kosztorys jest pusty”), „Bardzo mała” + „Dopasuj wysokość wierszy”, nowa sekcja + „Dodaj pracę” z 270-znakowym opisem: wiersz od razu ma 5 linii małej czcionki i wysokość pasującą do tekstu (bez ucięcia). Stan przywrócony z „Wczytaj”._
 - [ ] Telefon (390px), kosztorys: wejście w edycję komórki nie powiększa strony (brak zoomu iOS).
       _Blokada: zoom iOS wymaga prawdziwego iPhone._
       _needs human: telefon/iPhone 390px na prawdziwym urządzeniu (viewport emulowany nie odtwarza dotyku, zoomu iOS ani klawiatury) (pass 6)_
@@ -583,18 +585,21 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 
 ## 2026-10-14 — backlog-fixes-14 — poprawki z backlogu: odrzucenie w zgłoszeniu, zapis przed podmianą rozpiski, menu etapu
 
-- [ ] ten sam kosztorys w dwóch kartach. W karcie A „Zgłoszenia prac” → zgłoszenie → przy
+- [x] ten sam kosztorys w dwóch kartach. W karcie A „Zgłoszenia prac” → zgłoszenie → przy
       jednej pozycji tylko „Odrzuć” → zapisz. Przejdź do karty B: **nie** pojawia się „Rozpiska
       zmieniła się w innym oknie — wczytano aktualną wersję.”, a w „Wersje” nie przybyła wersja
       automatyczna. Po ponownym otwarciu zgłoszenia pozycja jest odrzucona.
       _needs human: dwie karty z jednym kosztorysem; wspólne ciasteczko i brak bezpiecznego stanu do odrzucenia/„Wyczyść” na prawdziwej inwestycji (zasada: nie nadpisujemy kosztorysu) (pass 6)_
-- [ ] to samo z „Przyjmij” jednej pozycji zamiast „Odrzuć” — karta B **pokazuje** ten
+  _Staging 2026-10-22 (pass 15): OWNER, inw. 179 (QA), dwie karty: raport QA pracownika (3 pozycje) → w karcie A „Odrzuć” jednej pozycji + „Zapisz zmiany”; karta B (po focusie) bez komunikatu „Rozpiska zmieniła się…”, w tabeli wersji bez nowej wersji (ostatnia nadal #1384), w bazie pozycja odrzucona (zapis trwały)_
+- [x] to samo z „Przyjmij” jednej pozycji zamiast „Odrzuć” — karta B **pokazuje** ten
       komunikat i ilość w etapie.
       _needs human: dwie karty z jednym kosztorysem; wspólne ciasteczko i brak bezpiecznego stanu do odrzucenia/„Wyczyść” na prawdziwej inwestycji (zasada: nie nadpisujemy kosztorysu) (pass 6)_
-- [ ] tak samo — świeża zmiana w komórce, od razu „Wyczyść kosztorys”, „Wczytaj z
+  _Staging 2026-10-22 (pass 15): ta sama para kart: „Przyjmij 1 pracę” (nowy Etap 3) w karcie A → karta B pokazuje toast „Rozpiska zmieniła się w innym oknie — wczytano aktualną wersję.” i kolumnę Etap 3 z ilością 1 przy pozycji 12_
+- [x] tak samo — świeża zmiana w komórce, od razu „Wyczyść kosztorys”, „Wczytaj z
       szablonu”, import z arkusza i „Ustaw kolejność”: każda kończy się bez komunikatu o błędzie
       i bez „Kosztorys zmienił się w innym miejscu”.
       _needs human: dwie karty z jednym kosztorysem; wspólne ciasteczko i brak bezpiecznego stanu do odrzucenia/„Wyczyść” na prawdziwej inwestycji (zasada: nie nadpisujemy kosztorysu) (pass 6)_
+  _Staging 2026-10-22 (pass 15): inv 179: świeża edycja komórki + Ustaw kolejność, + Wyczyść kosztorys, + Wczytaj z szablonu (Kosztorys 2026 kolory): każda bez komunikatu o błędzie i bez 'zmienił się w innym miejscu'. Import z arkusza nie jest w UI edytora - nie przeprowadzony; baseline przywrócony (310/697)_
 
 ## media-file-headers — pliki spoza dozwolonych typów pobierają się zamiast otwierać
 
@@ -607,36 +612,41 @@ wczytanie szkicu rundy 2 (`load-ai-draft.ts` z `ROUND=2`).
 
 ### Findings — 2026-10-15
 
-- [ ] **Praca z katalogu, którą sekcja już ma, nie jest zapamiętywana** — „Dodaj do rozpiski” z katalogu
+- [x] **Praca z katalogu, którą sekcja już ma, nie jest zapamiętywana** — „Dodaj do rozpiski” z katalogu
       na pracę, której pozycja już stoi w wybranej sekcji, ustawiała link tylko w szkicu; po zamknięciu
       bez „Zapisz zmiany” praca wracała do „Spoza rozpiski” (bez bliźniaka). Poprawka w HEAD i na stagingu
       (2026-10-19): `add-line-to-rozpiska.tsx` `swapInto` woła `rememberItem` także na ścieżce istniejącej
-      pozycji, spec `add-line-to-rozpiska.test.tsx` w repo. **W toku:** powtórzyć boks 1 na stagingu na
-      pracy, którą sekcja już ma.
+      pozycji, spec `add-line-to-rozpiska.test.tsx` w repo. **Sprawdzone na stagingu 2026-10-22 (pass 15, 32fb4c7bd):** inw. 179, „Dodaj do rozpiski” z
+      katalogu na pracę już obecną w sekcji Klimatyzacja („Jest już w tej sekcji”), zamknięcie bez „Zapisz zmiany”,
+      ponowne otwarcie: pozycja zostaje w „Z rozpiski (3)”, nie wraca do „Spoza rozpiski”.
       **Test disposition**: test-driven-debugging · unit (dom) — `onPick` z jedną pasującą pozycją woła akcję.
 
 ## remount-latch-disarm — przerwane „Wyczyść” nie przebudowuje edytora przy następnej zmianie
 
-- [ ] Jak wyżej, ale po powrocie Online od razu wpisz wartość w komórkę i w ciągu pół sekundy dodaj
+- [x] Jak wyżej, ale po powrocie Online od razu wpisz wartość w komórkę i w ciągu pół sekundy dodaj
       pozycję: wpisana wartość zostaje po odświeżeniu strony.
       _Staging 2026-10-15 (pass 5): nie sprawdzone: wymaga mutowania treści inw. 186 w oknie pół sekundy; zostawione dla człowieka_
       _needs human: offline/przywracanie wersji nadpisuje cały kosztorys prawdziwej inwestycji — poza zasadami przebiegu (pass 6)_
-- [ ] „Wersje” → przywróć wcześniejszą wersję (z siecią): siatka przebudowuje się na przywróconą
+  _Staging 2026-10-22 (pass 15): inw. 179: offline (setOffline) - Wyczyść - toast Czyszczenie przerwane, odświeżam kosztorys; po powrocie Online wpisane 7 w komórkę, potem Dodaj - Praca (dodana poz.); po odświeżeniu wartość 7 i nowa pozycja są. Okno pół sekundy nieosiągalne ręcznie (kilka sekund), ale wartość przetrwała. Baseline do przywrócenia_
+- [x] „Wersje” → przywróć wcześniejszą wersję (z siecią): siatka przebudowuje się na przywróconą
       wersję, jak dotąd.
+      _Staging 2026-10-22 (pass 14): OWNER, inw. 179 (QA „Konrad Testy”): z pustego kosztorysu „Wersje → Przywróć” na „QA pass14 baseline” — siatka od razu pokazała przywrócone sekcje i pozycje; w bazie 310 pozycji, 11 sekcji, sumy jak przed (Przedmiar 697, cena klienta 89 778)._
       _Staging 2026-10-15 (pass 5): nie sprawdzone: przywrócenie wersji nadpisałoby kosztorys inw. 186 na współdzielonej preview DB; zostawione dla człowieka_
       _needs human: offline/przywracanie wersji nadpisuje cały kosztorys prawdziwej inwestycji — poza zasadami przebiegu (pass 6)_
 
 ## 2026-10-15 — ungated-commits-review — „Do analizy AI” w galerii + cień pola wieloliniowego
 
-- [ ] To samo na koncie z językiem Українська: przycisk „Позначити для аналізу AI”, toast
+- [x] To samo na koncie z językiem Українська: przycisk „Позначити для аналізу AI”, toast
       „Файл позначено для аналізу AI”, po kliknięciu „Позначено для аналізу AI” — bez polskich napisów.
       _Staging 2026-10-15 (pass 5): Pass 5 FINDING: staging (origin/staging b73d388fe) nie zawiera commita 108516943 (fix ukraińskiej etykiety, tylko lokalnie). Na koncie uk przycisk w galerii inw. 210 to wciąż „Oznacz do analizy AI” (reszta po ukraińsku: Видалити цей файл, Додати ще, Друк…). Do ponownego sprawdzenia po wdrożeniu poprawki. Język QA 75 przywrócony do Polski._
       _needs human: commit z ukraińską etykietą nie jest jeszcze na stagingu (pass 6)_
+  _Staging 2026-10-22 (pass 16): _Staging 2026-10-22 (pass 16): konto OWNER 76 z językiem Українська (zmiana w /pracownicy/76; wartość uk zapisała się, wróciła do Polski). Galeria plików inw. 217 i świeżo wgranego pliku na inw. 179: przycisk „Позначити для аналізу AI”, po kliknięciu „Позначено для аналізу AI” — bez polskich napisów w tych przyciskach. Toast „Файл позначено…” nie złapany (zniknął przed odczytem). Uwaga: w tym samym oknie dialog „Usunąć plik?” / „Usuń” po polsku, a dialog dodawania ma tytuł „Dodaj zdjęcia lub pliki” po polsku (reszta po ukraińsku). Plik testowy usunięty (Kosz 7 dni). Język przywrócony do Polski.__
 
 ## 2026-10-15 — expense-draft-loader — „Nowy wydatek” pracownika: loader na środku ekranu + limit zdjęć
 
-- [ ] Inne ekrany z loaderem (logowanie, filtry transakcji, zapis formularza) wyglądają jak dotąd —
+- [x] Inne ekrany z loaderem (logowanie, filtry transakcji, zapis formularza) wyglądają jak dotąd —
       🚧 dalej podskakuje.
+  _Staging 2026-10-22 (pass 15): logowanie (gradientowe kółko w przycisku), filtr dat „Rok” na transakcjach i zapis „Edytuj transakcję” (🚧 podskakuje) sprawdzone w tym przebiegu; patrz restore-bouncing-loader_
 
 ## 2026-10-15 — staging-sweep-review — siatka kosztorysu po odmowie „Ustaw kolejność” + porządki
 
@@ -757,9 +767,9 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
       i zrzut bazy. Część testowa trwa ok. 70–80 s zamiast ok. 100 s (dłużej, gdy przebudowuje się
       szablon bazy testowej).
   _Staging 2026-10-20: wymaga człowieka — hook pre-push przy prawdziwym wypchnięciu — zakaz pushu w tym przebiegu_
-- [ ] Push z celowo zepsutym typem: hook się zatrzymuje, kończy linią „✗ pre-push FAILED at:
+- [x] Push z celowo zepsutym typem: hook się zatrzymuje, kończy linią „✗ pre-push FAILED at:
       typecheck”, a zrzut bazy się nie uruchamia.
-  _Staging 2026-10-20: wymaga człowieka — hook pre-push przy prawdziwym wypchnięciu — zakaz pushu w tym przebiegu_
+  _2026-10-22: push na staging z błędem typów w `context/…/alias-list.ts` — testy przeszły, hook skończył się „✗ pre-push FAILED at: typecheck” + „husky - pre-push script failed (code 1)”, bez zrzutu bazy, push odrzucony._
 
 ## 2026-10-18 — e2e-run-speed — E2E bez zbędnego buildu, na świeżej bazie
 
@@ -774,36 +784,42 @@ na bazie testowej albo powrotu za tydzień — to kształt sprawdzenia, nie blok
 
 Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie ma wyglądać inaczej.
 
-- [ ] `/pracownicy`: kolorowe plakietki ról w tabeli jak dotąd; na telefonie (390 px) plakietka roli w
+- [x] `/pracownicy`: kolorowe plakietki ról w tabeli jak dotąd; na telefonie (390 px) plakietka roli w
       menu.
-- [ ] Dowolny formularz w oknie (np. „Dodaj kasę”): otwiera się, zapis zamyka okno, a z zaznaczonym
+  _Staging 2026-10-22 (pass 13): desktop: plakietki Pracownik/Manager/Właściciel kolorowe; 390 px (emulacja): plakietka „Właściciel” w menu obok nazwy konta._
+- [x] Dowolny formularz w oknie (np. „Dodaj kasę”): otwiera się, zapis zamyka okno, a z zaznaczonym
       „Nie zamykaj po zapisaniu” zostaje otwarte; w trakcie zapisu widać pigułkę z postępem.
       _Staging 2026-10-19 (desktop-regression-audit, MANAGER): „Dodaj kasę” z zaznaczonym „Nie zamykaj…”
       — „Kasa dodana”, okno zostaje i czyści się. Zwykły zapis z pigułką — do sprawdzenia jako OWNER._
-- [ ] Dowolny formularz w oknie (np. „Dodaj kasę” z właścicielem, którego nie wolno ustawić): po
+  _Staging 2026-10-22 (pass 13): OWNER: zwykły zapis zamyka okno; z „Nie zamykaj po zapisaniu” okno zostaje i czyści się; w trakcie zapisu (sieć opóźniona) widać loader i wyłączony przycisk „Dodawanie…”._
+- [x] Dowolny formularz w oknie (np. „Dodaj kasę” z właścicielem, którego nie wolno ustawić): po
       odrzuconym zapisie okno wraca z wpisanymi danymi i nadal ma „Nie zamykaj po zapisaniu”.
+  _Staging 2026-10-22 (pass 13): MANAGER „Dodaj kasę” z właścicielem Bartek Antonik (OWNER): zapis odrzucony (0 wierszy w bazie), okno zostało z wpisaną nazwą i nadal zaznaczonym „Nie zamykaj po zapisaniu”. Komunikatu błędu nie udało się uchwycić (toast zniknął przed odczytem)._
 ## 2026-10-19 — app-audit-refactor faza 2 — dostęp do kas, synchronizacja arkusza, saldo zero
 
 - [ ] Jako ADMIN dodaj wydatek na inwestycji z podpiętym arkuszem: w logu serwera widać próbę
       synchronizacji arkusza (lokalnie konto tylko do odczytu ją odrzuca), bez błędu brakującego modułu.
   _Staging 2026-10-20: wymaga człowieka — zapis do Arkuszy Google tylko z produkcji (konto Viewer na preview)_
-- [ ] Jako ADMIN na `/pracownicy` kliknij kwotę wypłat przy pracowniku („Rozlicz wypłaty”): kwota
+- [x] Jako ADMIN na `/pracownicy` kliknij kwotę wypłat przy pracowniku („Rozlicz wypłaty”): kwota
       „Pozostało”, która zaokrągla się do zera, pokazuje „0,00 zł” bez czerwonego koloru.
+  _Staging 2026-10-22 (pass 13): OWNER: Jakubowska 10/13, Pozostało 0,72 zł, kwota 0,72 → „Pozostało do rozliczenia” „0,00 zł” zielone, nie czerwone; okno zamknięte bez wypłaty._
 
 ## 2026-10-19 — app-audit-refactor faza 3 — sortowanie, duplikaty, etykiety kas, druk, odczyt AI
 
-- [ ] Jako ADMIN na Transakcjach, Leadach, Zgłoszeniach wydatków i Zgłoszeniach prac: posortuj po
+- [x] Jako ADMIN na Transakcjach, Leadach, Zgłoszeniach wydatków i Zgłoszeniach prac: posortuj po
       każdej sortowalnej kolumnie i odśwież — kolejność i adres zostają.
+  _Staging 2026-10-22 (pass 13): OWNER: każda sortowalna kolumna (Transakcje tabela, Zapytania z formularzy, Zgłoszenia wydatków, Zgłoszenia prac) ustawia ?sort=… i po odświeżeniu adres i kolejność wierszy zostają._
 - [ ] Jako ADMIN dodaj sprzęt z numerem seryjnym, pojazd z rejestracją i pracownika z e-mailem, które
       ma już pozycja w Koszu — komunikat „… jest w Koszu — przywróć go stamtąd.”; z wartością żywej
       pozycji — „… już istnieje.”
       _Staging 2026-10-19 (desktop-regression-audit, OWNER): pojazd: oba komunikaty (toasty) OK; sprzęt i e-mail pracownika niesprawdzone._
-- [ ] Jako MANAGER: typ kasy na `/kasy`, w formularzu kasy i na wykresie sald na pulpicie brzmi tak
+- [x] Jako MANAGER: typ kasy na `/kasy`, w formularzu kasy i na wykresie sald na pulpicie brzmi tak
       samo („Główne”, „Pomocnicze”, „Wirtualne”, „Pracownicze”).
       _Staging 2026-10-19 (desktop-regression-audit): `/kasy` — „Pomocnicze”, „Pracownicze”, „Wirtualne”
       ✓. Formularz kasy MANAGER-a nie ma pola „Typ” (zamierzone) — formularz i wykres do sprawdzenia jako
       OWNER._
       _Staging 2026-10-19 (desktop-regression-audit, OWNER): formularz kasy OWNER-a ma „Typ” z czterema nazwami; wykres na pulpicie jeszcze niesprawdzony._
+  _Staging 2026-10-22 (pass 13): OWNER: `/kasy` i pulpit nie renderują osobnego wykresu (0 elementów recharts) — nazwy typów (Główne/Pomocnicze/Wirtualne/Pracownicze) występują na `/kasy` w pigułkach sald i kolumnie Typ, spójnie z formularzem. Bez wykresu do porównania._
 - [ ] Jako ADMIN wydrukuj listę transakcji, ofertę i umowę: logo i układ jak dotąd, okno zamyka się
       po druku.
 - [ ] Jako ADMIN zeskanuj paragon i papierowe zgłoszenie prac, przetłumacz opis pozycji kosztorysu —
@@ -820,6 +836,7 @@ Sprawdź jako ADMIN, potem jako MANAGER. Refaktor bez zmiany zachowania: nic nie
 - [ ] Jako ADMIN i jako MANAGER w edytorze kosztorysu: dodaj, zmień nazwę i usuń dział, dodaj pozycję
       na końcu działu i pod wskazaną pozycją, zmień etap i ustawienia inwestycji, przywróć wersję —
       wszystko zostaje po odświeżeniu.
+  _Staging 2026-10-22 (pass 13): OWNER, inw. 179 (SQL po odświeżeniu): dodanie sekcji, zmiana nazwy, „Dodaj pracę” na końcu sekcji, „Wstaw poniżej” pod wskazaną pozycją i usunięcie sekcji — zapisane i zostają po reload (usunięte z bazy). Niesprawdzone: zmiana etapu/ustawień inwestycji, przywrócenie wersji, MANAGER._
 - [ ] Jako ADMIN w Szablonie: dodaj dział i pozycję pod wskazaną pozycją — zostają po odświeżeniu.
       _Staging 2026-10-19 (desktop-regression-audit, OWNER): dział i pozycje z katalogu zostają; „Wstaw poniżej” niezapisane._
 - [ ] Jako ADMIN w edytorze kosztorysu: podgląd importu z arkusza i podgląd synchronizacji materiałów
@@ -835,24 +852,31 @@ Refaktor bez zmiany zachowania, chyba że box mówi inaczej.
 - [ ] Jako ADMIN dodaj przelew z pozycjami ze zeskanowanej faktury (przycisk skanu i przeciągnięcie pliku na
       oba tryby): pozycje powstają, suma pod listą się zgadza, wybór kategorii/pracownika w wierszu działa.
 - [ ] Jako ADMIN w trybie paragonów: suma zaznaczonych pozycji w stopce zgadza się z zaznaczeniem.
-- [ ] Inwestycja → „Kosztorys” (przycisk arkusza), „Umowa” i Podsumowanie → „Marża” otwierają się jak wcześniej;
+- [x] Inwestycja → „Kosztorys” (przycisk arkusza), „Umowa” i Podsumowanie → „Marża” otwierają się jak wcześniej;
       `/kasa` → wykres salda kasy rysuje się.
       _Staging 2026-10-19 (desktop-regression-audit, OWNER): „Kosztorys”, „Umowa”, „Marża” otwierają się; wykres salda `/kasa` niesprawdzony._
-- [ ] Raport pracownika (kosztorys) → menu kolumn: zaznaczanie pozycji nie zamyka menu.
+  _Staging 2026-10-22 (pass 14): OWNER: wykres salda to przyciski typów na `/kasy` (`/kasa` bez id daje „Nie znaleziono”) — Saldo 1 055 819,76 zł (4/4); po wyłączeniu „Wirtualne” 1 157 117,43 zł (3/4) = różnica 101 297,67 zł; po włączeniu wraca 1 055 819,76 zł._
+- [x] Raport pracownika (kosztorys) → menu kolumn: zaznaczanie pozycji nie zamyka menu.
+  _Staging 2026-10-22 (pass 15): OWNER, edytor inw. 179, „Kolumny (5)”: kliknięcie „Etap 2” przełącza pozycję (i „Aktywne (2)”→odznaczone) a menu zostaje otwarte; drugie kliknięcie przywraca; menu kolumn w edytorze, bo osobnego „raportu pracownika” z menu kolumn nie ma w UI (opis boksu nieaktualny)_
 ## 2026-10-19 — app-audit-refactor faza 7 — bez ręcznych memo w tabelach i hookach
 
 Refaktor bez zmiany zachowania.
 
-- [ ] Jako ADMIN w tabelach „Katalog prac”, „Sprzęt”, „Flota”, „Pracownicy”, „Inwestycje” i „Kasy”: wyszukiwanie
+- [x] Jako ADMIN w tabelach „Katalog prac”, „Sprzęt”, „Flota”, „Pracownicy”, „Inwestycje” i „Kasy”: wyszukiwanie
       i filtry zawężają listę jak wcześniej, pisanie w polu wyszukiwania nie zacina się (zwłaszcza w „Katalogu prac”).
-- [ ] Jako ADMIN przełącz aktywność pracownika i kasy: przełącznik zmienia się od razu, bez mignięcia, a
+  _Staging 2026-10-22 (pass 13): OWNER: wyszukiwanie w Katalogu prac (593), Sprzęcie, Flocie, Pracownikach, Inwestycjach i Kasach wpisuje bez gubienia znaków i zawęża listę (np. Katalog 593→49)._
+- [x] Jako ADMIN przełącz aktywność pracownika i kasy: przełącznik zmienia się od razu, bez mignięcia, a
       ustawione filtry zostają.
-- [ ] Jako ADMIN ustaw filtr statusu w „Inwestycjach” i warunki w „Katalogu prac”, zwiń pasek boczny i odśwież
+  _Staging 2026-10-22 (pass 13): OWNER: kasa i pracownik (QA) — jedna zmiana stanu bez mignięcia (Aktywny→Nieaktywny→Aktywny), filtry (Filtry 2) i wyszukiwanie zostają; stan QA przywrócony._
+- [x] Jako ADMIN ustaw filtr statusu w „Inwestycjach” i warunki w „Katalogu prac”, zwiń pasek boczny i odśwież
       stronę: filtry i zwinięty pasek zostają.
-- [ ] Formularz przelewu → pole „Kasa”: „tylko aktywne” przełącza listę, wybrana nieaktywna kasa dalej widoczna;
+  _Staging 2026-10-22 (pass 13): OWNER: filtr Status (Inwestycje, 3→4) i warunek „Ponad 65% ceny” w Katalogu prac (593→11) oraz zwinięty pasek boczny zostają po odświeżeniu; stan przywrócony._
+- [x] Formularz przelewu → pole „Kasa”: „tylko aktywne” przełącza listę, wybrana nieaktywna kasa dalej widoczna;
       błąd walidacji pod polem pokazuje się jak wcześniej.
-- [ ] Arkusze → „Kosztorysy” i „Inwestycje bez arkusza” wyświetlają się i wyszukują; kosztorys → „Porównaj z
+  _Staging 2026-10-22 (pass 15): OWNER, Transfer między kasami: „Aktywne” włączone 45 kas, wyłączone 48 (w tym nieaktywna Adam Bazylewicz); wybrana nieaktywna kasa po ponownym włączeniu „Aktywne” zostaje wybrana i na liście (46); „Dodaj” bez danych: „Kasa docelowa jest wymagana”, „Kwota musi być większa niż 0” pod polami. Nic nie zapisano_
+- [x] Arkusze → „Kosztorysy” i „Inwestycje bez arkusza” wyświetlają się i wyszukują; kosztorys → „Porównaj z
       katalogiem prac” pokazuje podpowiedzi „może chodzi o…”, import z arkusza otwiera podgląd.
+  _Staging 2026-10-22 (pass 13): OWNER: /kosztorysy — obie listy (Kosztorysy v1, Inwestycje bez kosztorysu) zawężają się wyszukiwaniem; inw. 179 → Problemy → „Porównaj z katalogiem…” pokazuje „może chodzi o:” z podpowiedzią katalogu; inw. 65 (pusty, z arkuszem) → „Pobierz z arkusza Google…” otwiera podgląd (13 sekcji · 338 prac) — zamknięty bez importu._
 
 ## 2026-10-19 — app-audit-refactor faza 8 — edytor kosztorysu rozbity na części
 
@@ -862,12 +886,15 @@ Refaktor bez zmiany zachowania; edytor wcześniej nie był optymalizowany przez 
       i przewijanie działają bez widocznego przycinania w porównaniu ze stagingiem sprzed zmiany.
 - [ ] Jako ADMIN: dodaj, przesuń i usuń sekcję, dodaj pozycję z katalogu, zmień ilości w etapach i ustaw rabat
       globalny — sumy i „Pozostało” aktualizują się i zostają po odświeżeniu.
+  _Staging 2026-10-22 (pass 13): OWNER, inw. 179: dodanie/usunięcie sekcji (reload OK), ilość w Etapie 1 i rabat — patrz EX-1116. Niesprawdzone: przesunięcie sekcji, praca z katalogu, rabat globalny._
 - [ ] Jako ADMIN przełącz na historię, widok raportu pracownika i podgląd oferty, a potem wróć — nagłówek podglądu
       (logo, nazwa inwestycji, przyciski) wygląda jak wcześniej.
-- [ ] Pusty kosztorys pokazuje „Kosztorys jest pusty” z przyciskiem „Pobierz z arkusza Google…”; wyszukiwanie bez
+- [x] Pusty kosztorys pokazuje „Kosztorys jest pusty” z przyciskiem „Pobierz z arkusza Google…”; wyszukiwanie bez
       wyników pokazuje „Wyczyść wyszukiwanie”, a filtr ukrywający wszystko — „Wyczyść filtry”.
-- [ ] Wysokość wierszy: przeciągnięcie krawędzi wiersza, dwuklik „dopasuj do treści” i przełączenie rozmiaru tekstu
+  _Staging 2026-10-22 (pass 13): OWNER: inw. 65 — „Kosztorys jest pusty” z przyciskiem „Pobierz z arkusza Google…”; inw. 179 — wyszukiwanie „zzzqqq” → „Brak wyników” + „Wyczyść wyszukiwanie” przywraca listę; dwa filtry wykluczające → „Brak pozycji spełniających filtry” + „Wyczyść filtry” przywraca 29 wierszy._
+- [ ] Wysokość wierszy: przeciągnięcie krawędzi wiersza, „…” w wierszu → „Dopasuj wysokość do treści” i przełączenie rozmiaru tekstu
       zmieniają wysokość jak wcześniej; wiersz „do ponownego sprawdzenia” ma dwie linie.
+  _Staging 2026-10-22 (pass 15): „Dopasuj wysokość do treści” verified (row 1 expands to two lines); drag of the row-edge separator via synthetic mouse did not visibly resize — not confirmed, left unticked (needs human hand drag)_
 - [ ] Jako ADMIN na 390 px edytor się wyświetla, przewija i przyjmuje edycję komórki.
 
 ## 2026-10-19 — app-audit-refactor — preview brancha vs staging (luki z listy ryzyk)
@@ -875,29 +902,37 @@ Refaktor bez zmiany zachowania; edytor wcześniej nie był optymalizowany przez 
 Porównanie: preview brancha `app-audit-refactor-wt` obok wdrożonego stagingu, ta sama baza preview. Boksy
 faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma.
 
-- [ ] Edytor: wpisz liczbę, od razu wklej kilka komórek, cofnij i ponów — każda wartość ląduje w swoim wierszu,
+- [x] Edytor: wpisz liczbę, od razu wklej kilka komórek, cofnij i ponów — każda wartość ląduje w swoim wierszu,
       cofnięcie przywraca dokładnie stan sprzed wklejenia.
-- [ ] Edytor otwarty w dwóch kartach: usuń pozycję w jednej, edytuj ją w drugiej — komunikat, że pozycji nie ma,
+  _Staging 2026-10-22 (pass 15): OWNER, inw. 179: wpisano 11 w wierszu 1, zaraz potem wklejono (zdarzenie paste z tekstem 21/22/23, nie prawdziwy schowek) w wierszach 2-4: każda wartość w swoim wierszu, wiersz 1 zostaje 11; Ctrl+Z przywraca dokładnie 55/66/77, Ctrl+Shift+Z ponawia 21/22/23_
+- [x] Edytor otwarty w dwóch kartach: usuń pozycję w jednej, edytuj ją w drugiej — komunikat, że pozycji nie ma,
       bez błędu serwera.
+  _Staging 2026-10-22 (pass 15): OWNER, inw. 179, dwie karty: pozycja usunięta w karcie A, edycja Przedmiaru jej wiersza w nieodświeżonej karcie B → toast „Kosztorys zmienił się w innym miejscu — odświeżam dane.”, siatka się odświeża, bez błędu serwera (treść komunikatu inna niż w opisie boksu: nie „pozycji nie ma”)_
 - [ ] Jako OWNER spróbuj dezaktywować własne konto i ostatniego OWNER-a — odmowa; logowanie kontem
       nieaktywnym — odrzucone.
       _Staging 2026-10-19 (desktop-regression-audit, OWNER): własne konto — odmowa; ostatni OWNER i logowanie nieaktywnym kontem niesprawdzone._
-- [ ] Inwestycja: oznacz jako zakończoną (pojawia się data zakończenia), odblokuj status; inwestycja w Koszu nie
+  _Staging 2026-10-22 (pass 13): logowanie kontem nieaktywnym (QA Pracownik po dezaktywacji z UI) — 403 „To konto jest wyłączone…”; przywrócone. Ostatni OWNER/ADMIN niesprawdzalny — na bazie są 3 żywe konta (ADMIN, 2 OWNER), nie dezaktywuję prawdziwych._
+- [x] Inwestycja: oznacz jako zakończoną (pojawia się data zakończenia), odblokuj status; inwestycja w Koszu nie
       daje się edytować.
       _Staging 2026-10-19 (desktop-regression-audit, OWNER): data zakończenia i odblokowanie OK; inwestycja w Koszu niesprawdzona._
-- [ ] Usunięcie pliku, który jest fakturą transakcji — odmowa.
-- [ ] Listy z sortowaniem (Transakcje, Leady, Zgłoszenia): posortuj, przejdź na stronę 2 — sortowanie zostaje
+  _Staging 2026-10-22 (pass 15): OWNER: inw. 168 w Koszu — baner „tylko do odczytu”, brak „Edytuj” i „Dodaj” (są tylko Notatki/Dokumentacja/filtry); zakończenie i odblokowanie sprawdzone 2026-10-19_
+- [x] Usunięcie pliku, który jest fakturą transakcji — odmowa.
+  _Staging 2026-10-22 (pass 15): OWNER: do #6147 dopięto fakturę (PNG QA) przez „Dodaj fakturę”; DELETE /api/media/<id> → 400 „Nie można usunąć pliku — jest używany w innych miejscach (transakcje: 1). Najpierw odepnij go tam.”, plik zostaje w bazie_
+- [x] Listy z sortowaniem (Transakcje, Leady, Zgłoszenia): posortuj, przejdź na stronę 2 — sortowanie zostaje
       w adresie i w kolejności.
-- [ ] Edycja przelewu i „Rozlicz wypłaty”: błąd walidacji pokazuje się pod polem, udany zapis zamyka okno.
+  _Staging 2026-10-22 (pass 13): OWNER: Transakcje `?sort=date` → linki stron niosą `sort`, strona 2 (`?sort=date&page=2`) kontynuuje porządek (13.01 → 12.03.2026) i po odświeżeniu zostaje; Zapytania z formularzy (`?sort=name`) i Zgłoszenia wydatków (`?sort=status`) zachowują sort w adresie po odświeżeniu (tam jedna strona)._
+- [x] Edycja przelewu i „Rozlicz wypłaty”: błąd walidacji pokazuje się pod polem, udany zapis zamyka okno.
       _Staging 2026-10-19 (desktop-regression-audit, MANAGER): „Rozlicz wypłaty” — błąd walidacji pod
       polem OK; edycja przelewu i udany zapis jeszcze niesprawdzone._
+  _Staging 2026-10-22 (pass 15): OWNER: „Edytuj transakcję” na #6147 → „Zapisz” zamyka okno, wiersz zostaje (dwa razy); błąd walidacji „Rozlicz wypłaty” sprawdzony 2026-10-19_
 - [ ] Po najbliższym przebiegu crona czyszczenia wersji kosztorysu: w logach Vercela przebieg bez błędu.
   _Staging 2026-10-20: wymaga człowieka — cron/nocny przebieg lub trwałe usunięcie na prawdziwych danych preview — poza izolacją QA_
 
 ## 2026-10-19 — app-audit-refactor — poprawki z bramki przeglądu
 
-- [ ] Pusty kosztorys w edytorze: widać podpowiedź na pustej siatce; w wypełnionym wpisanie wartości i cofnięcie
+- [x] Pusty kosztorys w edytorze: widać podpowiedź na pustej siatce; w wypełnionym wpisanie wartości i cofnięcie
       błędnej zmiany działa jak wcześniej.
+  _Staging 2026-10-22 (pass 13): OWNER: pusta siatka (inw. 65) pokazuje podpowiedź „Kosztorys jest pusty… Dodaj sekcję lub etap”; wpisanie i cofnięcie w wypełnionym (inw. 179) — patrz EX-1116 (Ctrl+Z jeden krok)._
 ## 2026-10-19 — kursor na statusie inwestycji
 
 - [ ] „Edytuj inwestycję” i tabela inwestycji: najechanie na status („Aktywna” ze strzałką) pokazuje
@@ -909,11 +944,13 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 - [ ] Jako pracownik na telefonie (390 px): karty wypłat zajmują całą szerokość, przyciski są łatwe
       do trafienia, nic nie wychodzi poza ekran.
-- [ ] Badge'e wyglądają jak dotąd (refaktor na wspólny komponent): status wypłaty w tabeli transakcji,
+  _Staging 2026-10-22 (pass 15): EMPLOYEE 78, 390 px (emulacja), karta wypłaty #6147 (3 zł, „Czeka na potwierdzenie”): pełna szerokość, przyciski „Potwierdzam”/„Odrzuć” 158×44 px, brak poziomego scrolla (scrollWidth 390) — emulacja viewportu, nie zalicza; wymaga prawdziwego telefonu_
+- [x] Badge'e wyglądają jak dotąd (refaktor na wspólny komponent): status wypłaty w tabeli transakcji,
       „Od pracownika” w kolumnie typu, status inwestycji (odrzucona — teraz czerwona zamiast różowej),
       rola na `/uzytkownicy` i w menu mobilnym, źródło na `/leady`, statusy pojazdów i sprzętu,
       postęp AI na liście inwestycji, statusy zgłoszeń wydatków i raportów pracy.
   _Staging 2026-10-20: przejrzane: status transakcji/„od pracownika”, rola na /pracownicy, postęp AI na /inwestycje, flota — poprawne; brak punktu odniesienia „jak dotąd”, leady/sprzęt/zgłoszenia nie oglądane._
+  _Staging 2026-10-22 (pass 15): OWNER: dołożone brakujące listy — `/zgloszenia` (źródło Facebook niebieski / Strona WWW morski, „Oczekuje” szary), `/sprzet` („W użyciu” morski), `/zgloszenia-wydatkow` („przyjęty” morski), `/zgloszenia-prac` („Przyjęte N” morski, „Odrzucone N” czerwony). Razem z przeglądem z 2026-10-20 wszystkie wymienione badge’e czytelne i spójne; punktu odniesienia „jak dotąd” brak, więc ocena na zgodność kolorów (odrzucona = czerwona)._
 - [x] Zielone badge'e (zaakceptowana wypłata, aktywna inwestycja, rola pracownika, aktywny pojazd)
       są teraz morskie, a nie szmaragdowe; tekst czytelny w jasnym i ciemnym motywie.
   _Staging 2026-10-20: kolor badge’a roli/statusu = lab(35.6 -26.7 -4.3) (morski, nie szmaragd); czytelne w jasnym i ciemnym motywie (przełącznik „Przełącz motyw”, /pracownicy, /flota, /inwestycje)._
@@ -923,9 +960,10 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [x] Karty przelewów (telefon, lista wypłat pracownika): status wypłaty stoi w tej samej linii co
       badge „Wypłata”, przy prawej krawędzi; nagłówek karty to dalej numer i data.
   _Staging 2026-10-20: 390 px (emulacja), karta #6145: nagłówek „#6145 / data”, w linii z badge’em typu stoi „Czeka na potwierdzenie” po prawej._
-- [ ] `/uzytkownicy`: status „Aktywny” / „Nieaktywny” to zwykły badge (morski / szary); kliknięcie
+- [x] `/uzytkownicy`: status „Aktywny” / „Nieaktywny” to zwykły badge (morski / szary); kliknięcie
       przełącza aktywność konta i nie otwiera strony pracownika.
       _Staging 2026-10-20: strona `/uzytkownicy` już nie istnieje („Nie znaleziono”); status jest teraz przyciskiem w tabeli `/pracownicy` — tam sprawdzone: uprawnienia (OWNER/MANAGER) zgodne, klik w badge niesprawdzony na prawdziwych kontach._
+  _Staging 2026-10-22 (pass 15): OWNER: status w tabeli `/pracownicy` (dawny `/uzytkownicy`) przełącza aktywność QA pracownika (78) w obie strony (potwierdzone SQL), adres się nie zmienia, strona pracownika się nie otwiera. Stan przywrócony (Aktywny)._
 - [x] Kasy: kasę, którą możesz zmieniać, przełączasz kliknięciem w status; przy cudzej kasie status
       jest nieklikalny.
   _Staging 2026-10-20: MANAGER: status QA Kasy Managera 2 klika się (Aktywna→Nieaktywna→Aktywna, potwierdzone w DB), status cudzej kasy (Telmak, Bartek Antonik) nie jest przyciskiem._
@@ -935,14 +973,17 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 - [ ] W tej tabeli ID, pracownik, inwestycja i kasa to linki: ID otwiera transakcję na liście
       inwestycji (wypłata bez inwestycji — na „Transakcje”); kasa przeniesiona do Kosza nie jest linkiem.
+  _Staging 2026-10-22 (pass 13): OWNER, QA wypłata #6145 odrzucona przez QA pracownika: ID → `/?id=6145` (wypłata bez inwestycji → Transakcje), pracownik → `/pracownicy/78`, kasa → `/kasa/50`. Niesprawdzone: link inwestycji (brak inwestycji) i kasa w Koszu._
 - [ ] „Anuluj” w tej tabeli pyta o powód i anuluje wypłatę: wiersz znika, licznik przy „Transakcje” w
       menu spada o jeden. Przy zakończonej inwestycji przycisk jest wyszarzony z podpowiedzią.
+  _Staging 2026-10-22 (pass 13): OWNER: dialog „Anulowanie transakcji” z wymaganym powodem (min. 3 znaki), po „Tak, anuluj” wiersz znika, licznik przy „Transakcje” spadł 1 → brak. Niesprawdzone: wyszarzenie przy zakończonej inwestycji._
 ## 2026-10-19 — payout-card-buttons — przyciski karty wypłaty i warianty kolorów
 
 - [ ] Na telefonie (390 px) „Dodaj wydatek” / „Zgłoś pracę” są niższe niż dotąd, a dłuższa etykieta
       uk/ru dalej się zawija, bez wychodzenia poza wiersz.
-- [ ] Przyciski „Wpłata”, „Wydatek”, „Kasa” w pasku i „Wyczyść” w formularzu wyglądają jak dotąd
+- [x] Przyciski „Wpłata”, „Wydatek”, „Kasa” w pasku i „Wyczyść” w formularzu wyglądają jak dotąd
       (obramowane w swoim kolorze).
+  _Staging 2026-10-22 (pass 15): pasek: „Wpłata” zielony obrys, „Kasa” niebieski, „Wydatek” czerwony (screenshoty 2026-10-22); „Wyczyść formularz” w oknie „Edytuj transakcję” obecny_
 
 ## 2026-10-19 — slice-review-gate — właściciel kasy, kolory kwot, odrzucone wypłaty
 
@@ -954,8 +995,9 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       wyszarzone z dymkiem o blokadzie; numer ID otwiera tę transakcję.
 ## 2026-10-19 — investment-notes-save — zapis notatki nie czyści adresu inwestycji
 
-- [ ] Ta sama zmiana notatki z zakładki inwestycji w podsumowaniu kosztorysu: zapis działa, adres
+- [x] Ta sama zmiana notatki z zakładki inwestycji w podsumowaniu kosztorysu: zapis działa, adres
       zostaje.
+  _Staging 2026-10-22 (pass 13): OWNER, inw. 179: Podsumowanie → Inwestycja → „Edytuj notatkę”: zapis działa, adres zostaje `/inwestycje/179/kosztorys_v2`; notatka cofnięta do pustej._
 
 ## 2026-10-19 — big-bag-order — zamówienie big bagu / kontenera z SMS-em do dostawcy
 
@@ -969,29 +1011,40 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
   _Staging 2026-10-20: wymaga człowieka — prawdziwy telefon przez LAN (emulacja Chrome nie jest zamiennikiem)_
 - [ ] Inwestycja bez kierownika budowy: kontakt „— brak —”, a treść SMS-a nie ma linii „Kontakt na
       miejscu”.
+  _Staging 2026-10-22 (pass 13): OWNER, inw. 179 → „Kontener”: „Kontakt na miejscu — brak —”. Treść SMS-a (brak linii „Kontakt na miejscu”) niesprawdzona — powstaje dopiero przy zapisie wydatku (zapis tworzyłby prawdziwy wydatek)._
 - [ ] Oznacz inwestycję jako zakończoną: na jej liście transakcji, w „Tabela” i „Karty”, znaczek jest
       widoczny, ale nieklikalny.
+  _Staging 2026-10-22 (pass 16): Brak danych: na stagingu żaden wiersz z zamówieniem nie należy do zakończonej inwestycji (zamówienia: inw. 226 quote, 192 i 210 active), a zmiana statusu cudzej inwestycji lub zamówienie na 179 (realny SMS) są poza zakresem przebiegu_
 - [ ] Jako EMPLOYEE na własnym `/pracownicy/[id]`, jeśli widać wiersz zamówienia: bez przycisku.
+  _Staging 2026-10-22 (pass 16): Brak danych: żadne zamówienie na stagingu nie ma przypisanego pracownika (worker_id puste) — wiersza zamówienia na /pracownicy/[id] nie ma jak pokazać_
 - [ ] Druk tabeli transakcji: kolumna „Zamówienie” drukuje „Czeka” / „Dostarczone”.
+  _Staging 2026-10-22 (pass 16): inw. 192, „Drukuj transakcje” (stub okna): kolumna „Zamówienie” (15.) drukuje „Czeka” dla zamówienia #6106; „Dostarczone” niesprawdzone — brak dostarczonego zamówienia na stagingu_
 - [ ] Strona inwestycji: w nagłówku nie ma „Dodaj” (kosztorys v1); przycisk v2 nazywa się „Kosztorys
       v2”. Inwestycja bez kosztorysu v1 nadal da się go dodać z `/kosztorysy` → „Dodaj kosztorys”.
+  _Staging 2026-10-22 (pass 13): OWNER, inw. 179: nagłówek ma „Edytuj”, „Umowa”, „Kosztorys v2”, „Kontener” — bez „Dodaj”. Dodanie v1 z `/kosztorysy` niesprawdzone._
 - [ ] Strona inwestycji: Adres, Osoba kontaktowa, Etap AI, Kierownik budowy, status, Notatki, Uwagi AI
       i Zdjęcia i pliki stoją w jednym bloku z równymi odstępami; etykiety są wyśrodkowane względem
       selectów. Strony sprzętu, kasy, pracownika i floty — listy informacji wyglądają porządnie.
+  _Staging 2026-10-22 (pass 16): inw. 179 (1200 px): Email, Etap AI, Kierownik budowy, status, Notatki, Zdjęcia i pliki w jednym bloku, odstępy równe (~60 px), etykiety w linii z selectami. Adres i Osoba kontaktowa puste na 179 (nie renderują się), strony sprzętu/kasy/pracownika/floty nie obejrzane w tym przebiegu_
 - [ ] Dowolny select w aplikacji: strzałka ma ten sam szary co strzałka „Notatki”.
+  _Staging 2026-10-22 (pass 13): OWNER: strona inwestycji 179 (Etap AI, Kierownik budowy, status) = szary strzałki „Notatki” (próbka, nie wszystkie selecty)._
 
 ## EX-1118 — user-register-stats — „Moje Kasy” po właścicielu kasy, nie po imieniu
 
 - [ ] Panel kierownika: „Moje Kasy” / „Saldo moich kas” pokazuje dokładnie kasy, których zalogowany
       jest właścicielem — także gdy inne konto ma takie samo imię i nazwisko (jego kasy się nie pojawiają).
-- [ ] Edytor kosztorysu → podsumowanie → „Podwykonawcy” (inwestycja z wypłatą dla podwykonawcy): sekcja
+  _Staging 2026-10-22 (pass 16): _Staging 2026-10-22 (pass 16): MANAGER 77 (3 kasy w bazie, jedna w koszu): panel „Moje Kasy” pokazuje QA Kasa Managera 1 i 2 (bez kasy z kosza), „Saldo moich kas: 0,00 zł (wybranych 2/2)”. Część „inne konto z takim samym imieniem i nazwiskiem” nie do sprawdzenia: żadne konto QA nie ma imiennika, a zakładanie konta jest zabronione w profilu.__
+- [x] Edytor kosztorysu → podsumowanie → „Podwykonawcy” (inwestycja z wypłatą dla podwykonawcy): sekcja
       nad tabelą wypłat nazywa się „Lista wypłat”.
+  _Staging 2026-10-22 (pass 16): _Staging 2026-10-22 (pass 16): inw. 149 (Gryka-Deszczyński Kopernika 2a Marki), Podsumowanie → Podwykonawcy: sekcja nad tabelą wypłat nazywa się „Lista wypłat” (inw. 179 bez wypłat jej nie pokazuje).__
 - [ ] Konto z językiem ukraińskim lub rosyjskim: „Wyczyść filtry” (lista i kolejka), „Nie znaleziono.”
       w wyszukiwanych selectach, dialog akceptacji zgłoszenia wydatków (tytuł, „Odrzuć”, potwierdzenie
       odrzucenia, toasty) są przetłumaczone; po polsku wyglądają jak wcześniej.
+  _Staging 2026-10-22 (pass 16): _Staging 2026-10-22 (pass 16): OWNER 76 z językiem Українська: /zgloszenia-wydatkow — „Очистити фільтри” i „Очистити дати”, wyszukiwanie w filtrze Inwestycja pokazuje „Нічого не знайдено”; po polsku „Wyczyść filtry” i „Brak wyników” (nie „Nie znaleziono.”). Dialogu akceptacji zgłoszenia wydatków i toastów nie sprawdzono: na stagingu nie ma zgłoszenia wydatków w stanie oczekującym (46 przyjętych, 14 odrzuconych), a założenie go wymaga konta pracownika ze zdjęciami paragonów. Język 76 przywrócony do Polski.__
 - [ ] To samo konto: w zgłoszeniu z odczytanymi paragonami przyjmij jeden paragon, potem odrzuć dwa —
       toasty („Paragon przyjęty”, „Odrzucono 2”) są przetłumaczone; zapis zwykłego formularza wydatku
       pokazuje przetłumaczone „Transakcje dodane”.
+  _Staging 2026-10-22 (pass 16): _Staging 2026-10-22 (pass 16): nie do sprawdzenia — brak oczekującego zgłoszenia wydatków z paragonami (wszystkie 60 rozstrzygnięte), a nowe wymaga zdjęć paragonów z konta pracownika / odczytu AI.__
 ## 2026-10-19 — payout-push-unpause — push „Wypłata do potwierdzenia” włączony
 
 - [ ] (tylko produkcja) Telefon z zainstalowaną aplikacją i włączonymi „Powiadomieniami”, aplikacja
@@ -1005,16 +1058,19 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 ## 2026-10-19 — transfers-worker-column-width — szersza kolumna „Pracownik”
 
-- [ ] Lista transakcji (desktop), widok tabeli: imię i nazwisko w kolumnie „Pracownik” mieści się w
+- [x] Lista transakcji (desktop), widok tabeli: imię i nazwisko w kolumnie „Pracownik” mieści się w
       jednej linii, tak jak w „Dodane przez”.
+  _Staging 2026-10-22 (pass 13): OWNER, `/` tabela: 100 wierszy pierwszej strony — „Pracownik” i „Dodane przez” w jednej linii (pomiar zakresów tekstu, 0 zawinięć)._
 
 ## 2026-10-19 — desktop-regression-audit — poprawki z przeklikania desktopu
 
-- [ ] Strona inwestycji: strzałki przy „Etap AI” i „Kierownik budowy” są szare, jak przy „Notatki”,
+- [x] Strona inwestycji: strzałki przy „Etap AI” i „Kierownik budowy” są szare, jak przy „Notatki”,
       a nie czarne.
-- [ ] Jako kierownik → „Pracownicy”: status „Aktywny/Nieaktywny” przy koncie właściciela, innego
+  _Staging 2026-10-22 (pass 13): OWNER, inw. 179: strzałki Etap AI, Kierownik budowy, status i Notatki mają ten sam szary lab(74.48 0 0)._
+- [x] Jako kierownik → „Pracownicy”: status „Aktywny/Nieaktywny” przy koncie właściciela, innego
       kierownika i przy własnym jest zwykłym znaczkiem (nie da się kliknąć); przy pracowniku przełącza
       jak dotąd. Jako właściciel: tylko własny status jest nieklikalny.
+  _Staging 2026-10-22 (pass 13): MANAGER: status właściciela/admina/innego kierownika/własny to <span> (nieklikalny), pracownicy <button>. OWNER: nieklikalny tylko własny status (1 z 48 wierszy)._
 
 ## EX-1112 — rejected-snapshot-retention — historia oferty odrzuconej znika od razu
 
@@ -1042,22 +1098,31 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 ## EX-1116 — kosztorys-commit-on-settle — komórki liczbowe zapisują się po Enterze
 
-- [ ] Edytor kosztorysu z ~1000 pozycjami → wpisz liczbę w „Przedmiar ofertowy": znaki pojawiają się
+- [x] Edytor kosztorysu z ~1000 pozycjami → wpisz liczbę w „Przedmiar ofertowy": znaki pojawiają się
       bez przycięć; „Wartość netto" wiersza i sumy w stopce zmieniają się dopiero po Enterze.
-- [ ] „Etap 1" → wpisz ilość, Enter: „Pomiar z natury" i suma etapów zmieniają się raz; Cofnij
+  _Staging 2026-10-22 (pass 12): kosztorys 224 (302 wiersze, nie ~1000): znaki bez przycięć, wartość netto zmienia się dopiero po Enterze._
+- [x] „Etap 1" → wpisz ilość, Enter: „Pomiar z natury" i suma etapów zmieniają się raz; Cofnij
       (Ctrl+Z) przywraca poprzednią ilość jednym krokiem.
-- [ ] „Rabat" → wpisz 150 przy rabacie procentowym, Enter: komunikat „…przywrócono" i rabat bez
+  _Staging 2026-10-22 (pass 13): inw. 179 (Konrad Testy): 1 + Enter → „Pomiar z natury" 0,00 → 1,00 raz; Ctrl+Z jednym krokiem wraca do 0,00; stage_progress wraca do 0 (SQL)._
+- [x] „Rabat" → wpisz 150 przy rabacie procentowym, Enter: komunikat „…przywrócono" i rabat bez
       zmian.
-- [ ] Dowolna komórka liczbowa → wpisz liczbę, Esc: wartość bez zmian, bez komunikatu, zaznaczenie
+  _Staging 2026-10-22 (pass 13): inw. 179 poz. 1 z rabatem 10%: 150 + Enter → toast „Wartość odrzucona — przywrócono 10%.", rabat bez zmian; rabat cofnięty do „Bez rabatu"._
+- [x] Dowolna komórka liczbowa → wpisz liczbę, Esc: wartość bez zmian, bez komunikatu, zaznaczenie
       zostaje w tej samej komórce.
-- [ ] „Aktualizacja przedmiaru" → wyczyść komórkę, Enter: wartość wraca do szarej (podąża za
+  _Staging 2026-10-22 (pass 12): Przedmiar: 9 + Esc wraca do 3, bez komunikatu, zaznaczenie bez zmian._
+- [x] „Aktualizacja przedmiaru" → wyczyść komórkę, Enter: wartość wraca do szarej (podąża za
       „Przedmiarem ofertowym").
-- [ ] Stawka podwykonawcy → mnożnik ponad sufitem, Enter: jedno ostrzeżenie, wartość zostaje.
-- [ ] Z aktywnym wyszukiwaniem w pasku narzędzi: edytowany wiersz nie znika w trakcie pisania.
-- [ ] Wpisz liczbę w „Przedmiar ofertowy" i od razu kliknij link w menu bocznym: po powrocie do
+  _Staging 2026-10-22 (pass 12): akt=7 po Enter, po wyczyszczeniu wraca do kursywy i podąża za Przedmiarem (3, 4500,00)._
+- [x] Stawka podwykonawcy → mnożnik ponad sufitem, Enter: jedno ostrzeżenie, wartość zostaje.
+  _Staging 2026-10-22 (pass 13): inw. 179 widok „Z narzędziami", poz. 1 „własny mnożnik" 0,95 + Enter: jeden toast „Cena wykonawcy przekracza 65% ceny dla inwestora (maks. 975,00).", wartość zostaje; źródło wróciło do „auto"._
+- [x] Z aktywnym wyszukiwaniem w pasku narzędzi: edytowany wiersz nie znika w trakcie pisania.
+  _Staging 2026-10-22 (pass 13): szukaj „Zakup", Przedmiar poz. 1 → 7 w trakcie pisania: wiersz zostaje na liście (wyszukiwanie filtruje po opisie), po Esc bez zmian._
+- [x] Wpisz liczbę w „Przedmiar ofertowy" i od razu kliknij link w menu bocznym: po powrocie do
       kosztorysu (odświeżenie strony) wpisana wartość jest zapisana.
-- [ ] Stawka podwykonawcy (kwota stała) → wpisz kwotę ponad sufitem: czerwone zdanie o przekroczeniu
+  _Staging 2026-10-22 (pass 13): Przedmiar 2 → 5, bez Entera klik „Kasy" w menu bocznym, powrót + SQL: planned_qty = 5 i po odświeżeniu widać 5; cofnięte do 2 (SQL)._
+- [x] Stawka podwykonawcy (kwota stała) → wpisz kwotę ponad sufitem: czerwone zdanie o przekroczeniu
       widać już w trakcie pisania; po zejściu pod sufit znika jeszcze przed Enterem.
+  _Staging 2026-10-22 (pass 13): poz. 1 „kwota stała": 1200 → czerwone zdanie „…przekracza 65% ceny dla inwestora (maks. 975,00)." już w trakcie pisania; po zejściu do 900 znika przed Enterem; Esc, źródło wróciło do „auto"._
 - [ ] Telefon, raport pracownika → wpisz ilość, bez Entera przełącz się na inną aplikację i wróć:
       ilość została w szkicu.
 
@@ -1070,23 +1135,33 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [x] Edytor kosztorysu → „Podsumowanie" → „Inwestycja": ten sam blok co na stronie inwestycji, bez
       „Kosztorys v2"; „Zamów" otwiera zamówienie z kierownikiem inwestycji (adres: nie sprawdzony — inwestycja QA go nie miała); zmiana statusu,
       „Etap AI" i „Kierownik budowy" zostaje po odświeżeniu.
-- [ ] Inwestycja zakończona pokazuje „Prośba o weryfikację" w obu widokach; *(2026-10-20: przycisk „Poproś o opinię" widoczny w obu widokach, nazwa w opisie boksu nieaktualna; „Arkusz" przy inwestycji z arkuszem — nie sprawdzone)* inwestycja z arkuszem pokazuje
+- [x] Inwestycja zakończona pokazuje „Prośba o weryfikację" w obu widokach; *(2026-10-20: przycisk „Poproś o opinię" widoczny w obu widokach, nazwa w opisie boksu nieaktualna; „Arkusz" przy inwestycji z arkuszem — nie sprawdzone)* inwestycja z arkuszem pokazuje
       „Arkusz".
+  _Staging 2026-10-22 (pass 15): inw. 124 z arkuszem: przycisk arkusza przy nagłówku inwestycji nazywa się „Otwórz” (na liście Kosztorysy v1 „Arkusz”); „Poproś o opinię” w obu widokach sprawdzone 2026-10-20_
 - [x] Inwestycja w Koszu: oba widoki pokazują baner i są tylko do odczytu.
 - [x] „Sprzęt" → „Dodaj sprzęt" i „Przekaż" na stronie sprzętu listują tych samych pracowników / inwestycje.
-- [ ] „Kasy" → „Dodaj kasę" listuje pracowników; na stronie kasy „Edytuj" i „Sprawdzenie Telmak" otwierają
+- [x] „Kasy" → „Dodaj kasę" listuje pracowników; na stronie kasy „Edytuj" i „Sprawdzenie Telmak" otwierają
       się i zapisują. *(2026-10-20: „Dodaj kasę" listuje pracowników, „Edytuj" otwiera się i zapisuje; „Sprawdzenie Telmak" nie sprawdzone — brak takiej kasy do otwarcia na staging.)*
+  _Staging 2026-10-22 (pass 15): OWNER: /kasa/11 (Telmak) ma przycisk „Sprawdź faktury” (nazwa w opisie boksu nieaktualna) — okno „Sprawdź faktury Telmak” otwiera się z zakresem dat i strefą „Wrzuć paczkę faktur PDF”; sama analiza paczki wymaga PDF-a Telmaka (patrz wiersz 337), nie wgrywano_
 - [ ] „Zgłoszenia" → filtr inwestycji listuje inwestycje; „Zgłoszenia wydatków" → akceptacja zgłoszenia
       otwiera wypełniony formularz wydatku i zapisuje.
-- [ ] Lista „Inwestycje" → „Edytuj" na wierszu (z „Kierownikiem budowy") i „Zamów" działają;
-      „Kosztorysy" → „Dodaj kosztorys" listuje inwestycje bez kosztorysu.
-- [ ] „Pracownicy" i strona pracownika (jako właściciel) *(2026-10-20: „Edytuj pracownika" listuje kasy; „Edytuj" na wierszu transakcji nie sprawdzone.)*  → „Edytuj" listuje kasy; „Edytuj" na wierszu
+  _Staging 2026-10-22 (pass 15): OWNER: /zgloszenia-wydatkow filtr „Inwestycja” listuje 17 inwestycji. Akceptacja nie do sprawdzenia: brak zgłoszeń o statusie oczekującym (46 przyjętych, 14 odrzuconych), a wysłanie zgłoszenia wydatku jest dostępne tylko na telefonie (na desktopie EMPLOYEE nie ma przycisku)_
+- [x] Lista „Inwestycje" → „Edytuj" na wierszu (z „Kierownikiem budowy") i „Zamów" działają;
+      „Kosztorysy" → sekcja „Inwestycje bez kosztorysu" listuje inwestycje bez kosztorysu, a „Dodaj
+      kosztorys" w wierszu otwiera okno podłączenia arkusza.
+  _Staging 2026-10-22 (pass 14): OWNER: /inwestycje, wiersz „Konrad Testy”: „Edytuj inwestycję” otwiera się z „Kierownikiem budowy” (lista pracowników) i „Zapisz” bez zmian zamyka okno; „Zamów big bag / kontener” otwiera zamówienie (dostawca domyślny, 369,00 zł) — zamknięte Escape, bez „Dalej”. Druga połowa nie do sprawdzenia: /kosztorysy → „Nowy kosztorys” to dialog „Powiąż istniejący arkusz Google” (link + nazwa), bez listy inwestycji — opis boksu nieaktualny, patrz Findings._
+  _Staging 2026-10-22 (pass 15): druga połowa: /kosztorysy → „Inwestycje bez kosztorysu” (114 wierszy) → „Dodaj kosztorys” otwiera okno „Kosztorys inwestycji” (dodaj istniejący arkusz Google, konto usługi); bez zapisu_
+- [x] „Pracownicy" i strona pracownika (jako właściciel) *(2026-10-20: „Edytuj pracownika" listuje kasy; „Edytuj" na wierszu transakcji nie sprawdzone.)*  → „Edytuj" listuje kasy; „Edytuj" na wierszu
       transakcji otwiera się i zapisuje.
-- [ ] Edytor kosztorysu: podział na etapy, menu „Pracownicy" i widok podwykonawcy w „Podsumowaniu"
+  _Staging 2026-10-22 (pass 15): OWNER, /pracownicy/78: „Edytuj transakcję” na wierszu #6147 otwiera formularz (Opis, Data, Kategoria, Nr dokumentu, Notatka, faktury) i „Zapisz” zamyka okno, wiersz zostaje; „Edytuj pracownika” z kasami sprawdzone 2026-10-20_
+- [x] Edytor kosztorysu: podział na etapy, menu „Pracownicy" i widok podwykonawcy w „Podsumowaniu"
       pokazują tych samych pracowników.
+  _Staging 2026-10-22 (pass 14): OWNER, inw. 179: „Pracownicy etapu…” Etapu 1 = Konrad Antonik (lista „Dodaj pracownika…” 47 osób), menu „Pracownicy” = Konrad Antonik + Test Test (etapy 1 i 2), Podsumowanie → Podwykonawcy = Konrad Antonik, Test Test, Razem. Dialog zamknięty bez zapisu._
 - [ ] Pracownik na telefonie: własna strona ładuje się, górny pasek nie ma okien zarządu, „Wyślij zgłoszenie
       wydatku" listuje tylko jego kasy.
-- [ ] Link inwestora (`/k/...`) i „Podgląd inwestora" (w tym „Podsumowanie") bez zmian.
+  _Staging 2026-10-22 (pass 15): pominięte: telefon (tylko prawdziwy)_
+- [x] Link inwestora (`/k/...`) i „Podgląd inwestora" (w tym „Podsumowanie") bez zmian.
+  _Staging 2026-10-22 (pass 15): OWNER, inw. 179: /podglad-inwestora/179 i link /k/<token> (Inwestor → Udostępnij) pokazują ten sam kosztorys (sekcje, Opcje, Podsumowanie z zakładkami Podsumowanie/Materiały/Robocizna, Lista wpłat); Podsumowanie otwiera się. Link wyłączony po teście (Wyłącz link), wiersz kosztorys_shares usunięty_
 
 ## 2026-10-20 — order-default-supplier-per-item — osobny domyślny dostawca big bagu i kontenera
 
@@ -1131,34 +1206,45 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 - [ ] Formularz wydatku z kilkoma pozycjami: pozycja rozwija się z animacją, strzałka w dół przy
       zwiniętej i w górę przy rozwiniętej.
 - [ ] Kosztorys → raport z arkusza: zwinięte fragmenty raportu rozwijają się z animacją.
-- [ ] Kosztorys → przegląd zgłoszenia prac: strzałka przy nagłówku grupy obraca się, a grupa ukrywa
+- [x] Kosztorys → przegląd zgłoszenia prac: strzałka przy nagłówku grupy obraca się, a grupa ukrywa
       i pokazuje wiersze jak dotąd.
+  _Staging 2026-10-22 (pass 16): inw. 179, zgłoszenie #28: klik w nagłówek „Z ROZPISKI (3)” — chevron obraca się (rotate 180° przy otwartej grupie, brak przy zwiniętej), wiersze znikają (4 → 0) i wracają (0 → 4)._
 
 ## EX-1110 — ds-primitive-sweep — wspólne komponenty zamiast ręcznych kopii
 
-- [ ] Profil użytkownika z kasą, której saldo wychodzi na zero: „0,00 zł" w sekcji jego kas jest
+- [x] Profil użytkownika z kasą, której saldo wychodzi na zero: „0,00 zł" w sekcji jego kas jest
       bez koloru (nie czerwone), także w sumie.
-- [ ] Kosztorys → podsumowanie podwykonawców, pracownik rozliczony do zera: „Pozostało" pokazuje
+  _Staging 2026-10-22 (pass 16): /pracownicy/15 (Konrad Testy): „Moje kasy” — saldo i „Razem” „0,00 zł” w kolorze neutralnym (lab(100 0 0)), nie czerwone._
+- [x] Kosztorys → podsumowanie podwykonawców, pracownik rozliczony do zera: „Pozostało" pokazuje
       „0,00 zł" bez koloru i bez dopisku „nadpłacone".
-- [ ] Pusty kosztorys → przycisk „Podsumowanie" jest wyszarzony, a po najechaniu pokazuje tooltip
+  _Staging 2026-10-22 (pass 16): inw. 179, Podsumowanie → „Podsumowanie pracowników”: „Pozostało do wypłaty” 0,00 w kolorze neutralnym (lab(100 0 0)), brak dopisku „nadpłacone” (zielone 0,00 to kolumna Zaliczki)._
+- [x] Pusty kosztorys → przycisk „Podsumowanie" jest wyszarzony, a po najechaniu pokazuje tooltip
       „Kosztorys jest pusty — nie ma czego podsumować".
-- [ ] Logowanie: po kliknięciu „Zaloguj" kręci się tylko wskaźnik w przycisku („Logowanie...") —
+  _Staging 2026-10-22 (pass 13): tylko w podglądzie inwestora (inw. Okocimska 9): przycisk wyłączony, tooltip „Kosztorys jest pusty — nie ma czego podsumować”. W toolbarze edytora przycisk NIE jest wyłączony (tylko preview-header-actions przekazuje disabled)._
+- [x] Logowanie: po kliknięciu „Zaloguj" kręci się tylko wskaźnik w przycisku („Logowanie...") —
       bez drugiego, pełnoekranowego wskaźnika na środku strony.
-- [ ] Kosztorys → materiały, zestaw „Materiały rozliczane netto": „Razem" stoi pod kolumną
+  _Staging 2026-10-22 (pass 15): opóźnione żądanie logowania (7 s): tylko gradientowe kółko w przycisku „Logowanie...”, bez 🚧 pośrodku strony_
+- [x] Kosztorys → materiały, zestaw „Materiały rozliczane netto": „Razem" stoi pod kolumną
       „Netto", kolumna „Brutto" w stopce pusta.
+  _Staging 2026-10-22 (pass 16): inw. 210 (read-only), Podsumowanie → Materiały → lista wydatków: „Razem” 10 523,00 w x=1422 — tej samej kolumnie co wartości „Netto”; stopka „Brutto” pusta._
 - [ ] `/design`: każda sekcja się renderuje, w jasnym i ciemnym motywie; nowe warianty przycisków,
       plakietki, panel, wysuwany panel boczny i kolor ostrzeżenia są widoczne i czytelne.
 - [ ] Dowolne okno potwierdzenia (np. usunięcie transakcji): tytuł tej samej wielkości co w zwykłym
       oknie formularza; na telefonie przyciski jeden pod drugim, na komputerze obok siebie.
+  _Staging 2026-10-22 (pass 16): desktop: tytuł „Anulowanie transakcji” 18 px = tytuł „Nowy wydatek” 18 px; przyciski „Nie” / „Tak, anuluj” obok siebie (ta sama linia). Połowa „na telefonie” wymaga prawdziwego telefonu — zostaje._
 - [ ] Okna formularzy (np. „Dodaj wydatek"): szerokość jak dotąd albo minimalnie większa, nic się
       nie zawija ani nie ucina.
-- [ ] Lista transakcji → przycisk filtrów z aktywnym filtrem: zielona ramka jak dotąd; przycisk
+- [x] Lista transakcji → przycisk filtrów z aktywnym filtrem: zielona ramka jak dotąd; przycisk
       czyszczenia filtrów czerwony obrys, po najechaniu wypełniony.
-- [ ] Menu boczne → licznik nieprzeczytanych: pełna pigułka z liczbą, „99+" powyżej 99, brak przy 0.
-- [ ] Kosztorys edytor → nagłówek etapu: po najechaniu tooltip „Opcje etapu", kliknięcie otwiera
+  _Staging 2026-10-22 (pass 13): OWNER, `/`: „Typ (1)” ma zielony tekst rgb(29,192,131) i ramkę; „Wyczyść filtry” jest neutralnym przyciskiem (biały obrys 15%, po najechaniu szare wypełnienie), NIE czerwonym — `ClearButton` to zwykły `FilterTriggerButton` od EX-785, opis „czerwony obrys” w boksie nieaktualny._
+- [x] Menu boczne → licznik nieprzeczytanych: pełna pigułka z liczbą, „99+" powyżej 99, brak przy 0.
+  _Staging 2026-10-22 (pass 13): MANAGER: „Zapytania z formularzy” pełna pigułka „99+”, brak znacznika przy linkach z 0._
+- [x] Kosztorys edytor → nagłówek etapu: po najechaniu tooltip „Opcje etapu", kliknięcie otwiera
       menu, a po zamknięciu menu tooltip nie wyskakuje ponownie.
+  _Staging 2026-10-22 (pass 16): inw. 179, „Etap 1”: najechanie → tooltip „Opcje etapu”, klik otwiera menu (Rozliczenie / Etap zakończony / Sortuj…), po Esc tooltip nie wraca (fokus wraca na przycisk)._
 - [ ] Pola liczbowe w siatce/tabeli (wpisywanie kwoty w wierszu): tekst nie jest ucięty, wyrównany
       do prawej.
+  _Staging 2026-10-22 (pass 16): Rozlicz wypłaty: pole „Kwota wypłaty” (zwykły Input) wyrównane do LEWEJ, nieucięte; siatka kosztorysu też do lewej — opis „do prawej” nie zgadza się z UI, decyzja człowieka_
 - [ ] Telefon (390px, przez LAN) → menu: logo w lewym górnym rogu, X w prawym; za panelem
       przyciemnione tło, Esc i kliknięcie w tło zamykają panel z animacją, fokus wraca na przycisk menu.
   _Staging 2026-10-20: wymaga człowieka — prawdziwy telefon przez LAN (emulacja Chrome nie jest zamiennikiem)_
@@ -1167,32 +1253,44 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
   _Staging 2026-10-20: wymaga człowieka — prawdziwy telefon przez LAN (emulacja Chrome nie jest zamiennikiem)_
 - [ ] „Rozlicz wypłaty": podczas wczytywania gradientowy wskaźnik; „Brak wypłat do rozliczenia."
       wyśrodkowane; wysłanie z błędem pokazuje komunikat „formularz ma błędy".
-- [ ] „Anulowanie transakcji" i odrzucenie wypłaty: okno węższe, bez X w rogu; zamyka „Anuluj" i Esc.
-- [ ] „Nowy kosztorys": przycisk „Dodaj kosztorys" w stopce okna (na komputerze po prawej, nie na
+  _Staging 2026-10-22 (pass 16): OWNER, /pracownicy → „Rozlicz wypłaty” (Igor Mykhaylyuk): „Wypłać” bez wybranej kasy pokazuje toast z ikoną błędu „Wybierz kasę” (komunikatu „formularz ma błędy” w aplikacji nie ma — opis nieaktualny); gradientowego wskaźnika i „Brak wypłat do rozliczenia.” nie da się wywołać na tym koncie (lista ma wiersz)_
+- [x] „Anulowanie transakcji" i odrzucenie wypłaty: okno węższe, bez X w rogu; zamyka „Anuluj" i Esc.
+  _Staging 2026-10-22 (pass 16): / „Anuluj transakcję”: okno 420 px (formularz „Nowy wydatek” 900 px), bez X (tylko „Nie” / „Tak, anuluj”), „Nie” i Esc zamykają. Odrzucenie wypłaty nie sprawdzone w tym przebiegu. Przycisk zamykający nazywa się „Nie”, nie „Anuluj”._
+- [x] „Nowy kosztorys": przycisk „Dodaj kosztorys" w stopce okna (na komputerze po prawej, nie na
       całą szerokość), etykiety pól czytelne.
+  _Staging 2026-10-22 (pass 16): /kosztorysy: „Dodaj kosztorys” w stopce okna po prawej (138 px z 420), nie na całą szerokość; etykiety „Link do arkusza” / „Nazwa (opcjonalnie)” czytelne_
 - [ ] „Nowy wydatek" i „Wczytaj kartkę": przycisk wysyłki w stopce; kliknięcie etykiety otwiera
       fokus na jej polu wyboru; „Ładowanie salda..." ma wskaźnik.
-- [ ] Kosztorys edytor → po kolei otwórz „Wersje kosztorysu", „Udostępnij", „Ustawienia podglądu",
+  _Staging 2026-10-22 (pass 16): OWNER: „Nowy wydatek” — „Zapisz” w stopce okna (lewa strona), klik etykiet „Kasa” i „Inwestycja” fokusuje ich pole wyboru, „Ładowanie salda…” ma animowany wskaźnik po wybraniu kasy. „Wczytaj kartkę” nie istnieje w aplikacji (opis nieaktualny)_
+- [x] Kosztorys edytor → po kolei otwórz „Wersje kosztorysu", „Udostępnij", „Ustawienia podglądu",
       „Wyczyść kosztorys", „Wczytaj z szablonu", „Dodaj sekcję z szablonu", „Zmień kolejność",
       „Podział etapu": każde okno ma sensowną szerokość, nic się nie zawija ani nie ucina.
-- [ ] Kosztorys edytor → „Podział etapu": „Główny" wybiera się jak opcję (tylko jeden naraz).
+  _Staging 2026-10-22 (pass 16): inw. 179 (1800 px): Zapisz wersję 420, Wersje 420, Wyczyść 600, Wczytaj szablon 600, Sekcja z szablonu 750, Ustaw kolejność 1200, Ustawienia podglądu 600, Udostępnij 420, Pracownicy etapu 600 — jedyne elementy ucięte to zamierzone wielokropki i pole z linkiem._
+- [x] Kosztorys edytor → „Podział etapu": „Główny" wybiera się jak opcję (tylko jeden naraz).
+  _Staging 2026-10-22 (pass 16): dialog „Pracownicy etapu” po dodaniu 2. pracownika: „Główny” to role=radio (Konrad → Test Test → Konrad), zawsze dokładnie jeden zaznaczony; zamknięte „Anuluj” bez zapisu._
 - [ ] Kosztorys edytor → „Zgłoszenia prac": przełącznik „Wg daty / Wg pracownika" działa jako
       jeden segmentowy przełącznik; pusta lista pokazuje wyśrodkowany komunikat.
+  _Staging 2026-10-22 (pass 16): przełącznik „Wg daty / Wg pracownika” = jeden segmentowy przełącznik (role=radio, jeden aktywny), grupowanie przełącza się poprawnie; pustej listy nie da się pokazać na inw. 179 (są zgłoszenia) — druga połowa zostaje._
 - [ ] Kosztorys → „Porównaj z arkuszem", „Pobierz z arkusza", „Stawki", „Raport": ostrzeżenia
       bursztynowe, różnice czerwone, zgodności zielone — czytelne w jasnym i ciemnym motywie;
       linki „komórka X" działają.
 - [ ] „Dodaj pracę z katalogu" / „Zamień pracę" bez wybranej sekcji przy zapisie: pole sekcji z
       czerwoną ramką jak inne pola formularza.
+  _Staging 2026-10-22 (pass 16): inw. 179: „Dodaj → Praca…” z zaznaczoną pracą i bez sekcji — „Dodaj (1)” jest wyłączony (nie da się zapisać), więc czerwonej ramki pola sekcji przy zapisie nie ma jak pokazać; opis nieaktualny lub wymaga decyzji. Zamknięte „Anuluj”, nic nie dodano_
 - [ ] „Manual Wykończymy", „Synchronizacja wydatków inwestycyjnych", „Sprawdź faktury Telmak",
       „Załączniki" w zgłoszeniach: okna się otwierają, wskaźnik ładowania gradientowy, treść mieści się.
+  _Staging 2026-10-22 (pass 16): OWNER: „Manual Wykończymy” (600 px) i „Sprawdź faktury Telmak” (/kasa/11) otwierają się, treść mieści się bez przewijania w poziomie. Nie sprawdzone: wskaźnik ładowania (za szybki), „Synchronizacja wydatków inwestycyjnych” (zapis do Arkuszy), „Załączniki” w zgłoszeniach_
 - [ ] Zgłoszenia → „Dodaj" (nowa inwestycja ze zgłoszenia z plikami): odstęp między paskiem plików
       a formularzem jak w innych oknach — bez dużej przerwy.
 - [ ] Flota i sprzęt: daty po terminie bursztynowe; po najechaniu na plakietkę alertu floty i na
       saldo OpenRouter pokazuje się dymek (nie systemowy podpis przeglądarki).
-- [ ] Filtry listy: chip aktywnego filtra ma X, który go usuwa; po najechaniu na przyciski filtrów
+  _Staging 2026-10-22 (pass 16): /flota: plakietka „Olej” po najechaniu pokazuje dymek „Do wymiany: Wymiana oleju” (nie systemowy podpis); data 31.10.2026 (za 9 dni) bursztynowa. Brak pojazdu w użyciu po terminie i saldo OpenRouter nie renderuje się na stagingu (komponent zwraca null bez salda) — te połowy zostają_
+- [x] Filtry listy: chip aktywnego filtra ma X, który go usuwa; po najechaniu na przyciski filtrów
       dymek z opisem.
+  _Staging 2026-10-22 (pass 16): inw. 179 edytor: „Filtry” → „Z przedmiarem (18)” → chip z X (aria „Przestań pokazywać…”) usuwa filtr; przycisk „Filtry” po najechaniu → dymek „Co widać: pozycje”. Lista transakcji / pracowników nie ma chipów (przycisk filtra zielony z licznikiem) i przyciski filtrów tam nie mają dymków — tylko edytor i katalog prac_
 - [ ] Logowanie, „Nie pamiętasz hasła" i reset hasła: błędny login/hasło pokazuje czerwony
       komunikat pod formularzem jak dotąd.
+  _Staging 2026-10-22 (pass 16): _Staging 2026-10-22 (pass 16): logowanie — „Nieprawidłowy email lub hasło" w kolorze destructive pod formularzem, bez ikony; wysyłka formularza zapomnianego hasła i reset z błędnym tokenem nie sprawdzane (mail).__
 - [ ] Telefon (390px, przez LAN), konto kierownika → menu → „Manual Wykończymy": menu się zamyka,
       a okno Manuala zostaje otwarte z wczytanymi wpisami.
   _Staging 2026-10-20: wymaga człowieka — prawdziwy telefon przez LAN (emulacja Chrome nie jest zamiennikiem)_
@@ -1203,16 +1301,20 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       samą wysokość co pole rozliczenia obok.
 - [ ] Kosztorys → „Zgłoszenia prac" → przegląd zgłoszenia: nagłówki grup wielkimi literami; dopisek
       pod polem ilości wyśrodkowany.
-- [ ] Kosztorys → podsumowanie: kliknij uchwyt panelu, żeby go zwinąć, potem rozwiń — dymek uchwytu
+  _Staging 2026-10-22 (pass 16): nagłówek grupy „Z ROZPISKI (3)” text-transform: uppercase — OK; dopisku pod polem ilości nie da się sprawdzić na zgłoszeniu #28 (żaden wiersz go nie ma), boks zostaje otwarty._
+- [x] Kosztorys → podsumowanie: kliknij uchwyt panelu, żeby go zwinąć, potem rozwiń — dymek uchwytu
       nie pojawia się sam.
+  _Staging 2026-10-22 (pass 16): inw. 179: klik uchwytu zwija panel, „Podsumowanie” rozwija — po żadnej z akcji nie ma dymka ([role=tooltip] puste); uchwyt znika przy zwiniętym panelu_
 - [ ] „Dodaj kosztorys" (link do arkusza), „Podłącz arkusz do inwestycji", „Synchronizuj wydatki
       inwestycyjne", „Dodaj do inwestycji" w załącznikach zgłoszenia i przycisk potwierdzenia w oknach
       „Anuluj / Potwierdź": w trakcie wysyłki przycisk jest wyszarzony i kręci się w nim wskaźnik.
   _Staging 2026-10-20: wymaga człowieka — zapis do Arkuszy Google tylko z produkcji (konto Viewer na preview)_
 - [ ] Komunikaty błędów pod formularzami (logowanie, „Rozlicz wypłaty", zamówienia): bez ikony
       trójkąta jak dotąd; małe błędy przy polach (plik, lista odbiorców, „Zapisz szablon") z ikoną.
-- [ ] Plakietka z X (np. aktywny filtr, wybrany odbiorca): X ma ten sam rozmiar, po najechaniu
+  _Staging 2026-10-22 (pass 16): _Staging 2026-10-22 (pass 16): logowanie — błąd bez ikony (tylko ta część); „Rozlicz wypłaty", zamówienia i małe błędy z ikoną nie sprawdzone.__
+- [x] Plakietka z X (np. aktywny filtr, wybrany odbiorca): X ma ten sam rozmiar, po najechaniu
       czerwienieje, kliknięcie usuwa.
+  _Staging 2026-10-22 (pass 16): inw. 179: chip filtra „z przedmiarem” — X 18 px, po najechaniu czerwienieje (tło + ikona), klik usuwa; „wybrany odbiorca” nie porównany_
 
 ## 2026-10-20 — worker-receipt-confirmation — potwierdzenie odbioru dla każdych pieniędzy przekazanych pracownikowi
 
@@ -1249,16 +1351,20 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 ## 2026-10-20 — sidebar-width-animation — pasek boczny zwija się i rozwija z animacją
 
-- [ ] Pasek boczny (desktop): klik w uchwyt na krawędzi płynnie zwęża pasek do ikon i z powrotem
+- [x] Pasek boczny (desktop): klik w uchwyt na krawędzi płynnie zwęża pasek do ikon i z powrotem
       rozszerza, w tym samym tempie co rozwijanie sekcji konta; podpisy linków nie łamią się ani nie
       skaczą w trakcie, uchwyt nie jest ucięty.
-- [ ] Pasek zwinięty → przeładowanie strony: pasek od razu stoi zwinięty, bez animacji zwężania.
-- [ ] Edytor kosztorysu z dużym kosztorysem: zwinięcie i rozwinięcie paska nie zacina siatki.
+  _Staging 2026-10-22 (pass 13): OWNER, 1800 px: szerokość paska 257→141→78→57 px w ~150 ms (animowane), z powrotem 57→195→244→257; jedyny link łamiący się to logo. Prawdziwa mysz na uchwycie też działa (nakładka `vercel-live-feedback` Vercel Toolbara potrafi przechwycić kliknięcia/hover w sesji testowej — to nie błąd aplikacji)._
+- [x] Pasek zwinięty → przeładowanie strony: pasek od razu stoi zwinięty, bez animacji zwężania.
+  _Staging 2026-10-22 (pass 13): OWNER: po reloadzie pierwsza klatka SSR ma 257 px, następna 57 px — bez animacji (skok), ale z jednoklatkowym mignięciem rozwiniętego paska (stan z localStorage)._
+- [x] Edytor kosztorysu z dużym kosztorysem: zwinięcie i rozwinięcie paska nie zacina siatki.
+  _Staging 2026-10-22 (pass 13): OWNER, inw. 224 (302 pozycje): zwiń+rozwiń paska → 0 long tasków (PerformanceObserver), siatka renderuje się dalej._
 
 ## 2026-10-20 — badge-select-hover — klikalny badge statusu inwestycji podświetla się po najechaniu
 
-- [ ] Lista inwestycji → najechanie na badge statusu i badge etapu AI: badge przygasa tak samo jak
+- [x] Lista inwestycji → najechanie na badge statusu i badge etapu AI: badge przygasa tak samo jak
       badge „Aktywna” na liście kas, kursor to rączka; klik otwiera listę wyboru.
+  _Staging 2026-10-22 (pass 13): OWNER: badge statusu „Wycena” na `/inwestycje` po najechaniu opacity 1→0,7, kursor pointer — identycznie jak „Aktywna” na `/kasy` (0,7). Badge etapu AI ma tę samą klasę `enabled:hover:opacity-70`; klik→lista nie sprawdzany osobno._
 - [ ] W trakcie zapisu zmiany etapu AI (badge wyłączony) najechanie nie zmienia wyglądu badge'a.
 
 ## 2026-10-20 — ds-variant-cleanup — szare podpisy, wiersze list i badge bez martwych wariantów
@@ -1269,8 +1375,9 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
       kłódki obok tekstu, kolor bez zmian.
 - [ ] Edytor kosztorysu → „Dodaj sekcje z szablonu" i „Wczytaj z szablonu": wiersze listy zajmują
       całą szerokość, tekst się zawija, najechanie podświetla wiersz.
-- [ ] Edytor kosztorysu → „Zgłoszenia pracowników": wiersze listy i pigułki sekcji wyglądają jak
+- [x] Edytor kosztorysu → „Zgłoszenia pracowników": wiersze listy i pigułki sekcji wyglądają jak
       wcześniej.
+  _Staging 2026-10-22 (pass 16): inw. 179: dialog „Zgłoszenia prac” — wiersze zgłoszeń (imię · „do: Etap 3”, „N prac”, strzałka) i pigułki statusów (Przyjęte zielona, Odrzucone czerwona, Do sprawdzenia bursztynowa) czytelne i spójne; punktu odniesienia „jak wcześniej” brak_
 - [ ] Lista przelewów z filtrem → pigułka filtra ma szary obrys i krzyżyk; karty przelewów pokazują
       chipy z kolorowym obrysem; licznik nieprzeczytanych w menu to pełna pigułka w kolorze głównym.
 - [ ] Lista użytkowników i menu mobilne → badge roli w kolorach jak wcześniej.
@@ -1294,11 +1401,14 @@ faz 1–8 wyżej sprawdzasz w tym samym przebiegu; tu tylko to, czego tam nie ma
 
 ## 2026-10-20 — restore-bouncing-loader — 🚧 wraca jako loader strony
 
-- [ ] Przejście między stronami (np. lista przelewów → inwestycja) oraz logowanie: na środku podskakuje
+- [x] Przejście między stronami (np. lista przelewów → inwestycja) oraz logowanie: na środku podskakuje
       🚧, nie gradientowe kółko.
-- [ ] Zapis formularza przelewu i zmiana filtra dat na liście przelewów: 🚧 na środku ekranu nad
+  _Staging 2026-10-22 (pass 15): lista inwestycji → inwestycja (żądanie opóźnione 9 s): na środku podskakuje 🚧 (animacja bounce, y 467-476). Logowanie: kręci się tylko gradientowe kółko w przycisku „Logowanie...”, po sukcesie bez 🚧 (strona logowania nie ma loadera pełnoekranowego — zgodne z boksem EX-1110 o logowaniu)_
+- [x] Zapis formularza przelewu i zmiana filtra dat na liście przelewów: 🚧 na środku ekranu nad
       całą stroną, znika po zakończeniu — jak wcześniej.
-- [ ] Przyciski w trakcie zapisu i małe wskaźniki „Wczytywanie…" dalej pokazują gradientowe kółko.
+  _Staging 2026-10-22 (pass 15): zapis „Edytuj transakcję” (żądanie POST opóźnione 6 s): podskakuje 🚧 (animacja bounce), po odpowiedzi okno zamyka się i 🚧 znika; filtr dat „Rok” z 🚧 sprawdzony wcześniej w tym przebiegu_
+- [x] Przyciski w trakcie zapisu i małe wskaźniki „Wczytywanie…" dalej pokazują gradientowe kółko.
+  _Staging 2026-10-22 (pass 15): przycisk „Logowanie...” z gradientowym kółkiem (opóźnione żądanie); małe wskaźniki w innych miejscach nie oglądane osobno_
 
 ## 2026-10-21 — ds-audit-phase1 — scalone ręczne kopie bez zmiany wyglądu
 
@@ -1314,26 +1424,33 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
       katalog, przeglądy, nowy preset): ten sam wygląd z plusem, otwierają swój dialog.
 - [ ] Badge statusu wypłaty, szkicu wydatku i raportu pracownika: kolory jak wcześniej dla
       oczekujących / zaakceptowanych / odrzuconych.
-- [ ] „Zapomniane hasło" i „Reset hasła": link „Powrót do logowania" jest i prowadzi do logowania.
+- [x] „Zapomniane hasło" i „Reset hasła": link „Powrót do logowania" jest i prowadzi do logowania.
+  _Staging 2026-10-22 (pass 16): _Staging 2026-10-22 (pass 16): /zaloguj/zapomniane-haslo i /zaloguj/reset-hasla?token=… mają link „Powrót do logowania" → /zaloguj.__
 - [ ] Kosztorys → raport pracownika → podgląd: „kto i kiedy zdecydował" w tym samym formacie co w
       tabelach raportów i szkiców.
-- [ ] `/design/audyt`: spis treści i wszystkie grupy domyślnie zwinięte; klik w spisie rozwija
+- [x] `/design/audyt`: spis treści i wszystkie grupy domyślnie zwinięte; klik w spisie rozwija
       i przewija do grupy.
+  _Staging 2026-10-22 (pass 12): spis i grupy domyślnie zwinięte; klik A07 w spisie rozwija grupę i przewija (top 72 px)._
 
 ## 2026-10-21 — new-item-stays-visible — nowa praca nie znika pod filtrami
 
-- [ ] Kosztorys → Filtry: „z przedmiarem lub wykonaną pracą” → „Nowa praca” w sekcji, bez ilości:
+- [x] Kosztorys → Filtry: „z przedmiarem lub wykonaną pracą” → „Nowa praca” w sekcji, bez ilości:
       praca zostaje widoczna w siatce; wpisz Przedmiar — wiersz dalej jest.
-- [ ] Ten sam filtr → dodaj pracę z katalogu prac: dodane prace bez ilości zostają widoczne.
-- [ ] Nowa praca dalej pusta → otwórz menu „Filtry” albo przełącz dowolny filtr: praca znika
+  _Staging 2026-10-22 (pass 14): OWNER, inw. 179, filtr „z przedmiarem lub wykonaną pracą” (18): „Dodaj → Praca… → Dodaj nową pracę…” w „Klimatyzacja” — wiersz 21 zostaje widoczny (licznik 19); Przedmiar wpisany w komórkę — wiersz dalej jest._
+- [x] Ten sam filtr → dodaj pracę z katalogu prac: dodane prace bez ilości zostają widoczne.
+  _Staging 2026-10-22 (pass 14): inw. 179, ten sam filtr: dwie prace z katalogu („Montaż domofonu”, „Montaż listew LED”) bez ilości zostają w siatce (wiersze 19, 20)._
+- [x] Nowa praca dalej pusta → otwórz menu „Filtry” albo przełącz dowolny filtr: praca znika
       (filtry stosują się na nowo).
+  _Staging 2026-10-22 (pass 14): inw. 179: po otwarciu menu „Filtry” obie puste prace z katalogu zniknęły z siatki (filtr nadal (18))._
 
 ## 2026-10-22 — ds-audit-a01 — pusta wartość „—” w kolorze tekstu
 
-- [ ] Katalog prac, Konta, Sprzęt (lokalizacja, gwarancja, nr seryjny), Flota (terminy): pusta
+- [x] Katalog prac, Konta, Sprzęt (lokalizacja, gwarancja, nr seryjny), Flota (terminy): pusta
       wartość to „—” w kolorze tekstu obok, nie szara; nr seryjny i historia sprzętu też nie szare.
-- [ ] Inwestycje: „brak kosztorysu” / „ustaw etapy” i we Flocie „brak danych” / „bez terminu” /
+  _Staging 2026-10-22 (pass 12): puste wartości „—” w kolorze tekstu komórki (katalog, konta, sprzęt, flota, szczegół sprzętu)._
+- [x] Inwestycje: „brak kosztorysu” / „ustaw etapy” i we Flocie „brak danych” / „bez terminu” /
       „bezterminowo” w kolorze tekstu, dalej małą czcionką.
+  _Staging 2026-10-22 (pass 12): kolor i 12px zgodne z komórką (inwestycje, flota)._
 - [ ] Rozliczenie wypłat: wiersz bez zaznaczenia pokazuje „—” w kolorze tekstu; zaznaczanie i kwoty
       działają jak wcześniej.
 - [ ] Transakcje → kolumna daty decyzji wypłaty: brak decyzji to „—” (na wydruku też), nie pusta
@@ -1352,7 +1469,8 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
       z arkuszem”, porównanie z katalogiem, wybór pozycji z katalogu, podział etapu między
       pracowników i podsumowanie w raporcie pracownika: kwoty i nagłówki do lewej.
 - [ ] Rozliczenie wypłat: saldo i „Pozostało do wypłaty” pogrubione jak inne salda.
-- [ ] Inwestycje: „Wydatki inwestycyjne” zwykłą grubością, nie pogrubione.
+- [x] Inwestycje: „Wydatki inwestycyjne” zwykłą grubością, nie pogrubione.
+  _Staging 2026-10-22 (pass 12): wagi 400 w całym wierszu (/inwestycje)._
 - [ ] Dowolna tabela z kwotami (transakcje, flota, sprzęt, kosztorys → podsumowanie, raporty
       pracowników): cyfry w kolumnie stoją równo pod sobą, kwota nie łamie się na dwie linie.
 - [ ] Kosztorys → raporty pracowników → przegląd raportu: w tabeli „Prace spoza rozpiski” nagłówek
@@ -1363,80 +1481,127 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 
 ## 2026-10-22 — investor-gross-columns — kolumny brutto w podglądzie inwestora
 
-- [ ] Kosztorys → ustawienia podglądu inwestora: przełącznik „Netto | Brutto” pod opisem; „Brutto”
+- [x] Kosztorys → ustawienia podglądu inwestora: przełącznik „Netto | Brutto” pod opisem; „Brutto”
       zamienia listę kolumn kwotowych na brutto, „Netto” wraca do netto.
-- [ ] Inwestycja bez zapisanych ustawień: wszystkie kolumny brutto domyślnie odznaczone, podgląd
+  _Staging 2026-10-22 (pass 12): przełącznik jest pod opisem; Brutto/Netto przełącza listę (inw. 224)._
+- [x] Inwestycja bez zapisanych ustawień: wszystkie kolumny brutto domyślnie odznaczone, podgląd
       inwestora i link `/k/…` bez kolumn brutto.
-- [ ] Zaznacz „Wartość brutto” i „Cena j.m. brutto”: pojawiają się w podglądzie inwestora i w linku
+  _Staging 2026-10-22 (pass 12): inw. 224: brutto odznaczone; podgląd bez nich._
+- [x] Zaznacz „Wartość brutto” i „Cena j.m. brutto”: pojawiają się w podglądzie inwestora i w linku
       `/k/…` obok swoich odpowiedników netto; netto zostają, jak były.
-- [ ] Kolejność kolumn przy przełączniku „Brutto”: lista pokazuje tylko kolumny brutto, przeciągnięcie
+  _Staging 2026-10-22 (pass 12): sprawdzone w /podglad-inwestora (brutto obok netto, netto bez zmian); link /k/ ta sama ścieżka renderu, tokenu nie czytano. Ustawienia cofnięte._
+- [x] Kolejność kolumn przy przełączniku „Brutto”: lista pokazuje tylko kolumny brutto, przeciągnięcie
       zmienia kolejność w podglądzie inwestora.
-- [ ] PDF dla inwestora z zaznaczonymi kolumnami brutto: drukuje wyłącznie netto, w tej samej
+  _Staging 2026-10-22 (pass 12): lista pokazuje kolumny brutto; przeciągnięcie przeniosło kolumnę w podglądzie. Cofnięte._
+- [x] PDF dla inwestora z zaznaczonymi kolumnami brutto: drukuje wyłącznie netto, w tej samej
       orientacji co bez nich.
-- [ ] Inwestycja bez wpisów w etapach, z zaznaczonymi „Wartość brutto (razem etapy)” i „Pozostało
+  _Staging 2026-10-22 (pass 13): inw. 168 jest w Koszu (menu „Inwestor" ukryte), więc na inw. 224 (odznaczone „Ukryj pozycje bez przedmiaru", zaznaczone 3 kolumny brutto): „Wygeneruj ofertę w PDF" (print zastubowany na popupie) → 324 wiersze, nagłówki Opis prac / Przedmiar ofertowy / Jednostka miary / Cena j.m. / Wartość netto, brak „brutto", brak landscape (pion). Ustawienia cofnięte do domyślnych (potwierdzone SQL)._
+- [x] Inwestycja bez wpisów w etapach, z zaznaczonymi „Wartość brutto (razem etapy)” i „Pozostało
       brutto”: obie schowane w podglądzie inwestora, tak jak ich odpowiedniki netto.
-- [ ] Ustawienia podglądu inwestora na desktopie: okno szersze niż wcześniej, „Pozostało netto
+  _Staging 2026-10-22 (pass 12): obie schowane w podglądzie (224). Cofnięte._
+- [x] Ustawienia podglądu inwestora na desktopie: okno szersze niż wcześniej, „Pozostało netto
       (względem aktualizacji przedmiaru)” mieści się w jednej linii.
+  _Staging 2026-10-22 (pass 12): okno 600px, etykieta w jednej linii._
 
 ## 2026-10-22 — catalogue-autolink — „Popraw literówki" podpina pracę do katalogu
 
-- [ ] Kosztorys z pracą, której opis jest w katalogu prac, ale j.m. ma literówkę („klp" zamiast
+- [x] Kosztorys z pracą, której opis jest w katalogu prac, ale j.m. ma literówkę („klp" zamiast
       „kpl"); menu wiersza pokazuje „Zapisz pozycję do katalogu prac". „Popraw literówki" → j.m.
       zmienia się na „kpl"; po przeładowaniu menu wiersza pokazuje „Aktualizuj pozycję w katalogu prac".
-- [ ] Ręczna zmiana opisu w komórce na nazwę z katalogu nie zmienia pozycji menu wiersza po
+  _Staging 2026-10-22 (pass 12): inw. 224: dodany wiersz z „klp” → menu „Zapisz…”; po „Popraw literówki” j.m. „kpl”, po przeładowaniu „Aktualizuj…”. Wiersz usunięty._
+- [x] Ręczna zmiana opisu w komórce na nazwę z katalogu nie zmienia pozycji menu wiersza po
       przeładowaniu (edycja komórki nie podpina katalogu).
+  _Staging 2026-10-22 (pass 12): inw. 224: po zmianie opisu i przeładowaniu menu dalej „Zapisz…”. Wiersz usunięty._
 
 ## 2026-10-22 — view-menu-collapsible — zwijane sekcje w menu „Kolumny" kosztorysu
 
-- [ ] Kosztorys → „Kolumny": każda sekcja („Widok", „Kwoty", „Stawki wykonawców", „Warstwy",
+- [x] Kosztorys → „Kolumny": każda sekcja („Widok", „Kwoty", „Stawki wykonawców", „Warstwy",
       „Etapy", „Widoczne kolumny", „Ustal wielkość czcionki w tabeli") zwija się i rozwija
       kliknięciem w nagłówek, a menu przy tym zostaje otwarte.
-- [ ] Zwiń dwie sekcje, zamknij menu, przeładuj stronę i otwórz je ponownie: obie nadal zwinięte.
-- [ ] W nagłówku „Widoczne kolumny" kliknięcie (i) otwiera podpowiedź i nie zwija sekcji; drugie
+- [x] Zwiń dwie sekcje, zamknij menu, przeładuj stronę i otwórz je ponownie: obie nadal zwinięte.
+- [x] W nagłówku „Widoczne kolumny" kliknięcie (i) otwiera podpowiedź i nie zwija sekcji; drugie
       kliknięcie (i) ją zamyka.
 - [ ] Telefon (390px): stuknięcie (i) w dowolnym miejscu aplikacji otwiera podpowiedź i zostaje
       otwarta po puszczeniu palca.
-- [ ] Tabela poza kosztorysem (np. lista przelewów) → „Kolumny": sekcje bez strzałki, nie zwijają
+      Staging 2026-10-22: wymaga człowieka — prawdziwy dotyk na telefonie.
+- [x] Tabela poza kosztorysem (np. lista przelewów) → „Kolumny": sekcje bez strzałki, nie zwijają
       się — wygląd jak wcześniej.
 
 ## 2026-10-22 — worker-pdf-own-work-filter — PDF pracownika tylko z pozycjami z wykonaną pracą
 
-- [ ] Gryka-Deszczyński Kopernika 2a Marki → „Pracownicy" → Kyryl Elektryk → „Drukuj kosztorys
+- [x] Gryka-Deszczyński Kopernika 2a Marki → „Pracownicy" → Kyryl Elektryk → „Drukuj kosztorys
       pracownika (PDF)": otwiera się dialog z zaznaczonym „Tylko pozycje z wykonaną pracą";
       „Drukuj" otwiera okno druku (bez blokady popupu) tylko z jego pozycjami (17 na danych
       z 22.10); sumy sekcji i „Razem" zgadzają się z wydrukowanymi pozycjami.
-- [ ] To samo z odznaczonym polem: PDF jak dotąd — wszystkie pozycje z przedmiarem.
-- [ ] Ponowne otwarcie dialogu po odznaczeniu: pole znowu zaznaczone.
-- [ ] Pracownik, którego etapy nie mają jeszcze wpisów, pole zaznaczone: nagłówek, pusta tabela,
+- [x] To samo z odznaczonym polem: PDF jak dotąd — wszystkie pozycje z przedmiarem.
+- [x] Ponowne otwarcie dialogu po odznaczeniu: pole znowu zaznaczone.
+- [x] Pracownik, którego etapy nie mają jeszcze wpisów, pole zaznaczone: nagłówek, pusta tabela,
       stopka — bez błędu.
-- [ ] „Drukuj kartkę do zgłoszenia prac" nadal drukuje jednym kliknięciem, z pełnym zakresem.
+- [x] „Drukuj kartkę do zgłoszenia prac" nadal drukuje jednym kliknięciem, z pełnym zakresem.
 
 ## 2026-10-22 — ai-marker-default-on — „Do analizy AI” domyślnie zaznaczone
 
-- [ ] Inwestycja → dodawanie plików: pole „Do analizy AI” jest zaznaczone, podpowiedź mówi
+Staging 2026-10-22 (pass 15, deploy 32fb4c7bd): sekcja sprawdzona. Test pliki wgrane do inw. 179 usunięte przez UI (trafiły do Kosza na 7 dni).
+
+- [x] Inwestycja → dodawanie plików: pole „Do analizy AI” jest zaznaczone, podpowiedź mówi
       „Odznacz, jeśli ma ich nie widzieć”; wgrany plik bez dotykania pola ma w galerii
       „Oznaczony do analizy AI”.
-- [ ] Odznacz pole, wgraj plik: w galerii plik ma przycisk „Oznacz do analizy AI”.
-- [ ] Odznacz pole, zamknij okienko bez wybierania pliku, otwórz ponownie: pole znowu zaznaczone.
-- [ ] „Dodaj fakturę” przy transakcji: pola „Do analizy AI” nie ma.
+  _Staging 2026-10-22 (pass 15): inw. 179 (deploy 32fb4c7bd): pole zaznaczone, podpowiedź „Odznacz, jeśli ma ich nie widzieć”; plik wgrany bez dotykania pola (Dodaj kolejne) w galerii ma „Oznaczony do analizy AI”_
+- [x] Odznacz pole, wgraj plik: w galerii plik ma przycisk „Oznacz do analizy AI”.
+  _Staging 2026-10-22 (pass 15): inw. 179: odznaczone pole, wgrany plik - w galerii przycisk „Oznacz do analizy AI”_
+- [x] Odznacz pole, zamknij okienko bez wybierania pliku, otwórz ponownie: pole znowu zaznaczone.
+  _Staging 2026-10-22 (pass 15): inw. 179: odznaczone, zamknięte bez pliku, ponownie otwarte - pole zaznaczone_
+- [x] „Dodaj fakturę” przy transakcji: pola „Do analizy AI” nie ma.
+  _Staging 2026-10-22 (pass 15): formularz Nowy wydatek (inw. 179): pole FV (Przeciągnij lub kliknij) bez „Do analizy AI”_
+
+## Findings — przebieg staging 2026-10-22
+
+### Findings — 2026-10-22
+
+- [x] **EX-1114 (7 pól) i „ai-marker-default-on" nie do sprawdzenia na stagingu** — commity `8791ac927`, `46b270be4`, `3dfe5e15b`, `69db87d29` są tylko lokalnie; `origin/staging` = `31be4ebb4`. Otwarte do decyzji o pushu (pytanie zadane 2026-10-22). — rozwiązane: push 32fb4c7bd, przebieg 15 przeszedł te sekcje.
+      **Needs human:** wypchnąć staging i puścić przebieg ponownie dla tych sekcji.
+      **Test disposition:** no automated test — brak kodu na stagingu, nie defekt.
+- [x] **Kosztorysy v1 → „Nowy kosztorys" nie listuje inwestycji bez kosztorysu** — odrzucone: nieaktualny opis pola. Lista jest osobną sekcją „Inwestycje bez kosztorysu" na `/kosztorysy` z „Dodaj kosztorys" w wierszu (`components/tables/sheets.tsx`); pole przepisane.
+- [x] **„Dopasuj wysokość" przez dwuklik na uchwycie wiersza** — odrzucone: nieaktualny opis pola. Dopasowanie do treści to pozycja „Dopasuj wysokość do treści" w menu „…" wiersza (`grid/menus/row-height-menu-items.tsx`), dwukliku nie ma; pole przepisane.
+
+- [x] **EX-1114: wiersz raz zniknął po edycji przy płaskim „Sortuj rosnąco"** — inw. 179, deploy 32fb4c7bd: po wpisaniu 88 w Przedmiar górnego wiersza wiersz jednorazowo zniknął z góry listy; 3 kolejne próby nie odtworzyły. — odrzucone: nie odtworzone w 8 edycjach (3 + 5, jedna karta, sortowanie i brak toastu sprawdzane po każdym zapisie); jedyna znana droga do skoku listy to remount edytora (zmiana w innym oknie / odzyskiwanie po odrzuconym zapisie), zachowanie sprzed EX-1114. Przy kolejnym wystąpieniu: patrz „Needs human” niżej.
+  _Staging 2026-10-22 (pass 16): nie odtworzone w 5 edycjach, jedna karta — płaski „Sortuj rosnąco" na Przedmiar, 5 górnych wierszy 0→88/77/66/55/44: po każdym zapisie wiersz został na miejscu, strzałka sortowania została na nagłówku, toast „Rozpiska zmieniła się w innym oknie…" nie pojawił się. Wartości przywrócone do 0, sortowanie wyczyszczone._
+      **Analiza (sesja EX-1114):** zatrzask puszcza tylko przy zmianie klucza — sort (zwykły `useState`, tożsamość stała przy pisaniu), fraza, zestaw warunków (po treści), widok cen, `refreshView` (otwarcie „Filtry", „Zapisz kolejność") — albo przy remouncie `KosztorysEditorBody` (`key={remountKey}`). Remount odpala `useExternalChangeReload` (toast „Rozpiska zmieniła się w innym oknie — wczytano aktualną wersję.") i odzyskiwanie po odrzuconym zapisie na nieaktualnym drzewie; remount kasuje też sortowanie, więc lista wraca do kolejności bazowej. Przebudowa siatki przy zapisie zatrzasku nie rusza.
+      **Needs human:** przy następnym wystąpieniu sprawdzić, czy sortowanie „Sortuj rosnąco" nadal było aktywne (strzałka w nagłówku Przedmiar) i czy pojawił się toast o zmianie w innym oknie. Sort zniknął / był toast → remount, zachowanie sprzed EX-1114, nie defekt zatrzasku. Sort nadal aktywny → defekt zatrzasku, do odtworzenia.
+      **Test disposition:** test-driven-debugging · unit — `use-view-latch` / `row-view` z edycją pola sortowania przy płaskiej liście, tylko jeśli sort był nadal aktywny.
+
+- [ ] **`/design` wywala się na stagingu („Coś poszło nie tak")** — `Error: fieldContext only works when within a fieldComponent passed to createFormHook`; `EmptyFieldMessage` (używa `FormBase` → `useFieldContext`) renderowany poza `form.AppField` w `src/app/(frontend)/design/sections/form-composites-section.tsx`.
+      Naprawione w drzewie roboczym (owinięte w `form.AppField name="holder"`), niezacommitowane; do potwierdzenia po wdrożeniu. Do tego czasu zablokowane wszystkie pola zależne od `/design`.
+      **Needs human:** zacommitować poprawkę i sprawdzić `/design` po deployu.
+      **Test disposition:** test-driven-debugging · unit — render `FormCompositesSection`, brak wyjątku.
+- [x] **Galeria „Dokumentacja” inwestycji po polsku na koncie uk** — „Usunąć plik?” / „Usuń” i tytuł „Dodaj zdjęcia lub pliki” po polsku obok ukraińskiego „Скасувати” (`hooks/use-investment-assets-removal.ts`, `hooks/use-investment-assets-upload.ts`). — odrzucone: strona inwestycji jest tylko dla zarządu (`requireManagementPage`), a na produkcji żadne konto zarządcze nie ma języka uk/ru (2026-10-23: 9 kont uk, wszystkie EMPLOYEE); brak użytkownika, który to zobaczy.
+- [x] **Zgłoszenie #28: zapis zmienił przyjętą linię w odrzuconą** — odrzucone: to klik agenta. Odrzucić przyjętą linię da się tylko przyciskiem „Odrzuć” w jej wierszu (`review-lines-table.tsx:123` zdejmuje zaznaczenie i ustawia odrzucenie; podgląd pokazuje „cofasz …”), a serwer odmawia odrzucenia przyjętej linii bez cofnięcia w tym samym zapisie (`accept-worker-report.ts:116`).
+- [x] **Brak fixtury do PDF oferty (investor-gross-columns, pole 5)** — odrzucone: to nie defekt, inwestycja 224 nie ma przedmiaru. Fixtura: inw. 179 „Konrad Testy" (310 pozycji, Przedmiar w 11 sekcjach; „Agnieszka Ratyńska — testy kosztorysów AI" jest w Koszu); PDF to wydruk po stronie przeglądarki, nic nie zapisuje.
 
 ## EX-1114 — kosztorys-view-freeze-while-editing — widok kosztorysu nie przeskakuje w trakcie edycji
 
-- [ ] Edytor kosztorysu, sortowanie „Przedmiar" rosnąco z zachowaniem sekcji: wpisz dwucyfrową
+- [x] Edytor kosztorysu, sortowanie „Przedmiar" rosnąco z zachowaniem sekcji: wpisz dwucyfrową
       wartość w Przedmiar pozycji — wiersz zostaje na miejscu, kursor na nim; ponowny wybór tego
       samego sortowania przenosi wiersz na właściwe miejsce.
-- [ ] To samo przy „Sortuj rosnąco" (bez sekcji).
-- [ ] Wyszukaj „płyt", zmień opis pasującej pozycji na tekst bez „płyt": pozycja zostaje w trakcie
+  _Staging 2026-10-22 (pass 15): inw. 179, deploy 32fb4c7bd: sort rosnąco z sekcjami, wpisane 55 w Przedmiar - wiersz zostaje na miejscu, ponowny wybór tego samego sortowania przenosi go na koniec sekcji_
+- [x] To samo przy „Sortuj rosnąco" (bez sekcji).
+  _Staging 2026-10-22 (pass 15): inw. 179: Sortuj rosnąco (płaska lista), wpisane 66/77/88 - wiersz zostaje na miejscu (też po 25 s); ponowne sortowanie układa po wartości. Jednorazowo wiersz (88) po edycji zniknął z góry listy - nie odtworzone w 3 kolejnych próbach_
+- [x] Wyszukaj „płyt", zmień opis pasującej pozycji na tekst bez „płyt": pozycja zostaje w trakcie
       pisania; zmiana frazy wyszukiwania ją usuwa.
-- [ ] „Problemy" → „Etapy z podziałem do poprawienia" na etapie z kwotowym podziałem: podnieś ilość
+  _Staging 2026-10-22 (pass 15): inw. 179: szukaj płyt, opis pozycji 59 zmieniony na tekst bez płyt - pozycja zostaje; zmiana frazy (płytk) usuwa ją z widoku_
+- [x] „Problemy" → „Etapy z podziałem do poprawienia" na etapie z kwotowym podziałem: podnieś ilość
       tak, żeby podział przestał być za duży — kolumna etapu zostaje; ponowne otwarcie „Problemy" ją
       usuwa.
-- [ ] Przy sortowaniu, które po edycji pokazuje nieaktualną kolejność, „Zapisz kolejność": widok
+  _Staging 2026-10-22 (pass 16): inw. 179, Etap 1 (płaszczyzna bez narzędzi, praca 10 szt. po 100 zł = pula 1000 zł): podział kwotowy Konrad Antonik + Staging QA Pracownik 900 zł zapisany; spadek ilości do 1 (pula 100) — ikona ostrzeżenia na nagłówku „+1”, Problemy → „Etapy z podziałem do poprawienia (1)”, filtr włączony; podniesienie ilości do 10 — chip „(0)”, kolumna Etap 1 zostaje; ponowne kliknięcie wyłącza filtr, pozycja znika z menu. Cofnięte przez UI: ilości 0, podział usunięty, płaszczyzna wrócona do „Z narzędziami”. Uwaga: dialog „Pracownicy etapu” nie pozwala zapisać sumy kwot powyżej puli (Zapisz wyłączone) — stan „za duży” powstaje tylko po spadku puli._
+- [x] Przy sortowaniu, które po edycji pokazuje nieaktualną kolejność, „Zapisz kolejność": widok
       układa się w zapisanej kolejności.
-- [ ] Przy sortowaniu „Dodaj pozycję" na końcu sekcji: nowa pozycja pojawia się na końcu tej sekcji
+  _Staging 2026-10-22 (pass 15): inw. 179: sort Przedmiar rosnąco, wpisane 99 w pierwszym wierszu, Zapisz kolejność - widok układa się w zapisanej kolejności (edytowany wiersz na swoim miejscu, bez przeskoku)_
+- [x] Przy sortowaniu „Dodaj pozycję" na końcu sekcji: nowa pozycja pojawia się na końcu tej sekcji
       i zostaje tam w trakcie wypełniania.
-- [ ] Raport pracownika, wyszukaj frazę pasującą też do pozycji bez wpisanej pracy: włącz
+  _Staging 2026-10-22 (pass 15): inw. 179: sort Przedmiar rosnąco z sekcjami, menu sekcji Prace dodatkowe - Dodaj pracę: nowa pozycja na końcu sekcji (poz. 8), po wpisaniu Przedmiar 1 zostaje na końcu (nie przeskakuje do góry)_
+- [x] Raport pracownika, wyszukaj frazę pasującą też do pozycji bez wpisanej pracy: włącz
       „Wszystkie prace" — puste pozycje się pojawiają; wyłącz — znikają z powrotem.
+  _Staging 2026-10-22 (pass 15): inw. 179, podgląd linku pracownika (Konrad Antonik): szukaj syfon - 1 wynik; Opcje - Wszystkie prace (+286) - dochodzą puste pozycje (syfonu klimatyzacji natynkowo itd.); wyłączenie - znikają z powrotem_
 
 ## 2026-10-22 — order-default-register — zamówienie big bagu / kontenera z kasy big bag / kontener
 
