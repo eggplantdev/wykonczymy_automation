@@ -1,7 +1,7 @@
 ---
 change_id: ai-stage-push
 title: Push notifications when an investment's AI stage changes
-status: implementing
+status: implemented
 created: 2026-10-23
 updated: 2026-10-23
 archived_at: null

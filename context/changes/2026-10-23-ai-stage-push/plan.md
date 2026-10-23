@@ -352,4 +352,4 @@ test DB template rebuilds on its own because a migration changed.
 #### Automated
 
 - [ ] 3.1 DRY run prints SQL without ai_stage, no action call
-- [x] 3.2 No ai_stage write left in the loader
+- [x] 3.2 No ai_stage write left in the loader — 80ebae1ea

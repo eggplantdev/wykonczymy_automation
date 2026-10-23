@@ -1624,6 +1624,25 @@ Staging 2026-10-22 (pass 15, deploy 32fb4c7bd): sekcja sprawdzona. Test pliki wg
 - [ ] Wpisane 10 daje 40 px; „120,6” daje 121 px; tekst niebędący liczbą zostawia „Zastosuj” wyłączone.
 - [ ] Podgląd inwestora i raport pracownika: brak pozycji szerokości w menu kolumn i w „Opcje”.
 
+## 2026-10-23 — ai-stage-push — powiadomienia push o zmianie etapu AI
+
+Wymaga produkcji (push wychodzi tylko z niej) i włączonych powiadomień na telefonach odbiorców
+(menu telefonu → przełącznik powiadomień; na iPhonie najpierw zainstaluj aplikację na ekranie
+głównym, w Safari przełącznika nie ma).
+
+- [ ] Z innego konta ustaw inwestycji „Gotowa do analizy”: telefon admina dostaje powiadomienie
+      z nazwą inwestycji, a dotknięcie otwiera stronę tej inwestycji. To samo dla „Nowe informacje”
+      i „Recenzja zakończona”.
+- [ ] Ustaw „Przeanalizowana”: powiadomienie dostają oba konta recenzentów; osoba, która zmieniła
+      etap, nie dostaje go.
+- [ ] Zapisz ten sam etap ponownie: żadne nowe powiadomienie nie przychodzi.
+- [ ] Dwie różne inwestycje → „Przeanalizowana”: na telefonie są dwa osobne powiadomienia, nie
+      jedno nadpisane.
+- [ ] „Wiedza wyekstraktowana” nie wysyła nic.
+- [ ] Następne wgranie szkicu AI ustawia „Przeanalizowana” bez ręcznego kroku i powiadamia obu
+      recenzentów.
+- [ ] Po migracji zapis listy odbiorców na `/flota` nadal się udaje.
+
 # Zamknięte — indeks
 
 Jedna linia na slice — liczby są policzone z pełnego rejestru sprzed przycięcia.
