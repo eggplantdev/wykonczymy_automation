@@ -9,3 +9,6 @@ export function stageLabel(
 ): string {
   return stage.label || dictionary.t('stageFallback', { ordinal: stage.ordinal })
 }
+
+export const stageValueGrossHeader = (stage: Pick<KosztorysStageT, 'label' | 'ordinal'>): string =>
+  `${stageLabel(stage)} brutto`

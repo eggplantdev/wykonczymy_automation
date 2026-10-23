@@ -385,7 +385,8 @@ Reguły, które trzymają to razem:
   odwraca decyzję z 2026-09-28) — także w inwestycji rozliczanej brutto. W ustawieniach przełącznik „Netto | Brutto" zmienia tylko, którą
   listę kolumn kwotowych widać; zaznaczenia netto i brutto są niezależne, a „Cena j.m." ma swój
   bliźniak „Cena j.m. brutto". Kolumna brutto chowa się przed pierwszym wpisem w etapie tak samo jak jej
-  netto. **PDF zostaje netto** — kolumna brutto nie ma wpisu na wydruku.
+  netto. **PDF drukuje to samo co podgląd** (właściciel, 2026-10-23; odwraca „PDF zostaje netto" z
+  2026-10-22) — zaznaczona kolumna brutto trafia na wydruk, a powyżej 7 kolumn strona jest pozioma.
 
 **Podgląd nie zna trybu rozliczenia** (rozstrzygnięte 2026-08-12). `settlementMode` NIE wraca
 jako bramka prawdy. O ujawnieniu decyduje wyłącznie allowlista (i zapisane ustawienie widoku klienta pod

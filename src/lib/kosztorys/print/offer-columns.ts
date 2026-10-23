@@ -14,11 +14,16 @@ import {
   computedPercentColumn,
   computedQtyColumn,
   qtyColumn,
+  stageGrossColumns,
   stageNetColumns,
   stageQtyColumns,
   type PrintColumnT,
 } from '@/lib/kosztorys/print/columns'
-import { STAGE_VALUE_NET_COLUMN_GROUP, STAGES_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
+import {
+  STAGE_VALUE_GROSS_COLUMN_GROUP,
+  STAGE_VALUE_NET_COLUMN_GROUP,
+  STAGES_COLUMN_GROUP,
+} from '@/lib/kosztorys/stage-keys'
 import { decimalText } from '@/lib/utils/decimal-text'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { ColumnRanksT } from '@/lib/table/column-order'
@@ -54,13 +59,21 @@ function offerColumnsByKey(
         cell: (row) => zloty(viewPrice(row, OFFER_PRICE_VIEW)),
       },
     ],
+    priceGross: [money('priceGross', clientLabel('priceGross'))],
     plannedNet: [
       money(
         'plannedNet',
         withAfterDiscountSuffix('plannedNet', 'Wartość netto', OFFER_PRICE_VIEW, hasDiscount),
       ),
     ],
+    plannedGross: [
+      money(
+        'plannedGross',
+        withAfterDiscountSuffix('plannedGross', 'Wartość brutto', OFFER_PRICE_VIEW, hasDiscount),
+      ),
+    ],
     currentPlannedNet: [money('currentPlannedNet', clientLabel('currentPlannedNet'))],
+    currentPlannedGross: [money('currentPlannedGross', clientLabel('currentPlannedGross'))],
     [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
     stageQtySum: [computedQtyColumn(valueOf)('stageQtySum', clientLabel('stageQtySum'))],
     discountValue: [
@@ -74,12 +87,20 @@ function offerColumnsByKey(
       ),
     ],
     plannedDiscountAmount: [money('plannedDiscountAmount', clientLabel('plannedDiscountAmount'))],
+    plannedDiscountAmountGross: [
+      money('plannedDiscountAmountGross', clientLabel('plannedDiscountAmountGross')),
+    ],
     discountAmount: [money('discountAmount', clientLabel('discountAmount'))],
+    discountAmountGross: [money('discountAmountGross', clientLabel('discountAmountGross'))],
     [STAGE_VALUE_NET_COLUMN_GROUP]: stageNetColumns(stages, valueOf, zloty),
+    [STAGE_VALUE_GROSS_COLUMN_GROUP]: stageGrossColumns(stages, valueOf, zloty),
     net: [money('net', clientLabel('net'))],
-    donePercent: [percent('donePercent', clientLabel('donePercent'))],
-    plannedDonePercent: [percent('plannedDonePercent', clientLabel('plannedDonePercent'))],
+    gross: [money('gross', clientLabel('gross'))],
+    // „wg" only on paper: with „względem" the rotated headers of these narrow columns overprint each other.
+    donePercent: [percent('donePercent', '% wykonania (wg aktualizacji przedmiaru)')],
+    plannedDonePercent: [percent('plannedDonePercent', '% wykonania (wg przedmiaru ofertowego)')],
     remaining: [money('remaining', 'Pozostało')],
+    remainingGross: [money('remainingGross', 'Pozostało brutto')],
   }
 }
 

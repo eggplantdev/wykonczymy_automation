@@ -1,3 +1,27 @@
+const PORTRAIT_COLUMN_MM: Readonly<Record<string, number>> = {
+  'c-qty': 18,
+  'c-unit': 20,
+  'c-price': 19,
+  'c-value': 23,
+  'c-stage-qty': 14,
+  'c-note': 40,
+}
+const PORTRAIT_HEADER_MAX_PT = 6
+const PORTRAIT_HEADER_PADDING_MM = 2.2
+// Average uppercase glyph plus the .04em tracking, measured once; underestimating it lets a long word
+// overprint the next column.
+const HEADER_CHAR_EM = 0.75
+const MM_PER_PT = 25.4 / 72
+
+function columnWidths(
+  widths: Readonly<Record<string, number>>,
+  width: (mm: number) => string,
+): string {
+  return Object.entries(widths)
+    .map(([colClass, mm]) => `col.${colClass} { width: ${width(mm)}; }`)
+    .join(' ')
+}
+
 export const PRINT_STYLES = `
 /* Browsers drop every background when printing unless the document says the colour IS the content.
    Without this the section bands print white and a 150-row offer loses the only cue that tells one
@@ -35,9 +59,7 @@ body {
 table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 /* Auto layout sizes a column by its widest cell, so „kontener" and „1 500 zł" claimed width the wrapped
    descriptions needed far more. The figures are known-width; the description takes the remainder. */
-col.c-qty { width: 18mm; } col.c-unit { width: 20mm; }
-col.c-price { width: 19mm; } col.c-value { width: 23mm; } col.c-stage-qty { width: 14mm; }
-col.c-note { width: 40mm; }
+${columnWidths(PORTRAIT_COLUMN_MM, (mm) => `${mm}mm`)}
 thead { display: table-header-group; }
 tr { break-inside: avoid; }
 /* The outer table only carries the column heads Chrome repeats on every page; the rows are tables of
@@ -58,7 +80,7 @@ table.row { break-inside: avoid; }
               color: var(--print-muted); margin-bottom: 3px; }
 .brand-title { font-size: 12pt; font-weight: 600; letter-spacing: -.01em; line-height: 1.15; }
 
-th { font-size: 6.5pt; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+th { font-size: ${PORTRAIT_HEADER_MAX_PT}pt; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
      color: var(--print-muted); text-align: left; padding: 7px 4px;
      border-bottom: 1px solid var(--print-rule-strong); border-right: 1px solid var(--print-rule);
      background: #fff; vertical-align: top; }
@@ -70,7 +92,7 @@ td:first-child { padding-left: 0; }
    inset stays: Safari clips ink at the body's content edge and cut the „ł" off a flush „zł". */
 tr > td:last-child, tr > th:last-child { padding-right: 4px; border-right: none; }
 th:first-child { padding-left: 0; }
-.num { text-align: right; white-space: nowrap; padding-left: 5px; padding-right: 5px; }
+.num { text-align: center; white-space: nowrap; padding-left: 5px; padding-right: 5px; }
 th.num { padding-left: 4px; padding-right: 4px; white-space: normal; }
 /* A real border, not an inset shadow: a shadow is clipped to the padding box, so the row hairline
    notches it and the rail prints as dashes. Its own hairline is a background rather than a border,
@@ -81,7 +103,7 @@ td.rail { border-left: 2px solid; padding-left: 11px;
           background-repeat: no-repeat; background-position: 0 100%; background-size: 100% 1px; }
 .desc { white-space: pre-line; overflow-wrap: break-word; color: #27272a; }
 .note { color: var(--print-muted); font-size: 7pt; }
-.unit { white-space: nowrap; text-align: right; color: var(--print-muted); font-size: 7pt;
+.unit { white-space: nowrap; text-align: center; color: var(--print-muted); font-size: 7pt;
         padding-left: 4px; padding-right: 5px; }
 .price { color: var(--print-soft); }
 .value { font-weight: 500; }
@@ -125,23 +147,96 @@ tr.grand-total td { border: none; border-top: 1px solid #18181b; padding-top: 9p
                       font-weight: 600; letter-spacing: -.01em; color: #18181b; }
 `
 
+const WIDE_COLUMN_MM: Readonly<Record<string, number>> = {
+  'c-qty': 10,
+  'c-unit': 12,
+  'c-price': 13,
+  'c-value': 18,
+  'c-stage-qty': 8,
+  'c-note': 28,
+}
+// A4 landscape less the body's 10mm side padding. Widths go out as a share of it: Safari ignores
+// `@page { size }` and prints portrait.
+const WIDE_TABLE_MM = 277
+// The opis takes what the fixed columns leave; at 0mm it wraps a letter per line and one pozycja
+// fills a page.
+const WIDE_DESCRIPTION_MIN_MM = 45
+const WIDE_CELL_FONT_PT = 5.5
+const WIDE_MAX_CELL_FONT_PT = 7
+const WIDE_BAND_FONT_PT = 6.5
+const WIDE_TOTAL_FONT_PT = 6
+const WIDE_HEADER_FONT_PT = 4.5
+// Taller than the default 22mm, or a long rotated header wraps wider than its column and overprints
+// its neighbour.
+const FITTED_HEADER_MM = 32
+
+const roundTenth = (n: number) => Math.round(n * 10) / 10
+
+// `cqi` sizes the text as a share of the body's width, so a portrait page (Safari) shrinks it with
+// the columns.
+function wideFont(pt: number): string {
+  const share = Math.round(((pt * MM_PER_PT) / WIDE_TABLE_MM) * 100 * 1000) / 1000
+  return `font-size: ${roundTenth(pt)}pt; font-size: ${share}cqi;`
+}
+
+function wideColumnWidths(scale: number): string {
+  return columnWidths(
+    WIDE_COLUMN_MM,
+    (mm) => `${roundTenth(((mm * scale) / WIDE_TABLE_MM) * 100)}%`,
+  )
+}
+
+// Same scale as the cells, or a section's name and its „Razem" print smaller than its rows.
+function wideTotalFonts(scale: number): string {
+  return `.band-name { ${wideFont(WIDE_BAND_FONT_PT * scale)} }
+tr.band-total td, tr.grand-total td { ${wideFont(WIDE_TOTAL_FONT_PT * scale)} }`
+}
+
+// Appended after WIDE_PRINT_STYLES: scales the fixed columns and their font together so a figure
+// still fits its column.
+export function fitWideColumnStyles(colClasses: readonly string[]): string {
+  const fixedMm = colClasses.reduce((sum, colClass) => sum + (WIDE_COLUMN_MM[colClass] ?? 0), 0)
+  const scale = Math.min(
+    WIDE_MAX_CELL_FONT_PT / WIDE_CELL_FONT_PT,
+    (WIDE_TABLE_MM - WIDE_DESCRIPTION_MIN_MM) / fixedMm,
+  )
+  return `${wideColumnWidths(scale)}
+td, .unit { ${wideFont(WIDE_CELL_FONT_PT * scale)} }
+th { ${wideFont(WIDE_HEADER_FONT_PT * scale)} height: ${FITTED_HEADER_MM}mm; }
+th > span { max-height: ${FITTED_HEADER_MM}mm; }
+${wideTotalFonts(scale)}`
+}
+
+// Portrait headers wrap only between words: the font is the largest at which every column's longest
+// word fits, or „AKTUALIZACJI" overprints the next column.
+export function fitPortraitHeaderStyles(
+  columns: readonly { label: string; colClass: string }[],
+): string {
+  const fittingPt = columns.flatMap(({ label, colClass }) => {
+    const columnMm = PORTRAIT_COLUMN_MM[colClass]
+    if (!columnMm) return []
+    const longestWord = Math.max(...label.split(/\s+/).map((word) => word.length))
+    return [(columnMm - PORTRAIT_HEADER_PADDING_MM) / (longestWord * HEADER_CHAR_EM * MM_PER_PT)]
+  })
+  const pt = Math.min(PORTRAIT_HEADER_MAX_PT, ...fittingPt)
+  return `th { font-size: ${Math.floor(pt * 10) / 10}pt; }`
+}
+
 // The rotation sits on the span, not the th: WebKit ignores writing-mode on a table cell but still
 // applies its transform, so Safari printed every header horizontal and upside down.
 export const WIDE_PRINT_STYLES = `
 @page { size: A4 landscape; }
-body { padding-left: 10mm; padding-right: 10mm; }
+body { padding-left: 10mm; padding-right: 10mm; container-type: inline-size; }
 .brand-title { font-size: 10pt; } .brand-kind { font-size: 5.5pt; }
-td, .unit { font-size: 5.5pt; }
-th { font-size: 4.5pt; letter-spacing: 0; padding: 4px 2px; white-space: normal; height: 22mm;
+td, .unit { ${wideFont(WIDE_CELL_FONT_PT)} }
+th { ${wideFont(WIDE_HEADER_FONT_PT)} letter-spacing: 0; padding: 4px 2px; white-space: normal; height: 22mm;
      text-align: left; vertical-align: bottom; }
 th > span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg);
             max-height: 22mm; text-align: left; }
-col.c-qty { width: 10mm; } col.c-unit { width: 12mm; } col.c-price { width: 13mm; }
-col.c-value { width: 18mm; } col.c-stage-qty { width: 8mm; } col.c-note { width: 28mm; }
+${wideColumnWidths(1)}
 .num, th.num { padding-left: 2px; padding-right: 2px; }
-.band-name { font-size: 6.5pt; } .band-chip { width: 7px; height: 7px; }
-tr.band-total td { font-size: 6pt; }
-tr.grand-total td { font-size: 6pt; }
+.band-chip { width: 7px; height: 7px; }
+${wideTotalFonts(1)}
 .totals td { font-size: 7pt; }
 .totals tr.grand td { font-size: 9pt; }
 `

@@ -9,7 +9,7 @@ import type { TranslatorT } from '@/lib/i18n/translations'
 import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import { headerTipFor } from '@/lib/kosztorys/header-tips'
 import { activeSortPick } from '@/lib/kosztorys/row-view'
-import { stageLabel } from '@/lib/kosztorys/stage-label'
+import { stageLabel, stageValueGrossHeader } from '@/lib/kosztorys/stage-label'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
 function withTip(node: ReactNode, tip: string): ReactNode {
@@ -98,9 +98,11 @@ export function stageValueHeader(
   const dictionary = surfaceDictionary(opts)
   // Brutto never reaches the worker's link, so only netto has a translation.
   const label =
-    dictionary && axis === 'net'
-      ? dictionary.t('stageValueNetHeader', { stage: stageLabel(stage, dictionary) })
-      : `${stageLabel(stage)} ${axis === 'net' ? 'netto' : 'brutto'}`
+    axis === 'gross'
+      ? stageValueGrossHeader(stage)
+      : dictionary
+        ? dictionary.t('stageValueNetHeader', { stage: stageLabel(stage, dictionary) })
+        : `${stageLabel(stage)} netto`
   return sortableHeader(
     label,
     field,
