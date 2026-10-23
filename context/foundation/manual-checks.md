@@ -1692,8 +1692,18 @@ Zastąpione przez ai-accuracy-page niżej — dashboard claude.ai nie jest już 
 - [ ] Jako EMPLOYEE wejście na `/inwestycje/trafnosc-ai` przekierowuje, strona się nie pokazuje.
 - [ ] `/design` → przyciski: zostały „ExternalLink text” i „ExternalLink button”, bez przykładu „sm
       outline”; linki do arkuszy w aplikacji wyglądają jak przedtem.
-- [ ] Ponowne `accuracy-report-prod.ts` w wykonczymy-ai-cases nie zmienia `accuracy/*.csv`
-      (`git status` czysty).
+- [ ] Ponowne `accuracy-report-prod.ts` w wykonczymy-ai-cases zmienia w `accuracy/*.csv` tylko
+      nową kolumnę `variant_zl` w `error_types.csv` i liczby, które z niej wynikają.
+- [ ] Wykres „Wynik w czasie” i tabela „Wszystkie przypadki” idą od najstarszej do najnowszej
+      inwestycji według daty utworzenia (Meko Arch Zakamarki wśród inwestycji z 12.10, nie pod
+      koniec).
+- [ ] Karta „Pozycje, które AI dało, a właściciel wyzerował”: wykres kołowy ma kawałek „AI wybrało
+      zły wariant”; inwestycja, w której AI dało panele winylowe, a właściciel tę samą ilość m²
+      przeniósł na panele laminowane w tej samej sekcji, liczy w tabeli tylko różnicę wartości obu
+      pozycji, a nie obie pozycje w całości.
+- [ ] Treść kart, kroków i zastrzeżeń: nie ma „prawie każdej wyceny”, „gładź Q4 zamiast Q3” ani
+      „poza pierwszymi dwoma”; karta 4 i krok 1 mówią, że świadome zaniżenie lub zawyżenie zawsze
+      idzie z Powodem zmiany.
 
 ## 2026-10-23 — materials-price-list — „Cennik materiałów” jako podstrona (spike)
 
