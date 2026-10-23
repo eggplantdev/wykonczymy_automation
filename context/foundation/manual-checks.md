@@ -1613,7 +1613,7 @@ Staging 2026-10-22 (pass 15, deploy 32fb4c7bd): sekcja sprawdzona. Test pliki wg
 
 - [ ] Inwestycja rozliczana brutto z wydatkiem netto (np. Karol Pawlak Mirabelki 5/93, VAT 23%) →
       podsumowanie kosztorysu, „Wydatki”: wiersz „… netto*” pokazuje netto × 1,23 (Mirabelki:
-      4504,73), pod tabelą przypis „* Wydatki netto liczone po stawce VAT inwestycji 23%”.
+      4504,73), pod tabelą przypis „*Wydatki netto liczone po stawce VAT inwestycji 23%”.
       „Pozostało do zapłaty” rośnie o tę samą różnicę względem netto (Mirabelki: +842,35).
 - [ ] Inwestycja z wydatkiem netto rozliczana netto ze stawką (np. Mateusz Polis, Hilarego
       Koprowskiego 11m12, 8%): wydatek netto liczy się po netto (5276), bez gwiazdki i przypisu.
@@ -1622,7 +1622,8 @@ Staging 2026-10-22 (pass 15, deploy 32fb4c7bd): sekcja sprawdzona. Test pliki wg
 - [ ] Podgląd inwestora tej samej inwestycji przy rozliczeniu brutto: jeden wiersz na kategorię,
       bez gwiazdki i przypisu; „Razem” równe widokowi managera.
 - [ ] Lista inwestycji: „Wydatki inwestycyjne” i bilans Mirabelek zgadzają się z panelem
-      podsumowania.
+      podsumowania. Podpowiedź nagłówka „Wydatki inwestycyjne” wspomina „wydatek netto plus VAT
+      inwestycji”.
 - [ ] Protokół odbioru inwestycji rozliczanej brutto z wydatkiem netto: „Materiały” równe
       „Materiały” w Podsumowaniu.
 

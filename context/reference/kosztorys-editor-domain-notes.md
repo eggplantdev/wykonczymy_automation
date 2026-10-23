@@ -921,7 +921,7 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     specjalnym: klient płaci **netto × (1 + stawka VAT inwestycji)** (właściciel, 2026-10-23 —
     przy rozliczeniu brutto liczenie samego netto zaniżało materiały). Tabela ma jedną kolumnę
     „Kwota"; w widoku managera wiersz „… netto*" pokazuje tę kwotę, a przypis pod tabelą mówi
-    „* Wydatki netto liczone po stawce VAT inwestycji N%". „Razem" dalej równa się „Materiały"
+    „*Wydatki netto liczone po stawce VAT inwestycji N%". „Razem" dalej równa się „Materiały"
     w Podsumowaniu; „Pozostało do zapłaty", protokół odbioru i lista inwestycji liczą to samo.
     Przy zapisanej stawce wydatek netto nadal wchodzi po zapisanym netto (`netAmount`), co trzyma
     gwarancję, dla której wybrano ten model: brak dryfu zaokrągleń między listą a podsumowaniem.
