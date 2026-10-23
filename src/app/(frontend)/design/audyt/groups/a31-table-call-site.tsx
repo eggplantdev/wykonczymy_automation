@@ -588,7 +588,7 @@ className="mt-4 w-full"`}
         <pre className={PRE}>
           {`enableVirtualization
 virtualRowHeight={ROW_ESTIMATE}          // 52
-virtualContainerClassName="max-h-dialog-scroll"`}
+containerClassName="max-h-dialog-scroll"`}
         </pre>
       </AuditVariant>
 
