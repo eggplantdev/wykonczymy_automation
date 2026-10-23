@@ -80,7 +80,7 @@ describe('MaterialsBreakdownTable — a „… netto" row is the invoice at any 
     ])
     expect(rowValues('Razem')).toEqual([formatNet(RECEIPT + INVOICE_NET * (1 + VAT))])
     expect(
-      screen.getByText('* Wydatki netto liczone po stawce VAT inwestycji 23%'),
+      screen.getByText('*Wydatki netto liczone po stawce VAT inwestycji 23%'),
     ).toBeInTheDocument()
   })
 

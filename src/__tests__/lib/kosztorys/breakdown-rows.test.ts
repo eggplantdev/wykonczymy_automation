@@ -5,6 +5,7 @@ import {
   categoryBreakdownRows,
   pricedBreakdownRows,
 } from '@/lib/kosztorys/breakdown-rows'
+import { billedMaterials } from '@/lib/kosztorys/summary-economics'
 import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 
 // 8% apart, so a brutto the rate derived could never coincide with the invoice's.
@@ -96,6 +97,22 @@ describe('pricedBreakdownRows — one row per input row', () => {
     ])
     expect(new Set(rows.map((row) => row.key)).size).toBe(rows.length)
   })
+
+  it('without a rate stars only the netto rows', () => {
+    const labels = pricedBreakdownRows(ROWS, null, VAT).map((row) => row.label)
+    expect(labels.filter((label) => label.endsWith('*'))).toEqual([
+      'Materiały wykończeniowe netto*',
+      'Pozostałe koszty netto*',
+    ])
+  })
+
+  it.each(RATES)('at %s the Σ of the netto plane equals billedMaterials', (rate) => {
+    const sumOf = (origin: MaterialsBreakdownRowT['origin']) =>
+      ROWS.filter((row) => row.origin === origin).reduce((sum, row) => sum + row.net, 0)
+    const materials = { grossBase: sumOf('gross'), netBilled: sumOf('netBilled') }
+    const priced = sums(pricedBreakdownRows(ROWS, rate, VAT).map((row) => row.pair))
+    expect(priced.net).toBeCloseTo(billedMaterials(materials, rate, VAT), 6)
+  })
 })
 
 describe('categoryBreakdownRows — one row per category', () => {
@@ -108,7 +125,7 @@ describe('categoryBreakdownRows — one row per category', () => {
     ])
   })
 
-  it('a merged category is its brutto receipt priced at the rate plus the frozen invoice', () => {
+  it('a merged category is its brutto receipt priced at the rate plus the invoice', () => {
     const merged = categoryBreakdownRows(ROWS, 0.23, VAT).find(
       (row) => row.label === 'Materiały wykończeniowe',
     )

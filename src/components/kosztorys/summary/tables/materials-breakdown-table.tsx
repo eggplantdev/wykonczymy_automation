@@ -38,9 +38,7 @@ export function MaterialsBreakdownTable({
   const marksNetRows = !showNet && !byCategory && rows.some((row) => row.origin === 'netBilled')
   const priced = byCategory
     ? categoryBreakdownRows(rows, netRate, vatRate)
-    : pricedBreakdownRows(rows, netRate, vatRate).map((row, i) =>
-        marksNetRows && rows[i].origin === 'netBilled' ? { ...row, label: `${row.label}*` } : row,
-      )
+    : pricedBreakdownRows(rows, netRate, vatRate)
   const totalGross = priced.reduce((sum, row) => sum + row.pair.gross, 0)
   const totalNet = priced.reduce((sum, row) => sum + row.pair.net, 0)
 
@@ -77,8 +75,8 @@ export function MaterialsBreakdownTable({
   return (
     <div className="flex flex-col gap-2">
       {table}
-      <Description withIcon={false}>
-        * Wydatki netto liczone po stawce VAT inwestycji {ratePercent(vatRate)}%
+      <Description withIcon={false} size="xs">
+        *Wydatki netto liczone po stawce VAT inwestycji {ratePercent(vatRate)}%
       </Description>
     </div>
   )

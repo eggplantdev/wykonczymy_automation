@@ -1,11 +1,13 @@
-import { toGross } from '@/lib/kosztorys/calc'
-import { billedMaterialsPair, faceValue, type MoneyPairT } from '@/lib/kosztorys/summary-economics'
+import {
+  billedMaterialsPair,
+  billedNetExpense,
+  faceValue,
+  type MoneyPairT,
+} from '@/lib/kosztorys/summary-economics'
 import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 
 export type PricedBreakdownRowT = { key: string; label: string; pair: MoneyPairT }
 
-// A netto row crosses no stawka: its netto and its brutto are both on the invoice. Without a rate the
-// investor is billed brutto, so it takes the investment's VAT on top.
 export function breakdownRowPair(
   row: MaterialsBreakdownRowT,
   rate: number | null,
@@ -13,7 +15,7 @@ export function breakdownRowPair(
 ): MoneyPairT {
   if (row.origin === 'gross') return billedMaterialsPair(row.net, rate)
   return rate == null
-    ? faceValue(toGross(row.net, vatRate))
+    ? faceValue(billedNetExpense(row.net, rate, vatRate))
     : { net: row.net, gross: row.recordedGross }
 }
 
@@ -24,13 +26,13 @@ export function pricedBreakdownRows(
 ): PricedBreakdownRowT[] {
   return rows.map((row) => ({
     key: `${row.origin}-${row.id ?? 'correction'}`,
-    label: row.origin === 'netBilled' ? `${row.label} netto` : row.label,
+    label: row.origin === 'netBilled' ? `${row.label} netto${rate == null ? '*' : ''}` : row.label,
     pair: breakdownRowPair(row, rate, vatRate),
   }))
 }
 
-// Merged AFTER pricing: a category's brutto receipts move with the stawka while its netto invoice is
-// frozen, so no single raw row could stand for the sum.
+// Merged AFTER pricing: a category's brutto receipts and its netto invoice are priced differently, so
+// no single raw row could stand for the sum.
 export function categoryBreakdownRows(
   rows: MaterialsBreakdownRowT[],
   rate: number | null,
