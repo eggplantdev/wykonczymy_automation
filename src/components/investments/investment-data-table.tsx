@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Sparkles } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { StatusFilter } from '@/components/investments/status-filter'
@@ -14,18 +15,14 @@ import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { AddInvestmentDialog } from '@/components/dialogs/add-investment-dialog'
 import { Description } from '@/components/ui/description'
-import { ExternalLink } from '@/components/ui/external-link'
+import { Button } from '@/components/ui/button'
 import { DropdownMenuCheckboxRow, DropdownMenuLabel } from '@/components/ui/dropdown-menu'
 import {
   SettlePayoutsDialog,
   type SettleDialogTargetT,
 } from '@/components/dialogs/settle-payouts-dialog'
 import type { TemplateMetaT } from '@/lib/db/templates'
-import {
-  AI_ACCURACY_DASHBOARD_URL,
-  AI_PROGRESS_LABELS,
-  AI_PROGRESS_STEPS,
-} from '@/lib/constants/investment-ai-stage'
+import { AI_PROGRESS_LABELS, AI_PROGRESS_STEPS } from '@/lib/constants/investment-ai-stage'
 import { isClosedStatus } from '@/lib/constants/investment-status'
 import { OrderDialog, toOrderInvestment } from '@/components/orders/order-dialog'
 import { useOrderSettings, useReferenceData } from '@/hooks/use-reference-data'
@@ -136,14 +133,9 @@ export function InvestmentDataTable({ data, presets }: InvestmentDataTablePropsT
         }}
         actions={
           <>
-            <ExternalLink
-              href={AI_ACCURACY_DASHBOARD_URL}
-              variant="button"
-              size="sm"
-              buttonVariant="outline"
-            >
-              Trafność AI ↗
-            </ExternalLink>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/inwestycje/trafnosc-ai">Trafność AI</Link>
+            </Button>
             <AddInvestmentDialog presets={presets} />
           </>
         }

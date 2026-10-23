@@ -1,7 +1,11 @@
 import { buildKosztorysPrintHtml } from '@/lib/kosztorys/print/build-html'
 import { documentRows } from '@/lib/kosztorys/print/document-rows'
 import { offerPrintColumns, zloty } from '@/lib/kosztorys/print/offer-columns'
-import { WIDE_PRINT_STYLES } from '@/lib/kosztorys/print/styles'
+import {
+  fitPortraitHeaderStyles,
+  fitWideColumnStyles,
+  WIDE_PRINT_STYLES,
+} from '@/lib/kosztorys/print/styles'
 import { bypassedByGlobalDiscount } from '@/lib/kosztorys/columns/column-config'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import { hasPlannedDiscount, investorEmptyColumnIds } from '@/lib/kosztorys/settlement-columns'
@@ -20,7 +24,12 @@ export type OfferPrintArgsT = {
   sectionColumnTotals: ReadonlyMap<number, ReadonlyMap<string, number>>
 }
 
-const OFFER_TOTAL_KEYS = ['plannedNet', 'plannedDiscountAmount']
+const OFFER_TOTAL_KEYS = [
+  'plannedNet',
+  'plannedGross',
+  'plannedDiscountAmount',
+  'plannedDiscountAmountGross',
+]
 
 // The default offer's six columns fit portrait with the opis still ~70mm; a seventh leaves it ~47mm.
 const PORTRAIT_COLUMN_LIMIT = 7
@@ -64,6 +73,9 @@ export function buildOfferPrintHtml({
       ? (columnTotals.get('plannedDiscountAmount') ?? 0)
       : undefined,
     sectionTotalsById: sectionColumnTotals,
-    extraStyles: columns.length > PORTRAIT_COLUMN_LIMIT ? WIDE_PRINT_STYLES : '',
+    extraStyles:
+      columns.length > PORTRAIT_COLUMN_LIMIT
+        ? WIDE_PRINT_STYLES + fitWideColumnStyles(columns.map((column) => column.colClass))
+        : fitPortraitHeaderStyles(columns),
   })
 }

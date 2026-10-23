@@ -1483,9 +1483,13 @@ Refaktor bez zmiany zachowania — każdy boks: wygląda i działa jak przed zmi
 - [x] Kolejność kolumn przy przełączniku „Brutto”: lista pokazuje tylko kolumny brutto, przeciągnięcie
       zmienia kolejność w podglądzie inwestora.
   _Staging 2026-10-22 (pass 12): lista pokazuje kolumny brutto; przeciągnięcie przeniosło kolumnę w podglądzie. Cofnięte._
-- [x] PDF dla inwestora z zaznaczonymi kolumnami brutto: drukuje wyłącznie netto, w tej samej
-      orientacji co bez nich.
-  _Staging 2026-10-22 (pass 13): inw. 168 jest w Koszu (menu „Inwestor" ukryte), więc na inw. 224 (odznaczone „Ukryj pozycje bez przedmiaru", zaznaczone 3 kolumny brutto): „Wygeneruj ofertę w PDF" (print zastubowany na popupie) → 324 wiersze, nagłówki Opis prac / Przedmiar ofertowy / Jednostka miary / Cena j.m. / Wartość netto, brak „brutto", brak landscape (pion). Ustawienia cofnięte do domyślnych (potwierdzone SQL)._
+- [ ] PDF dla inwestora z zaznaczonymi kolumnami brutto: drukuje te same kolumny co podgląd
+      inwestora (brutto obok netto, także „Etap … brutto”), powyżej 7 kolumn strona pozioma, nic nie
+      ucięte z prawej.
+- [ ] Podgląd inwestora → „Drukuj” w nagłówku: otwiera ten sam wydruk oferty co „Wygeneruj ofertę w
+      PDF” z menu edytora. Na wcześniejszej wersji z historii przycisku „Drukuj” nie ma.
+- [ ] Podgląd inwestora na telefonie (390px): „Opcje” i „Drukuj” to kwadratowe ikony w osobnym
+      wierszu pod nazwą inwestycji, przycisk podsumowania wypełnia resztę wiersza, nic nie ucięte.
 - [x] Inwestycja bez wpisów w etapach, z zaznaczonymi „Wartość brutto (razem etapy)” i „Pozostało
       brutto”: obie schowane w podglądzie inwestora, tak jak ich odpowiedniki netto.
   _Staging 2026-10-22 (pass 12): obie schowane w podglądzie (224). Cofnięte._
@@ -1661,14 +1665,35 @@ głównym, w Safari przełącznika nie ma).
 
 ## 2026-10-23 — ai-accuracy-dashboard — „Trafność AI” z listy inwestycji
 
-- [ ] Okno prywatne, bez logowania do claude.ai: link dashboardu „Trafność AI w kosztorysach”
-      pokazuje liczby i wykres, nie ekran logowania.
-- [ ] `/inwestycje` jako menadżer, szerokość desktopowa: „Trafność AI ↗” stoi w pasku obok „Dodaj”,
-      tej samej wysokości, i otwiera dashboard w nowej karcie.
-- [ ] `/design` → przyciski, „Linki w kształcie przycisku”: nowy przykład „ExternalLink button sm
-      outline” wygląda jak „Dodaj” (obrys, mała wysokość).
-- [ ] Dashboard: jeden słupek na każdy sprawdzony przypadek (bez 11 i 12), żadnych nazw rund,
-      kafelki „Wszystkie sprawdzone przypadki” / „Ostatnie 5” / „Najnowszy przypadek” mają liczby.
+Zastąpione przez ai-accuracy-page niżej — dashboard claude.ai nie jest już linkowany ani odświeżany.
+
+- [x] ~~Okno prywatne, bez logowania do claude.ai: link dashboardu pokazuje liczby.~~ zastąpione
+- [x] ~~„Trafność AI ↗” w pasku `/inwestycje` otwiera dashboard w nowej karcie.~~ zastąpione
+- [x] ~~`/design` → przykład „ExternalLink button sm outline”.~~ zastąpione (przykład usunięty)
+- [x] ~~Dashboard: słupek na każdy sprawdzony przypadek, kafelki mają liczby.~~ zastąpione
+
+## 2026-10-23 — ai-accuracy-page — „Trafność AI w kosztorysach” jako podstrona
+
+- [ ] `/inwestycje` jako menadżer: „Trafność AI” w pasku obok „Dodaj”, tej samej wysokości, otwiera
+      stronę w tej samej karcie; w nawigacji podświetlone zostaje „Inwestycje”, a podczas ładowania
+      widać tytuł „Trafność AI w kosztorysach”.
+- [ ] Strona: na górze wskaźnik z wynikiem „ostatnie 5”, nagłówek „AI ma dobrze …% kosztorysu”,
+      plakietka „… pp względem wszystkich przypadków” oraz liczby „Wszystkie przypadki (N)” i
+      „Najnowszy: <inwestycja>”; niżej wykres „Wynik w czasie” (słupek na inwestycję, nazwa w
+      podpowiedzi) i tabela „Wszystkie przypadki” z nazwami inwestycji jako linkami; nie ma w niej
+      Mińska 7 salon fryzjerski ani Jacek Gołoś angorska, a liczby zgadzają się z
+      `accuracy/cases.csv` w wykonczymy-ai-cases.
+- [ ] Strona, w jasnym i ciemnym motywie: cztery karty „Powód 1–4” z paskami i wykresem kołowym,
+      wykres „Pozycje, które AI myli najczęściej” z podpowiedzią po najechaniu, kroki „Co z tym
+      zrobić”; sekcje „Jak liczymy wynik” i „Dlaczego wynik nie jest dokładny” zwinięte na start,
+      rozwijają się i po przeładowaniu pamiętają stan; żaden procent nie schodzi poniżej 0%.
+- [ ] W sprawdzonej inwestycji zmień Przedmiar albo wpisz Powód zmiany przy poprawionej pozycji:
+      po przeładowaniu strony „Trafność AI” jej wiersz pokazuje nowe liczby.
+- [ ] Jako EMPLOYEE wejście na `/inwestycje/trafnosc-ai` przekierowuje, strona się nie pokazuje.
+- [ ] `/design` → przyciski: zostały „ExternalLink text” i „ExternalLink button”, bez przykładu „sm
+      outline”; linki do arkuszy w aplikacji wyglądają jak przedtem.
+- [ ] Ponowne `accuracy-report-prod.ts` w wykonczymy-ai-cases nie zmienia `accuracy/*.csv`
+      (`git status` czysty).
 
 # Zamknięte — indeks
 

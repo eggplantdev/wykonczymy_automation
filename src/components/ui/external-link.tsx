@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Button, type ButtonPropsT } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
 import { TextButton } from '@/components/ui/text-link'
 
@@ -9,19 +9,10 @@ type ExternalLinkPropsT = {
   href: string
   children: ReactNode
   variant?: ExternalLinkVariantT
-  size?: ButtonPropsT['size']
-  buttonVariant?: ButtonPropsT['variant']
   className?: string
 }
 
-export function ExternalLink({
-  href,
-  children,
-  variant = 'text',
-  size = 'touch',
-  buttonVariant,
-  className,
-}: ExternalLinkPropsT) {
+export function ExternalLink({ href, children, variant = 'text', className }: ExternalLinkPropsT) {
   const anchor = (
     <a href={href} target="_blank" rel="noopener noreferrer">
       {children}
@@ -30,7 +21,7 @@ export function ExternalLink({
 
   if (variant === 'button') {
     return (
-      <Button asChild size={size} variant={buttonVariant} className={className}>
+      <Button asChild size="touch" className={className}>
         {anchor}
       </Button>
     )

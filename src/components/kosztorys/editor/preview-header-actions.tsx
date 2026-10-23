@@ -12,11 +12,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { HistoryDialog } from '@/components/kosztorys/editor/history/history-dialog'
+import { PreviewPrintButton } from '@/components/kosztorys/editor/preview-print-button'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import type { InvestorHistoryT } from '@/lib/kosztorys/history/types'
+import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 
 type PreviewHeaderActionsPropsT = {
   history?: InvestorHistoryT
+  clientView?: ClientViewSettingsT
   hasRows: boolean
   emptyRowCount: number
   showAllRows: boolean
@@ -43,6 +46,7 @@ export function PreviewHeader({
 // Item and dialog are siblings, never nested — a dialog inside the menu unmounts with it.
 export function PreviewHeaderActions({
   history,
+  clientView,
   hasRows,
   emptyRowCount,
   showAllRows,
@@ -51,13 +55,13 @@ export function PreviewHeaderActions({
   const [historyOpen, setHistoryOpen] = useState(false)
 
   return (
-    <div className="ml-auto flex shrink-0 items-center gap-2 max-sm:order-last max-sm:grid max-sm:w-full max-sm:auto-cols-fr max-sm:grid-flow-col">
+    <div className="ml-auto flex shrink-0 flex-wrap items-center gap-2 max-sm:order-last max-sm:w-full">
       {(history || emptyRowCount > 0) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="lg" variant="outline">
+            <Button size="lg" variant="outline" className="max-sm:w-10 max-sm:px-0">
               <Settings />
-              Opcje
+              <span className="max-sm:sr-only">Opcje</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -77,11 +81,20 @@ export function PreviewHeaderActions({
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+      {/* A past version would print as today's offer, its title carrying no version. */}
+      {clientView && !history?.version && (
+        <PreviewPrintButton clientView={clientView} hasRows={hasRows} showAllRows={showAllRows} />
+      )}
       {/* The panel reads today's wpłaty and bilans — beside a past grid it would pair two days. */}
       {!history?.version && (
         // The panel's open state is persisted per person, not per view, so without this the client
         // view inherits whatever the toolbar last left and can never fold it back.
-        <KosztorysTotalsPanelToggle size="lg" disabled={!hasRows} hasRows={hasRows} />
+        <KosztorysTotalsPanelToggle
+          size="lg"
+          disabled={!hasRows}
+          hasRows={hasRows}
+          className="max-sm:flex-1"
+        />
       )}
       {history && (
         <HistoryDialog entries={history.entries} open={historyOpen} onOpenChange={setHistoryOpen} />

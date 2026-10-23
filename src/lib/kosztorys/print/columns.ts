@@ -3,8 +3,8 @@ import { POLISH_GRID, type TranslatorT } from '@/lib/i18n/translations'
 import type { ColumnValueT, ColumnValuesT } from '@/lib/kosztorys/columns/column-values'
 import { resolvedCurrentPlannedQty } from '@/lib/kosztorys/calc'
 import { formatPercent, formatQty } from '@/lib/kosztorys/format'
-import { stageLabel } from '@/lib/kosztorys/stage-label'
-import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
+import { stageLabel, stageValueGrossHeader } from '@/lib/kosztorys/stage-label'
+import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
 
 export type PrintColumnT = {
@@ -129,15 +129,44 @@ export const stageQtyColumns = (
     cell: (row) => (row[qtyKey] ? formatQty(row[qtyKey]) : ''),
   }))
 
+const stageMoneyColumn = (
+  key: string,
+  label: string,
+  qtyKey: StageKeyT,
+  valueOf: ColumnValuesT,
+  money: (amount: number) => string,
+): PrintColumnT => {
+  const value = formattedValue(valueOf(key), money)
+  return moneyColumn(key, label, (row) => (row[qtyKey] ? value(row) : ''))
+}
+
 export const stageNetColumns = (
   stages: KosztorysStageT[],
   valueOf: ColumnValuesT,
   money: (amount: number) => string,
   dictionary: TranslatorT<'grid'> = POLISH_GRID,
 ): PrintColumnT[] =>
-  perStage(stages, (stage, qtyKey) => {
-    const key = stageValueNetKey(stage.id)
-    const value = formattedValue(valueOf(key), money)
-    const label = dictionary.t('stageValueNetHeader', { stage: stageLabel(stage, dictionary) })
-    return moneyColumn(key, label, (row) => (row[qtyKey] ? value(row) : ''))
-  })
+  perStage(stages, (stage, qtyKey) =>
+    stageMoneyColumn(
+      stageValueNetKey(stage.id),
+      dictionary.t('stageValueNetHeader', { stage: stageLabel(stage, dictionary) }),
+      qtyKey,
+      valueOf,
+      money,
+    ),
+  )
+
+export const stageGrossColumns = (
+  stages: KosztorysStageT[],
+  valueOf: ColumnValuesT,
+  money: (amount: number) => string,
+): PrintColumnT[] =>
+  perStage(stages, (stage, qtyKey) =>
+    stageMoneyColumn(
+      stageValueGrossKey(stage.id),
+      stageValueGrossHeader(stage),
+      qtyKey,
+      valueOf,
+      money,
+    ),
+  )

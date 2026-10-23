@@ -5,7 +5,6 @@ import { offerPrintColumns, printableKeys, zloty } from '@/lib/kosztorys/print/o
 import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import {
   CLIENT_DOCUMENT_COLUMNS,
-  CLIENT_GROSS_TWINS,
   PREVIEW_VISIBLE_COLUMNS,
 } from '@/lib/kosztorys/client-view/columns'
 import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
@@ -236,6 +235,20 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
       `Razem — Podłogi</td><td class="num">${zloty(netOf(sectionColumnTotals.get(10)))}</td></tr>`,
     )
   })
+
+  it('drukowana „Wartość brutto" dostaje swoją sumę sekcji', () => {
+    const rows = [
+      row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 3, clientPrice: 100 }),
+    ]
+    const gross = editorTotals(rows).sectionColumnTotals.get(10)?.get('plannedGross') ?? 0
+
+    const out = html(rows, showing('plannedGross'))
+
+    expect(gross).toBeGreaterThan(0)
+    expect(/<tr class="band-total">(.*?)<\/tr>/.exec(out)?.[1]).toContain(
+      `<td class="num">${zloty(gross)}</td>`,
+    )
+  })
 })
 
 describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => {
@@ -261,7 +274,7 @@ describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => 
       clientPrice: 100,
       [stageKey(stage1!.id)]: 4,
     })
-    const label = columnLabelForView('plannedDonePercent', 'client')
+    const label = '% wykonania (wg przedmiaru ofertowego)'
 
     expect(html([percentRow])).not.toMatch(header(label))
     const out = html([percentRow], showing('plannedDonePercent'))
@@ -391,8 +404,6 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
 })
 
 describe('sufit ujawniania', () => {
-  const GROSS_KEYS = Object.values(CLIENT_GROSS_TWINS)
-
   it('każda kolumna dokumentu inwestora mieści się w PREVIEW_VISIBLE_COLUMNS', () => {
     for (const key of CLIENT_DOCUMENT_COLUMNS) expect(PREVIEW_VISIBLE_COLUMNS.has(key)).toBe(true)
   })
@@ -411,17 +422,9 @@ describe('sufit ujawniania', () => {
 
   // A key without a print mapping would vanish from the paper silently — shown on the screen, missing
   // from the PDF.
-  it.each(printableKeys(CLIENT_DOCUMENT_COLUMNS, GROSS_KEYS))(
-    '„%s" ma kolumnę na wydruku',
-    (key) => {
-      const others = CLIENT_DOCUMENT_COLUMNS.filter((other) => other !== key)
-      expect(offerPrintColumns(CTX.stages, others, {}, false).length).toBeGreaterThan(0)
-    },
-  )
-
-  it('zaznaczone kolumny brutto nie trafiają na wydruk — PDF jest netto', () => {
-    const allButGross = CLIENT_DOCUMENT_COLUMNS.filter((key) => !GROSS_KEYS.includes(key))
-    expect(offerPrintColumns(CTX.stages, allButGross, {}, false)).toEqual([])
+  it.each(CLIENT_DOCUMENT_COLUMNS)('„%s" ma kolumnę na wydruku', (key) => {
+    const others = CLIENT_DOCUMENT_COLUMNS.filter((other) => other !== key)
+    expect(offerPrintColumns(CTX.stages, others, {}, false).length).toBeGreaterThan(0)
   })
 })
 

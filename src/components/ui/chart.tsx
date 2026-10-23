@@ -28,6 +28,18 @@ function ChartContainer({
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+function ChartTooltipFrame({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      className={cn(
+        'border-border/50 bg-background grid min-w-32 gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
 function ChartTooltipContent({
   active,
   payload,
@@ -40,12 +52,7 @@ function ChartTooltipContent({
   if (!active || !payload?.length) return null
 
   return (
-    <div
-      className={cn(
-        'border-border/50 bg-background grid min-w-32 gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
-        className,
-      )}
-    >
+    <ChartTooltipFrame className={className}>
       {payload.map((item, index) => {
         const color = item.payload?.fill || item.color
 
@@ -59,8 +66,8 @@ function ChartTooltipContent({
           </div>
         )
       })}
-    </div>
+    </ChartTooltipFrame>
   )
 }
 
-export { ChartContainer, ChartTooltip, ChartTooltipContent }
+export { ChartContainer, ChartTooltip, ChartTooltipContent, ChartTooltipFrame }
