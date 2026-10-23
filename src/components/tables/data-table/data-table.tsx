@@ -58,7 +58,7 @@ type DataTablePropsT<TData> = {
   enableVirtualization?: boolean
   virtualRowHeight?: number
   virtualContainerHeight?: number
-  virtualContainerClassName?: string
+  containerClassName?: string
   storageKey?: string
   defaultColumnVisibility?: VisibilityState
   initialSorting?: SortingState
@@ -90,7 +90,7 @@ export function DataTable<TData>({
   enableVirtualization = false,
   virtualRowHeight = 44,
   virtualContainerHeight = 600,
-  virtualContainerClassName,
+  containerClassName,
   storageKey,
   defaultColumnVisibility = {},
   initialSorting = [],
@@ -252,12 +252,18 @@ export function DataTable<TData>({
       {renderRows ? (
         renderRows(rows)
       ) : (
-        <div className={cn(BORDERED_LIST_CLASS, 'overflow-x-auto rounded-lg')}>
+        <div
+          className={cn(
+            BORDERED_LIST_CLASS,
+            'overflow-x-auto rounded-lg',
+            !enableVirtualization && containerClassName,
+          )}
+        >
           {enableVirtualization ? (
             <VirtualizedTableBody
               parentRef={parentRef}
               containerHeight={virtualContainerHeight}
-              containerClassName={virtualContainerClassName}
+              containerClassName={containerClassName}
               headerGroups={headerGroups}
               rows={rows}
               virtualizer={virtualizer}

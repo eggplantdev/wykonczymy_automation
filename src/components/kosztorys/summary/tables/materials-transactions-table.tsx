@@ -41,29 +41,16 @@ const DATASET_LABELS: Record<ExpenseDatasetT, string> = {
 
 const CLIENT_LIST_LABEL = 'Materiały'
 
-const TABLE_HEIGHT = 400
-// Rendered rows are measured, but the container's collapsed
-// height below is computed from this number — keep it in step with whatever the tallest cell renders.
-const ROW_HEIGHT = 44
-// a height computed from body rows alone clips the header and the „Razem" footer — budget their
-// rendered height too.
-const HEADER_HEIGHT = 41
-const FOOTER_HEIGHT = 41
-
-// Every column carries an explicit size: the virtualized table lays out fixed, so an unsized column
-// would fall back to TanStack's uniform 150 and hand „Data" as much room as „Opis".
 const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
   {
     accessorKey: 'date',
     header: 'Data',
-    size: 96,
     cell: ({ getValue }) => formatPLDate(getValue<string>()),
   },
-  { accessorKey: 'label', header: 'Kategoria', size: 160 },
+  { accessorKey: 'label', header: 'Kategoria' },
   {
     accessorKey: 'description',
     header: 'Opis',
-    size: 260,
     enableSorting: false,
     cell: ({ getValue }) => {
       const description = getValue<string | null>()
@@ -80,7 +67,6 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
   {
     accessorKey: 'invoiceNote',
     header: 'Notatka',
-    size: 160,
     enableSorting: false,
     cell: ({ getValue }) => {
       const note = getValue<string | null>()
@@ -104,11 +90,7 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
   {
     accessorKey: 'invoices',
     header: 'Faktura',
-    size: 88,
     enableSorting: false,
-    // The empty branch still reserves the control's box: the container's height is
-    // derived from the ROW_HEIGHT estimate while the rows inside it are measured, so an invoice-less
-    // row collapsing to the text line height makes the two disagree and adds an inner scrollbar.
     cell: ({ row }) =>
       row.original.invoices.length > 0 ? (
         <MediaPreviewButton
@@ -129,7 +111,6 @@ const moneyColumn = (
 ): ColumnDef<MaterialTransactionRowT> => ({
   accessorKey,
   header,
-  size: 120,
   cell: ({ getValue }) => formatNet(getValue<number>()),
 })
 
@@ -211,12 +192,7 @@ export function MaterialsTransactionsTable({
         key={listing.key}
         data={visibleRows}
         columns={isNetDataset ? NET_COLUMNS : GROSS_COLUMNS}
-        enableVirtualization
-        virtualRowHeight={ROW_HEIGHT}
-        virtualContainerHeight={Math.min(
-          visibleRows.length * ROW_HEIGHT + HEADER_HEIGHT + FOOTER_HEIGHT,
-          TABLE_HEIGHT,
-        )}
+        containerClassName="max-h-100"
         initialSorting={[{ id: 'date', desc: true }]}
         getRowHref={preview ? undefined : (row) => expenseRowHref(investmentId, row)}
         footer={(visibleColumnIds) => (

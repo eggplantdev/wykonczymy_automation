@@ -7,8 +7,6 @@ import { formatNet } from '@/lib/kosztorys/format'
 import type { PreviewFileT } from '@/types/media'
 import type { MaterialTransactionRowT } from '@/types/transfers'
 
-// The body is virtualized and jsdom has no layout, so only the header and the „Razem" footer are
-// asserted — both render outside the virtualized rows.
 const ROW_BASE = {
   date: '2026-09-01',
   label: 'Materiały budowlane',

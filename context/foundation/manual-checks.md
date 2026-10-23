@@ -1686,6 +1686,15 @@ głównym, w Safari przełącznika nie ma).
       renderuje się wewnątrz pola formularza (`role="group" data-slot="field"`), strona bez
       overlaya błędu i bez błędu w konsoli (staging 79dd4d5aa; jedyny `400` to preflight vercel.live).
 
+## 2026-10-23 — expense-list-no-virtualization — „Lista wydatków” bez wewnętrznego scrolla
+
+- [ ] Podsumowanie kosztorysu inwestycji z kilkoma wydatkami, w tym z kategorią „Materiały
+      wykończeniowe” → „Lista wydatków”: tabela pokazuje wszystkie wiersze i „Razem” bez
+      wewnętrznego scrolla i bez pustego miejsca pod tabelą.
+- [ ] Inwestycja z ponad dziesięcioma wydatkami: tabela kończy się na ok. 400 px i przewija się w
+      środku, „Razem” zostaje przyklejony na dole.
+- [ ] Kosztorys → dialog wyboru z katalogu: lista pozycji przewija się jak dotąd.
+
 ## 2026-10-23 — ai-accuracy-dashboard — „Trafność AI” z listy inwestycji
 
 - [ ] Okno prywatne, bez logowania do claude.ai: link dashboardu „Trafność AI w kosztorysach”

@@ -48,7 +48,7 @@ export function CataloguePickerTable({ items, selectedIds, onToggle }: PropsT) {
         initialSorting={INITIAL_SORTING}
         enableVirtualization
         virtualRowHeight={ROW_ESTIMATE}
-        virtualContainerClassName="max-h-dialog-scroll"
+        containerClassName="max-h-dialog-scroll"
       />
     </SelectedIdsContext>
   )
