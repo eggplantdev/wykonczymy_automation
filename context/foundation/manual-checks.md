@@ -1661,14 +1661,29 @@ głównym, w Safari przełącznika nie ma).
 
 ## 2026-10-23 — ai-accuracy-dashboard — „Trafność AI” z listy inwestycji
 
-- [ ] Okno prywatne, bez logowania do claude.ai: link dashboardu „Trafność AI w kosztorysach”
-      pokazuje liczby i wykres, nie ekran logowania.
-- [ ] `/inwestycje` jako menadżer, szerokość desktopowa: „Trafność AI ↗” stoi w pasku obok „Dodaj”,
-      tej samej wysokości, i otwiera dashboard w nowej karcie.
-- [ ] `/design` → przyciski, „Linki w kształcie przycisku”: nowy przykład „ExternalLink button sm
-      outline” wygląda jak „Dodaj” (obrys, mała wysokość).
-- [ ] Dashboard: jeden słupek na każdy sprawdzony przypadek (bez 11 i 12), żadnych nazw rund,
-      kafelki „Wszystkie sprawdzone przypadki” / „Ostatnie 5” / „Najnowszy przypadek” mają liczby.
+Zastąpione przez ai-accuracy-page niżej — dashboard claude.ai nie jest już linkowany ani odświeżany.
+
+- [x] ~~Okno prywatne, bez logowania do claude.ai: link dashboardu pokazuje liczby.~~ zastąpione
+- [x] ~~„Trafność AI ↗” w pasku `/inwestycje` otwiera dashboard w nowej karcie.~~ zastąpione
+- [x] ~~`/design` → przykład „ExternalLink button sm outline”.~~ zastąpione (przykład usunięty)
+- [x] ~~Dashboard: słupek na każdy sprawdzony przypadek, kafelki mają liczby.~~ zastąpione
+
+## 2026-10-23 — ai-accuracy-page — „Trafność AI w kosztorysach” jako podstrona
+
+- [ ] `/inwestycje` jako menadżer: „Trafność AI” w pasku obok „Dodaj”, tej samej wysokości, otwiera
+      stronę w tej samej karcie; w nawigacji podświetlone zostaje „Inwestycje”, a podczas ładowania
+      widać tytuł „Trafność AI w kosztorysach”.
+- [ ] Strona: kafelki „Wszystkie sprawdzone przypadki” / „Ostatnie 5 przypadków” / „Najnowszy
+      przypadek”, wykres (słupek na inwestycję, nazwa w podpowiedzi) i tabela „Wszystkie przypadki”
+      z nazwami inwestycji jako linkami; nie ma w niej Mińska 7 salon fryzjerski ani Jacek Gołoś
+      angorska, a liczby zgadzają się z `accuracy/cases.csv` w wykonczymy-ai-cases.
+- [ ] W sprawdzonej inwestycji zmień Przedmiar albo wpisz Powód zmiany przy poprawionej pozycji:
+      po przeładowaniu strony „Trafność AI” jej wiersz pokazuje nowe liczby.
+- [ ] Jako EMPLOYEE wejście na `/inwestycje/trafnosc-ai` przekierowuje, strona się nie pokazuje.
+- [ ] `/design` → przyciski: zostały „ExternalLink text” i „ExternalLink button”, bez przykładu „sm
+      outline”; linki do arkuszy w aplikacji wyglądają jak przedtem.
+- [ ] Ponowne `accuracy-report-prod.ts` w wykonczymy-ai-cases nie zmienia `accuracy/*.csv`
+      (`git status` czysty).
 
 # Zamknięte — indeks
 

@@ -288,10 +288,10 @@ kosztorys write anywhere expires it — acceptable at this scale.
 
 #### Automated
 
-- [x] 2.1 Phase 1 specs still pass
+- [x] 2.1 Phase 1 specs still pass — 8719ece89
 
 ### Phase 3: Workflow docs
 
 #### Automated
 
-- [ ] 3.1 No dangling reference
+- [x] 3.1 No dangling reference

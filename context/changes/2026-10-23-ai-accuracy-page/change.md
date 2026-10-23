@@ -1,7 +1,7 @@
 ---
 change_id: ai-accuracy-page
 title: Trafność AI w kosztorysach as a live in-app page instead of a claude.ai artifact
-status: implementing
+status: implemented
 created: 2026-10-23
 updated: 2026-10-23
 archived_at: null
