@@ -1639,6 +1639,8 @@ głównym, w Safari przełącznika nie ma).
 - [ ] Dwie różne inwestycje → „Przeanalizowana”: na telefonie są dwa osobne powiadomienia, nie
       jedno nadpisane.
 - [ ] „Wiedza wyekstraktowana” nie wysyła nic.
+- [ ] Przed następnym wgraniem szkicu AI uruchom loader z `DRY=1` (z tokenem sesji produkcji): wypisany
+      SQL nie zawiera `ai_stage`, a skrypt nie zmienia etapu.
 - [ ] Następne wgranie szkicu AI ustawia „Przeanalizowana” bez ręcznego kroku i powiadamia obu
       recenzentów.
 - [ ] Po migracji zapis listy odbiorców na `/flota` nadal się udaje.

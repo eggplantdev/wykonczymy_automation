@@ -30,22 +30,3 @@ learn it changed.
   `src/scripts/load-ai-draft.ts`), which bypasses the action — the loader must set the stage through the
   app action (as `prod-client.ts` does for other steps), or no push goes out.
 - A recipient gets the push only on a device where push is enabled (PWA push toggle).
-
-## Decisions kept at archive
-
-- **Recipients are e-mail lists in the `notification-recipients` global, matched back to live accounts
-  (`lower(email)`).** A users relationship would drop `users-by-email.ts`, but reusing the global was
-  chosen so no names or ids sit in the repo. Cost accepted: a typo'd or changed address drops out
-  silently; the error log fires only when no address on the list matches. The lists have no editing
-  card — a change of recipient is a migration or a one-off write.
-- **The seed exists because every list is `required` + `minRows: 1`** and `saveRecipientListAction`
-  rewrites all lists — an unseeded list breaks saving the others. It hardcodes `_parent_id` 1, which
-  `20260826_0` creates on every environment.
-- **Accepted race:** the action reads the old stage, then updates. Two simultaneous changes can send
-  one push too many or too few — a handful of managers set this by hand.
-- **The loader no longer sets the stage in the draft's psql transaction.** It sets „Przeanalizowana”
-  through `setInvestmentAiStageAction` after psql commits, because only the app sends the push; a failed
-  call prints a loud "set it by hand" error. A round loaded while the stage is already
-  „Przeanalizowana” sends nothing.
-- **Untested:** the loader's action call has no automated test, and its DRY run was not executed (it
-  needs a prod session token).
