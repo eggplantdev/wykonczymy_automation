@@ -26,8 +26,14 @@ export function materialsNetDiscount(grossBase: number, netRate: number | null):
 
 export type MaterialsT = { grossBase: number; netBilled: number }
 
-export function billedMaterials(materials: MaterialsT, netRate: number | null): number {
-  return billedMaterialsPair(materials.grossBase, netRate).net + materials.netBilled
+// Without a rate the investor is billed brutto, so the netto bucket takes the investment's VAT on top.
+export function billedMaterials(
+  materials: MaterialsT,
+  netRate: number | null,
+  vatRate: number,
+): number {
+  const netBucket = netRate == null ? toGross(materials.netBilled, vatRate) : materials.netBilled
+  return billedMaterialsPair(materials.grossBase, netRate).net + netBucket
 }
 
 export function combinedPair(
@@ -55,7 +61,7 @@ export function computeAmountDue(
 ): MoneyPairT {
   const combined = combinedPair(
     laborCostsNet,
-    faceValue(billedMaterials(materials, materialsNetRate)),
+    faceValue(billedMaterials(materials, materialsNetRate, vatRate)),
     vatRate,
   )
   return { net: combined.net - paid.net - loss, gross: combined.gross - paid.gross - loss }
