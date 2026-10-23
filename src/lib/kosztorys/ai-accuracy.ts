@@ -1,5 +1,5 @@
-// How far each reviewed AI draft is from the owner's kosztorys, in złoty: the tables behind the
-// „Trafność AI w kosztorysach” page and the ai-cases accuracy CSVs.
+import { groupInOrder } from '@/lib/utils/group-in-order'
+
 export type AiAccuracyItemT = {
   aiPlannedQty: number | null
   plannedQty: number
@@ -80,12 +80,10 @@ export function scoreCases(cases: readonly AiAccuracyCaseInputT[]) {
     qty_zl: sum(rows, (row) => (row.ai > 0 && row.own > 0 ? wrongZl(row) : 0)),
   }))
 
-  const groups = new Map<string, RowT[]>()
-  for (const row of scored.flatMap(({ rows }) => rows)) {
-    if (row.ai === row.own) continue
-    const key = groupKey(row.description)
-    groups.set(key, [...(groups.get(key) ?? []), row])
-  }
+  const groups = groupInOrder(
+    scored.flatMap(({ rows }) => rows).filter((row) => row.ai !== row.own),
+    (row) => groupKey(row.description),
+  )
   const pozycje = [...groups.values()].map((rows) => ({
     name: rows.map((row) => row.description).toSorted()[0],
     inCases: new Set(rows.map((row) => row.investmentId)).size,
@@ -127,7 +125,7 @@ export type AiAccuracyTablesT = ReturnType<typeof scoreCases>
 
 // Without the zero guards a kosztorys with no priced pozycja turns every figure into NaN.
 const rightPercent = (ownerZl: number, wrongZl: number) =>
-  ownerZl ? Math.round(100 - (100 * wrongZl) / ownerZl) : 0
+  ownerZl ? Math.max(0, Math.round(100 - (100 * wrongZl) / ownerZl)) : 0
 const sharePercent = (part: number, whole: number) => (whole ? Math.round((100 * part) / whole) : 0)
 
 type CaseFiguresT = {
@@ -158,7 +156,7 @@ function summarizeWindow(cases: readonly CaseFiguresT[]) {
   const qtyZl = total(cases, (figures) => figures.qtyZl)
   const splitZl = missedZl + extraZl + qtyZl
   return {
-    labels: cases.map((figures) => figures.label),
+    count: cases.length,
     rightPercent: right,
     wrongPer100: 100 - right,
     noReasonPercent: sharePercent(
@@ -168,14 +166,13 @@ function summarizeWindow(cases: readonly CaseFiguresT[]) {
     missedZl,
     extraZl,
     qtyZl,
-    splitZl,
     extraPercent: sharePercent(extraZl, splitZl),
   }
 }
 
 export type AiAccuracyWindowT = ReturnType<typeof summarizeWindow>
 
-// The cases' order is the page's time axis: „last 5” and „latest” read it from the end.
+// The cases' order is the page's time axis: „last 5” reads it from the end.
 export function summarizeAccuracy(tables: AiAccuracyTablesT) {
   const figures: CaseFiguresT[] = tables.cases.map((row, index) => ({
     investmentId: row.investmentId,
@@ -199,13 +196,10 @@ export function summarizeAccuracy(tables: AiAccuracyTablesT) {
       label: caseFigures.label,
       ownerZl: caseFigures.ownerZl,
       wrongZl: caseFigures.wrongZl,
-      rightPercent: Math.max(0, rightPercent(caseFigures.ownerZl, caseFigures.wrongZl)),
-      rollingPercent: Math.max(
-        0,
-        rightPercent(
-          total(window, (windowFigures) => windowFigures.ownerZl),
-          total(window, (windowFigures) => windowFigures.wrongZl),
-        ),
+      rightPercent: rightPercent(caseFigures.ownerZl, caseFigures.wrongZl),
+      rollingPercent: rightPercent(
+        total(window, (windowFigures) => windowFigures.ownerZl),
+        total(window, (windowFigures) => windowFigures.wrongZl),
       ),
       noReasonPercent: sharePercent(caseFigures.noReasonZl, caseFigures.reasonWrongZl),
     }
@@ -225,22 +219,19 @@ export function summarizeAccuracy(tables: AiAccuracyTablesT) {
   }
 
   const repeatTotalZl = tables.repeat_groups.reduce((sum, group) => sum + group.wrong_zl, 0)
-  const repeatGroups = tables.repeat_groups
-    .map((group) => ({
-      groupOrder: group.group_order,
-      howOften: group.how_often,
-      pozycje: group.pozycje,
-      wrongZl: group.wrong_zl,
-      sharePercent: sharePercent(group.wrong_zl, repeatTotalZl),
-    }))
-    .toSorted((a, b) => b.groupOrder - a.groupOrder)
+  const repeatGroups = tables.repeat_groups.map((group) => ({
+    groupOrder: group.group_order,
+    howOften: group.how_often,
+    pozycje: group.pozycje,
+    wrongZl: group.wrong_zl,
+    sharePercent: sharePercent(group.wrong_zl, repeatTotalZl),
+  }))
 
   return {
     cases,
     windows: {
       all: summarizeWindow(figures),
       last: summarizeWindow(figures.slice(-AI_ACCURACY_WINDOW)),
-      latest: summarizeWindow(figures.slice(-1)),
     },
     example,
     repeatGroups,

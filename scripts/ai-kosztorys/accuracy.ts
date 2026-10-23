@@ -1,5 +1,3 @@
-// The scored tables as the five CSVs in <ai-cases>/accuracy/, keyed by ai-cases case number and slug
-// so they stay comparable with the files already committed there.
 import type { AiAccuracyTablesT } from '@/lib/kosztorys/ai-accuracy'
 
 export function toCsvTables(tables: AiAccuracyTablesT, caseNumberOf: ReadonlyMap<number, number>) {
@@ -8,20 +6,18 @@ export function toCsvTables(tables: AiAccuracyTablesT, caseNumberOf: ReadonlyMap
     if (found === undefined) throw new Error(`investment ${investmentId} has no ai-cases case`)
     return found
   }
+  const withCase = <T extends { investmentId: number }>({ investmentId, ...figures }: T) => ({
+    case: caseNumber(investmentId),
+    ...figures,
+  })
   return {
     cases: tables.cases.map(({ investmentId, label, ...figures }) => ({
       case: caseNumber(investmentId),
       slug: label,
       ...figures,
     })),
-    reasons: tables.reasons.map(({ investmentId, ...figures }) => ({
-      case: caseNumber(investmentId),
-      ...figures,
-    })),
-    error_types: tables.error_types.map(({ investmentId, ...figures }) => ({
-      case: caseNumber(investmentId),
-      ...figures,
-    })),
+    reasons: tables.reasons.map(withCase),
+    error_types: tables.error_types.map(withCase),
     repeat_groups: tables.repeat_groups,
     repeats: tables.repeats,
   }

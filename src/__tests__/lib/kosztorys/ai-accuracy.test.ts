@@ -93,7 +93,6 @@ describe('scoreCases — repeated pozycje', () => {
 })
 
 describe('summarizeAccuracy', () => {
-  // Owner kosztorys 100 zł, the AI off by `wrongZl`.
   const caseOff = (investmentId: number, wrongZl: number): AiAccuracyCaseInputT => ({
     investmentId,
     label: `Inwestycja ${investmentId}`,
@@ -106,6 +105,12 @@ describe('summarizeAccuracy', () => {
   it('never scores a case below 0% when the errors exceed the whole kosztorys', () => {
     const { cases } = summarize(caseOff(1, 250))
     expect(cases[0]).toMatchObject({ ownerZl: 100, wrongZl: 250, rightPercent: 0 })
+  })
+
+  it('never scores the tiles or the example below 0% either', () => {
+    const { windows, example } = summarize(caseOff(1, 250))
+    expect(windows.last).toMatchObject({ rightPercent: 0, wrongPer100: 100 })
+    expect(example).toMatchObject({ rightPercent: 0, priceMatchPercent: 0 })
   })
 
   it('averages over the cases so far while fewer than five came before', () => {
@@ -122,17 +127,12 @@ describe('summarizeAccuracy', () => {
     expect(cases[5].rollingPercent).toBe(100)
   })
 
-  it('sums the tiles over all cases, the last five and the latest', () => {
+  it('sums the tiles over all cases and the last five', () => {
     const { windows } = summarize(
       ...[60, 0, 0, 0, 0, 20].map((wrong, index) => caseOff(index + 1, wrong)),
     )
     expect(windows.all).toMatchObject({ rightPercent: 87, wrongPer100: 13 })
-    expect(windows.last).toMatchObject({
-      rightPercent: 96,
-      labels: expect.arrayContaining(['Inwestycja 6']),
-    })
-    expect(windows.last.labels).toHaveLength(5)
-    expect(windows.latest).toMatchObject({ rightPercent: 80, labels: ['Inwestycja 6'] })
+    expect(windows.last).toMatchObject({ rightPercent: 96, count: 5 })
   })
 
   it('shares the wrong złoty between missed, extra and quantity', () => {
@@ -148,7 +148,6 @@ describe('summarizeAccuracy', () => {
       missedZl: 10,
       extraZl: 30,
       qtyZl: 0,
-      splitZl: 40,
       extraPercent: 75,
       noReasonPercent: 25,
     })

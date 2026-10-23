@@ -1,5 +1,3 @@
-// Read-only: the accuracy page's tables as five CSVs into <ai-cases>/accuracy/, from every
-// owner-reviewed case.
 //   TOKEN_FILE=… node --import tsx scripts/ai-kosztorys/accuracy-report-prod.ts
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
@@ -28,10 +26,12 @@ function caseFiles() {
 }
 
 async function run() {
-  const { docs } = await api<{ docs: { id: number; aiStage: InvestmentAiStageT | null }[] }>(
-    '/investments?depth=0&pagination=false&select[aiStage]=true',
+  const { docs } = await api<{
+    docs: { id: number; aiStage: InvestmentAiStageT | null; trashedAt?: string | null }[]
+  }>('/investments?depth=0&pagination=false&select[aiStage]=true&select[trashedAt]=true')
+  const stageOf = new Map(
+    docs.map((doc) => [doc.id, doc.trashedAt ? undefined : (doc.aiStage ?? undefined)]),
   )
-  const stageOf = new Map(docs.map((doc) => [doc.id, doc.aiStage]))
 
   const files = caseFiles()
   const scored: AiAccuracyCaseInputT[] = []
