@@ -18,28 +18,22 @@ type PayoutTableRowT = {
   description: string | null
 }
 
-const TABLE_HEIGHT = 400
-const ROW_HEIGHT = 36
-
 const PAYOUT_COLUMNS: ColumnDef<PayoutTableRowT>[] = [
   {
     accessorKey: 'date',
     header: 'Data',
-    size: 96,
     cell: ({ getValue }) => formatPLDate(getValue<string>()),
   },
-  { accessorKey: 'workerName', header: 'Pracownik', size: 200 },
+  { accessorKey: 'workerName', header: 'Pracownik' },
   {
     accessorKey: 'description',
     header: 'Opis',
-    size: 320,
     enableSorting: false,
     cell: ({ getValue }) => getValue<string | null>() || EMPTY_VALUE,
   },
   {
     accessorKey: 'amount',
     header: 'Kwota',
-    size: 140,
     cell: ({ getValue }) => (
       <span className="text-chart-green">{formatNet(getValue<number>())}</span>
     ),
@@ -69,9 +63,7 @@ export function SubcontractorPayoutsTable({
     <DataTable
       data={rows}
       columns={PAYOUT_COLUMNS}
-      enableVirtualization
-      virtualRowHeight={ROW_HEIGHT}
-      virtualContainerHeight={TABLE_HEIGHT}
+      containerClassName="max-h-100"
       initialSorting={[{ id: 'date', desc: true }]}
       getRowHref={(row) =>
         row.workerId === null

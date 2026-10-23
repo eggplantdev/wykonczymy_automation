@@ -1694,6 +1694,9 @@ głównym, w Safari przełącznika nie ma).
 - [ ] Inwestycja z ponad dziesięcioma wydatkami: tabela kończy się na ok. 400 px i przewija się w
       środku, „Razem” zostaje przyklejony na dole.
 - [ ] Kosztorys → dialog wyboru z katalogu: lista pozycji przewija się jak dotąd.
+- [ ] Podsumowanie kosztorysu inwestycji z kilkoma wypłatami podwykonawców → tabela wypłat ma
+      wysokość swoich wierszy, bez pustego miejsca do 400 px; przy ponad dziesięciu wypłatach
+      przewija się w środku.
 
 ## 2026-10-23 — ai-accuracy-dashboard — „Trafność AI” z listy inwestycji
 
