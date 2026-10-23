@@ -9,12 +9,13 @@ import { TABLE_TEXT_SIZE, type TableTextSizeT } from './table-text-size'
 type TableHeaderPropsT<T> = {
   headerGroups: HeaderGroup<T>[]
   textSize: TableTextSizeT
+  isSticky?: boolean
 }
 
-export function TableHeader<T>({ headerGroups, textSize }: TableHeaderPropsT<T>) {
+export function TableHeader<T>({ headerGroups, textSize, isSticky }: TableHeaderPropsT<T>) {
   const sizes = TABLE_TEXT_SIZE[textSize]
   return (
-    <thead>
+    <thead className={cn(isSticky && 'bg-background sticky top-0 z-10')}>
       {headerGroups.map((headerGroup) => (
         <tr key={headerGroup.id} className="border-border bg-muted/50 border-b">
           {headerGroup.headers.map((header) => {
