@@ -1,7 +1,7 @@
 ---
 change_id: ai-accuracy-dashboard
 title: Permanent management access to the „Trafność AI w kosztorysach” dashboard, refreshed after every owner review
-status: implementing
+status: implemented
 created: 2026-10-23
 updated: 2026-10-23
 archived_at: null

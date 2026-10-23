@@ -353,4 +353,4 @@ The refresh becomes part of the AI workflow, and the workflow links the dashboar
 
 #### Automated
 
-- [ ] 4.1 None — prose
+- [x] 4.1 None — prose — wykonczymy-ai-cases 4deb792
