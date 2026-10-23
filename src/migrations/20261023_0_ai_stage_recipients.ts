@@ -1,8 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
-// Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md). Shape 1:1 with
-// 20260826_0. Seeded on every environment: each list is `required` + `minRows: 1`, so an empty one
-// makes every `saveRecipientListAction` (which rewrites all lists) fail validation.
+// Seeded on every environment: each list is `required` + `minRows: 1`, so an empty one makes every
+// `saveRecipientListAction` (which rewrites all lists) fail validation.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS "notification_recipients_ai_pipeline" (

@@ -16,7 +16,6 @@ import { INVESTMENT_STATUSES, type InvestmentStatusT } from '@/lib/constants/inv
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction, protectedAction } from './run-action'
 import { logError } from '@/lib/utils/log-error'
-import { getDb } from '@/lib/db/get-db'
 import { notifyAiStageChange } from '@/lib/push/notify-ai-stage'
 
 export async function setupSheetAction(investmentId: number) {
@@ -181,12 +180,11 @@ export async function setInvestmentAiStageAction(id: number, aiStage: Investment
       await payload.update({ collection: 'investments', id, data: { aiStage: parsed.data }, user })
 
       if ((before.aiStage ?? null) !== parsed.data) {
-        const stage = parsed.data
-        after(async () =>
-          notifyAiStageChange(payload, await getDb(payload), {
+        after(() =>
+          notifyAiStageChange(payload, {
             investmentId: id,
             investmentName: before.name,
-            stage,
+            stage: parsed.data,
             actorId: user.id,
           }),
         )

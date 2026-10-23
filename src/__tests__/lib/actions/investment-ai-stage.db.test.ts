@@ -85,7 +85,7 @@ describe.skipIf(!ENV_READY)('setInvestmentAiStageAction (DB)', () => {
     await flushAfter()
 
     expect(notifyAiStageChange).toHaveBeenCalledTimes(1)
-    expect(vi.mocked(notifyAiStageChange).mock.calls[0][2]).toEqual({
+    expect(notifyAiStageChange).toHaveBeenCalledWith(expect.anything(), {
       investmentId: id,
       investmentName: `${MARKER} stage`,
       stage: 'analyzed',

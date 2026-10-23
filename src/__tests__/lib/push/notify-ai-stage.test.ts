@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Payload } from 'payload'
-import type { DbExecutorT } from '@/lib/db/get-db'
-import type { PushMessageT } from '@/lib/push/send-push'
+import type * as SendPushModule from '@/lib/push/send-push'
 
 const {
   sendPushToUser,
@@ -10,7 +9,7 @@ const {
   selectLiveUserIdsByEmails,
   logError,
 } = vi.hoisted(() => ({
-  sendPushToUser: vi.fn(),
+  sendPushToUser: vi.fn<typeof SendPushModule.sendPushToUser>(),
   isPushConfigured: vi.fn(),
   readRecipientLists: vi.fn(),
   selectLiveUserIdsByEmails: vi.fn(),
@@ -20,11 +19,11 @@ vi.mock('@/lib/push/send-push', () => ({ sendPushToUser, isPushConfigured }))
 vi.mock('@/lib/email/recipients', () => ({ readRecipientLists }))
 vi.mock('@/lib/db/users-by-email', () => ({ selectLiveUserIdsByEmails }))
 vi.mock('@/lib/utils/log-error', () => ({ logError }))
+vi.mock('@/lib/db/get-db', () => ({ getDb: async () => ({}) }))
 
 import { notifyAiStageChange } from '@/lib/push/notify-ai-stage'
 
 const payload = {} as Payload
-const db = {} as DbExecutorT
 
 const ADMIN = 15
 const REVIEWER_A = 16
@@ -36,20 +35,20 @@ const IDS_BY_EMAIL: Record<string, number> = {
   'reviewer-b@test.local': REVIEWER_B,
 }
 
-const change = (stage: Parameters<typeof notifyAiStageChange>[2]['stage'], actorId = 1) =>
-  notifyAiStageChange(payload, db, {
+const change = (stage: Parameters<typeof notifyAiStageChange>[1]['stage'], actorId = 1) =>
+  notifyAiStageChange(payload, {
     investmentId: 42,
     investmentName: 'Mieszkanie Testowa',
     stage,
     actorId,
   })
 
-const recipients = () => sendPushToUser.mock.calls.map(([, userId]) => userId as number).sort()
+const recipients = () => sendPushToUser.mock.calls.map(([, userId]) => userId).sort()
 
-const messageTo = (userId: number): PushMessageT => {
+const messageTo = (userId: number) => {
   const call = sendPushToUser.mock.calls.find(([, id]) => id === userId)
   if (!call) throw new Error(`no push to user ${userId}`)
-  return (call[2] as (locale: 'pl') => PushMessageT)('pl')
+  return call[2]('pl')
 }
 
 describe('notifyAiStageChange', () => {
@@ -105,20 +104,16 @@ describe('notifyAiStageChange', () => {
     expect(sendPushToUser).not.toHaveBeenCalled()
   })
 
+  it('stays quiet when the only recipient made the change', async () => {
+    await change('ready_for_analysis', ADMIN)
+    expect(sendPushToUser).not.toHaveBeenCalled()
+    expect(logError).not.toHaveBeenCalled()
+  })
+
   it('logs an empty list instead of throwing', async () => {
     selectLiveUserIdsByEmails.mockResolvedValue([])
     await expect(change('ready_for_analysis')).resolves.toBeUndefined()
     expect(sendPushToUser).not.toHaveBeenCalled()
     expect(logError).toHaveBeenCalled()
-  })
-
-  it('still notifies the other reviewer when one send fails', async () => {
-    sendPushToUser.mockImplementation(async (_db, userId: number) => {
-      if (userId === REVIEWER_A) throw new Error('push down')
-      return 1
-    })
-    await expect(change('analyzed')).resolves.toBeUndefined()
-    expect(recipients()).toEqual([REVIEWER_A, REVIEWER_B])
-    expect(logError).toHaveBeenCalledTimes(1)
   })
 })

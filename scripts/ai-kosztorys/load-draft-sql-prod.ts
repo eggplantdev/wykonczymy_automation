@@ -172,7 +172,9 @@ async function run() {
 
   try {
     await callAction('setInvestmentAiStageAction', STAGE_PAGE, [investmentId, 'analyzed'])
-    console.log(`#${investmentId}: etap AI → Przeanalizowana (recenzenci powiadomieni)`)
+    console.log(
+      `#${investmentId}: etap AI → Przeanalizowana (push do recenzentów tylko, gdy etap się zmienił)`,
+    )
   } catch (err) {
     console.error(
       `DRAFT LOADED, BUT THE STAGE WAS NOT SET — set „Przeanalizowana” on #${investmentId} by hand in the app; do not re-run the loader.`,
