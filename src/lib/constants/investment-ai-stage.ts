@@ -67,3 +67,12 @@ export const AI_PROGRESS_LABELS: Record<AiProgressStepT, string> = {
 }
 
 export const AI_ACCURACY_DASHBOARD_URL = 'https://claude.ai/artifact/BmWzerRwVFVkL5eEGGYmae'
+
+export const AI_ACCURACY_REVIEWED_STAGES: readonly InvestmentAiStageT[] = [
+  'review_done',
+  'knowledge_extracted',
+]
+
+// Selection-only cases: the client sent a choice of works and no files, so the AI had no quantities
+// to read. Each one also carries `accuracyExcluded` in its ai-cases `case.json`.
+export const AI_ACCURACY_EXCLUDED_INVESTMENT_IDS: readonly number[] = [200, 202]
