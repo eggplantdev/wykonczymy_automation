@@ -1677,10 +1677,16 @@ Zastąpione przez ai-accuracy-page niżej — dashboard claude.ai nie jest już 
 - [ ] `/inwestycje` jako menadżer: „Trafność AI” w pasku obok „Dodaj”, tej samej wysokości, otwiera
       stronę w tej samej karcie; w nawigacji podświetlone zostaje „Inwestycje”, a podczas ładowania
       widać tytuł „Trafność AI w kosztorysach”.
-- [ ] Strona: kafelki „Wszystkie sprawdzone przypadki” / „Ostatnie 5 przypadków” / „Najnowszy
-      przypadek”, wykres (słupek na inwestycję, nazwa w podpowiedzi) i tabela „Wszystkie przypadki”
-      z nazwami inwestycji jako linkami; nie ma w niej Mińska 7 salon fryzjerski ani Jacek Gołoś
-      angorska, a liczby zgadzają się z `accuracy/cases.csv` w wykonczymy-ai-cases.
+- [ ] Strona: na górze wskaźnik z wynikiem „ostatnie 5”, nagłówek „AI ma dobrze …% kosztorysu”,
+      plakietka „… pp względem wszystkich przypadków” oraz liczby „Wszystkie przypadki (N)” i
+      „Najnowszy: <inwestycja>”; niżej wykres „Wynik w czasie” (słupek na inwestycję, nazwa w
+      podpowiedzi) i tabela „Wszystkie przypadki” z nazwami inwestycji jako linkami; nie ma w niej
+      Mińska 7 salon fryzjerski ani Jacek Gołoś angorska, a liczby zgadzają się z
+      `accuracy/cases.csv` w wykonczymy-ai-cases.
+- [ ] Strona, w jasnym i ciemnym motywie: cztery karty „Powód 1–4” z paskami i wykresem kołowym,
+      wykres „Pozycje, które AI myli najczęściej” z podpowiedzią po najechaniu, kroki „Co z tym
+      zrobić”; sekcje „Jak liczymy wynik” i „Dlaczego wynik nie jest dokładny” zwinięte na start,
+      rozwijają się i po przeładowaniu pamiętają stan; żaden procent nie schodzi poniżej 0%.
 - [ ] W sprawdzonej inwestycji zmień Przedmiar albo wpisz Powód zmiany przy poprawionej pozycji:
       po przeładowaniu strony „Trafność AI” jej wiersz pokazuje nowe liczby.
 - [ ] Jako EMPLOYEE wejście na `/inwestycje/trafnosc-ai` przekierowuje, strona się nie pokazuje.
